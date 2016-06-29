@@ -5,4 +5,4 @@ Download :
 https://www.mediafire.com/folder/3zrhjyrlhsxxr/ACT-mod
 
 Curse :
-http://minecraft.curseforge.com/projects/advanced-creative-tab
+http://minecraft.curseforge.com/projects/advanced-extended-creative-mode
