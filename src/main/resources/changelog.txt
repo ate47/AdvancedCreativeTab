@@ -1,0 +1,39 @@
+
+-------------------------------------------------------
+
+> Mod: Advanced Creative 2 (act)
+> Author(s): ATE47
+> Minecraft version(s): 1.12.2
+
+-------------------------------------------------------
+---------------- ACT 2.1 -- (MC1.12.2) ----------------
+-------------------------------------------------------
+
+- new NBT editor (in item editor / meta)
+- new tab with invisible items
+- new commands :
+-- /act rfw : give a random Fireworks
+
+Bug:
+- Proxy is use when querying Mojang API
+
+-------------------------------------------------------
+---------------- ACT 2.0 -- (MC1.12.2) ----------------
+-------------------------------------------------------
+
+- new Item editor : Egg/CommandBlock/Potion/Head editor
+- remove cheat/head/custom items tabs
+- new menu to show your customs items
+- new commands :
+-- /act give <code> : same as /give <code> but with 
+                       creative
+-- /act head [name] : give a head of a player
+-- /act rename <name> : change the name of an item 
+                          (with formats !) 
+-- /gms /gmc /gm [...] : send /gamemode 0 /gamemode 1 
+                          /gamemode [...] in the chat
+- remove lot's of random things
+- new config : you need to move manually all your 
+                saves.
+                 
+-------------------------------------------------------

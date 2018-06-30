@@ -67,15 +67,17 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, slots, slot -> {
 					this.slot = slot;
 					defineButtonText();
+					return null;
 				}));
 				break;
 			case 1:
 				List<Tuple<String, IAttribute>> attributes = new ArrayList<>();
-				ACTMod.attributes.forEach(
+				ACTMod.getAttributes().forEach(
 						atr -> attributes.add(new Tuple<>(I18n.format("attribute.name." + atr.getName()), atr)));
 				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, attributes, atr -> {
 					this.name = atr.getName();
 					defineButtonText();
+					return null;
 				}));
 				break;
 			case 2:
@@ -86,6 +88,7 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, operations, i -> {
 					this.operationValue = i;
 					defineButtonText();
+					return null;
 				}));
 				break;
 			}

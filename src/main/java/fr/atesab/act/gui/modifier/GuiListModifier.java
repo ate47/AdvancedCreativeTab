@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import fr.atesab.act.gui.GuiValueButton;
@@ -22,10 +23,26 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
-	public static class AddElementButton extends GuiValueButton<ListElement> {
-		private Supplier<ListElement> supplier;
-		private GuiListModifier<?> parent;
+	public static class RunElementButton extends GuiButton {
+		private Runnable left;
+		private Runnable right;
 
+		public RunElementButton(int x, int y, int widthIn, int heightIn, String text, Runnable left, Runnable right) {
+			super(0, x, y, widthIn, heightIn, text);
+			this.left = left;
+			this.right = right;
+		}
+
+		public Runnable getLeft() {
+			return left;
+		}
+
+		public Runnable getRight() {
+			return right;
+		}
+	}
+
+	public static class AddElementButton extends RunElementButton {
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
 				Supplier<ListElement> builder) {
 			this(parent, x, y, widthIn, heightIn, TextFormatting.GREEN + "+", element, builder);
@@ -33,25 +50,23 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
 				ListElement element, Supplier<ListElement> builder) {
-			super(0, x, y, widthIn, heightIn, text, element);
-			this.parent = parent;
-			this.supplier = builder;
+			this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
 		}
 
-		public AddElementButton(GuiListModifier<?> parent, int x, int y, ListElement element,
-				Supplier<ListElement> builder) {
-			super(0, x, y, TextFormatting.GREEN + "+", element);
-			this.parent = parent;
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
+				ListElement element, Function<Integer, ListElement> builder) {
+			super(x, y, widthIn, heightIn, text, () -> {
+				for (int i = 0; i < parent.elements.size(); i++)
+					if (parent.elements.get(i).equals(element)) {
+						ListElement elm = builder.apply(i);
+						if (elm != null)
+							parent.elements.add(i, elm);
+						break;
+					}
+				parent.needRedefine = true;
+			}, null);
 		}
 
-		private void run() {
-			for (int i = 0; i < parent.elements.size(); i++)
-				if (parent.elements.get(i).equals(getValue())) {
-					parent.elements.add(i, supplier.get());
-					break;
-				}
-			parent.needRedefine = true;
-		}
 	}
 
 	public static class AddElementList extends ListElement {
@@ -73,7 +88,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		@Override
 		protected void actionPerformed(GuiButton button) {
-			parent.elements.add(parent.elements.size() - 1, supplier.get());
+			ListElement elm = supplier.get();
+			if (elm != null)
+				parent.elements.add(parent.elements.size() - 1, supplier.get());
 			parent.needRedefine = true;
 			parent.page = parent.maxPage - 1;
 			super.actionPerformed(button);
@@ -111,6 +128,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		protected FontRenderer fontRenderer;
 		protected Minecraft mc;
 		protected List<GuiButton> buttonList = new ArrayList<>();
+		protected List<GuiTextField> fieldList = new ArrayList<>();
 		private int sizeX;
 		private int sizeY;
 
@@ -125,6 +143,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			buttonList.forEach(b -> GuiUtils.drawRelative(mc, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
+			fieldList.stream().filter(GuiTextField::getVisible)
+					.forEach(tf -> GuiUtils.drawRelative(tf, offsetX, offsetY));
 		}
 
 		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
@@ -147,15 +167,32 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		public void init() {
+			fieldList.forEach(tf -> tf.setFocused(false));
 		}
 
+		/**
+		 * Check if this element is focused for key typing
+		 * 
+		 * @return true if an element in this element is focused
+		 */
 		public boolean isFocused() {
+			for (GuiTextField field : fieldList)
+				if (field.isFocused())
+					return true;
 			return false;
 		}
 
 		public void keyTyped(char typedChar, int keyCode) {
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(tf -> tf.textboxKeyTyped(typedChar, keyCode));
 		}
 
+		/**
+		 * Check if this element match with the text in the search bar
+		 * 
+		 * @param search
+		 *            Search bar text
+		 * @return true if this element match
+		 */
 		public boolean match(String search) {
 			return true;
 		}
@@ -163,17 +200,27 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
 			buttonList.forEach(b -> {
 				if (b.mousePressed(mc, mouseX, mouseY)) {
-					if (mouseButton == 0) {
+					if (b instanceof RunElementButton) {
+						if (((RunElementButton) b).getLeft() != null && mouseButton == 0) {
+							playClick();
+							((RunElementButton) b).getLeft().run();
+						} else if (((RunElementButton) b).getLeft() != null && mouseButton == 1) {
+							playClick();
+							((RunElementButton) b).getRight().run();
+						}
+					} else if (mouseButton == 0) {
 						playClick();
-						if (b instanceof RemoveElementButton)
-							((RemoveElementButton) b).run();
-						else if (b instanceof AddElementButton)
-							((AddElementButton) b).run();
-						else
-							actionPerformed(b);
+						actionPerformed(b);
 					} else
 						otherActionPerformed(b, mouseButton);
 				}
+			});
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(tf -> {
+				if (mouseButton == 1 && GuiUtils.isHover(tf, mouseX, mouseY)) {
+					tf.setText("");
+					tf.setFocused(true);
+				} else
+					tf.mouseClicked(mouseX, mouseY, mouseButton);
 			});
 		}
 
@@ -181,27 +228,23 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		public void update() {
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(GuiTextField::updateCursorCounter);
 		}
 	}
 
-	public static class RemoveElementButton extends GuiValueButton<ListElement> {
-		private GuiListModifier<?> parent;
-
+	public static class RemoveElementButton extends RunElementButton {
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
 				ListElement element) {
-			super(0, x, y, widthIn, heightIn, TextFormatting.RED + "-", element);
-			this.parent = parent;
+			super(x, y, widthIn, heightIn, TextFormatting.RED + "-", () -> {
+				parent.elements.remove(element);
+				parent.needRedefine = true;
+			}, null);
 		}
 
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, ListElement element) {
-			super(0, x, y, TextFormatting.RED + "-", element);
-			this.parent = parent;
+			this(parent, x, y, 200, 20, element);
 		}
 
-		private void run() {
-			parent.elements.remove(getValue());
-			parent.needRedefine = true;
-		}
 	}
 
 	private static int getOrDefault(OptionalInt opt, int defaultValue) {
@@ -222,7 +265,32 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 	private boolean needRedefine = false;
 
-	private int dSize = 42;
+	private int dSize = 42, paddingLeft = 0, paddingTop = 0;
+	private boolean noAdaptativeSize = false;
+
+	public void setNoAdaptativeSize(boolean noAdaptativeSize) {
+		this.noAdaptativeSize = noAdaptativeSize;
+	}
+
+	public boolean isNoAdaptativeSize() {
+		return noAdaptativeSize;
+	}
+
+	public int getPaddingLeft() {
+		return paddingLeft;
+	}
+
+	public void setPaddingLeft(int paddingLeft) {
+		this.paddingLeft = paddingLeft;
+	}
+
+	public int getPaddingTop() {
+		return paddingTop;
+	}
+
+	public void setPaddingTop(int paddingTop) {
+		this.paddingTop = paddingTop;
+	}
 
 	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
 			boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
@@ -231,6 +299,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this.buttons = buttons;
 		this.doneButton = doneButton;
 		this.cancelButton = cancelButton;
+		search = new GuiTextField(0, Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
 	}
 
 	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
@@ -268,6 +337,11 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		super.actionPerformed(button);
 	}
 
+	public void addListElement(ListElement elem) {
+		elements.add(elem);
+		needRedefine = true;
+	}
+
 	public void addListElement(int i, ListElement elem) {
 		elements.add(i, elem);
 		needRedefine = true;
@@ -276,7 +350,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	private void define() {
 		searchedElements.clear();
 		elements.stream().filter(le -> le.match(search.getText())).forEach(searchedElements::add);
-		sizeX = getOrDefault(searchedElements.stream().mapToInt(ListElement::getSizeX).max(), width - 20);
+		sizeX = getOrDefault(searchedElements.stream().mapToInt(ListElement::getSizeX).max(), width - 20 - paddingLeft)
+				+ paddingLeft;
 		visibleElements = new ArrayList[Math.max(1, (width - 20) / sizeX)];
 		for (int i = 0; i < visibleElements.length; i++)
 			visibleElements[i] = new ArrayList<>();
@@ -285,12 +360,13 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		int currentSize = 0;
 		int i = 0;
 		for (ListElement elm : searchedElements) {
-			if (currentSize + elm.sizeY > pageHeight) {
+			int sy = paddingTop + elm.sizeY;
+			if (currentSize + sy > pageHeight) {
 				if ((i = (i + 1) % visibleElements.length) == 0)
 					maxPage++;
-				currentSize = elm.sizeY;
+				currentSize = sy;
 			} else
-				currentSize += elm.sizeY;
+				currentSize += sy;
 			if (page == maxPage)
 				visibleElements[i].add(elm);
 		}
@@ -313,9 +389,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			}
 		else
 			j = visibleElements.length;
-		dSize = !add && j == 1 && maxPage == 1
+		dSize = (!(add || noAdaptativeSize) && j == 1 && maxPage == 1
 				? height / 2 - visibleElements[0].stream().mapToInt(ListElement::getSizeY).sum() / 2
-				: 42;
+				: 42) + paddingTop;
 		lastPage.enabled = page != 0;
 		nextPage.enabled = page + 1 < maxPage;
 	}
@@ -329,13 +405,16 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			for (ListElement le : visibleElements[i]) {
 				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
 				le.draw(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
-				currentSize += le.getSizeY();
+				currentSize += le.getSizeY() + paddingTop;
 			}
 		}
 		GlStateManager.color(0, 1, 1);
 
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		search.drawTextBox();
+		if (this instanceof GuiArrayModifierTitle)
+			GuiUtils.drawCenterString(fontRenderer, ((GuiArrayModifierTitle) this).getTitle(), width / 2, 22,
+					0xFFFFFFFF, 10);
 		GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.search") + " : ", search.x, search.y,
 				Color.ORANGE.getRGB(), search.height);
 		if (mc.currentScreen.equals(this))
@@ -344,7 +423,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 				for (ListElement le : visibleElements[i]) {
 					int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
 					le.drawNext(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
-					currentSize += le.getSizeY();
+					currentSize += le.getSizeY() + paddingTop;
 				}
 			}
 		GlStateManager.color(1, 1, 1);
@@ -361,7 +440,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			}
 		else
 			i = visibleElements.length;
-		return (width - sizeX * (i - 1)) / 2;
+		return (width - sizeX * (i - 1) + paddingLeft) / 2;
 	}
 
 	@Override
@@ -383,7 +462,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		buttonList.add(nextPage = new GuiButton(3, dr, height - 21, 20, 20, "->"));
 		int m = fontRenderer.getStringWidth(I18n.format("gui.act.search") + " : ");
 		int n = Math.min(600, width - 20);
-		search = new GuiTextField(0, fontRenderer, (width - n) / 2 + 6 + m, 10, n - 18 - m, 18);
+		search.x = (width - n) / 2 + 6 + m;
+		search.y = this instanceof GuiArrayModifierTitle ? 2 : 18;
+		search.width = n - 18 - m;
+		search.height = 18;
 		elements.forEach(ListElement::init);
 		define();
 		super.initGui();
@@ -417,7 +499,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			for (ListElement le : visibleElements[i]) {
 				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
 				le.mouseClicked(mouseX - offsetX, mouseY - currentSize, mouseButton);
-				currentSize += le.getSizeY();
+				currentSize += le.getSizeY() + paddingTop;
 			}
 		}
 		search.mouseClicked(mouseX, mouseY, mouseButton);
@@ -448,5 +530,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		for (List<ListElement> lel : visibleElements)
 			lel.forEach(ListElement::update);
 		super.updateScreen();
+	}
+
+	public List<ListElement> getElements() {
+		return elements;
 	}
 }

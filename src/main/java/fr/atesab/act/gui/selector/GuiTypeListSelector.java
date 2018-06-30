@@ -1,9 +1,10 @@
 package fr.atesab.act.gui.selector;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import fr.atesab.act.ACTMod;
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.creativetab.CreativeTabs;
@@ -25,13 +26,13 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			GuiUtils.drawItemStack(mc.getRenderItem(), parent.zLevel, parent, itemStack, offsetX, offsetY);
+			GuiUtils.drawItemStack(mc.getRenderItem(), parent.zLevel, parent, itemStack, offsetX + 1, offsetY + 1);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
 		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			if (GuiUtils.isHover(0, 0, 24, 24, mouseX, mouseY)) {
+			if (GuiUtils.isHover(0, 0, 18, 18, mouseX, mouseY)) {
 				drawRect(offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
 				parent.renderToolTip(itemStack, mouseX + offsetX, mouseY + offsetY);
 			}
@@ -40,7 +41,9 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
 		@Override
 		public boolean match(String search) {
-			return itemStack.getDisplayName().toLowerCase().contains(search.toLowerCase());
+			String s = search.toLowerCase();
+			return itemStack.getDisplayName().toLowerCase().contains(s)
+					|| itemStack.getItem().getRegistryName().toString().toLowerCase().contains(s);
 		}
 
 		@Override
@@ -51,10 +54,12 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		}
 	}
 
-	public GuiTypeListSelector(GuiScreen parent, Consumer<ItemStack> setter) {
+	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter) {
 		super(parent, new ArrayList<>(), setter, false);
 		NonNullList<ItemStack> stacks = NonNullList.create();
 		Item.REGISTRY.forEach(i -> {
+			if (i.equals(ACTMod.ADVANCED_ITEM))
+				return;
 			NonNullList<ItemStack> subStack = NonNullList.create();
 			i.getSubItems(i.getCreativeTab() == null ? CreativeTabs.SEARCH : i.getCreativeTab(), subStack);
 			boolean f = true;
@@ -71,11 +76,11 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}
 
-	public GuiTypeListSelector(GuiScreen parent, Consumer<ItemStack> setter, NonNullList<ItemStack> stacks) {
+	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter, NonNullList<ItemStack> stacks) {
 		this(parent, setter, stacks.stream());
 	}
 
-	public GuiTypeListSelector(GuiScreen parent, Consumer<ItemStack> setter, Stream<ItemStack> stacks) {
+	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter, Stream<ItemStack> stacks) {
 		super(parent, new ArrayList<>(), setter, false);
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}

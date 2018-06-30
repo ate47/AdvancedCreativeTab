@@ -2,7 +2,7 @@ package fr.atesab.act.gui.selector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.Tuple;
@@ -34,8 +34,13 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 
 	}
 
-	public GuiButtonListSelector(GuiScreen parent, List<Tuple<String, T>> elements, Consumer<T> setter) {
+	public GuiButtonListSelector(GuiScreen parent, List<Tuple<String, T>> elements, Function<T, GuiScreen> setter) {
 		super(parent, new ArrayList<>(), setter, false);
+		if (elements != null)
+			setElements(elements);
+	}
+
+	public void setElements(List<Tuple<String, T>> elements) {
 		elements.forEach(tuple -> this.elements.add(new SelectorListElement<T>(this, tuple)));
 	}
 }

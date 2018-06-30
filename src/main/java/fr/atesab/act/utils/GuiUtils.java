@@ -1,9 +1,10 @@
 package fr.atesab.act.utils;
 
-import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -22,12 +23,18 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+/**
+ * A set of tools to help to draw, show and modify {@link GuiScreen}
+ * 
+ * @author ATE47
+ * @since 2.0
+ */
 public class GuiUtils {
 	private static class DelayScreen {
 		private GuiScreen screen;
 		private long delay;
 
-		public DelayScreen(GuiScreen screen, long delay) {
+		DelayScreen(GuiScreen screen, long delay) {
 			this.screen = screen;
 			this.delay = delay;
 			MinecraftForge.EVENT_BUS.register(this);
@@ -43,16 +50,38 @@ public class GuiUtils {
 		}
 	}
 
+	/**
+	 * Set clipboard text
+	 * 
+	 * @param text
+	 * @since 2.0
+	 */
 	public static void addToClipboard(String text) {
 		StringSelection select = new StringSelection(text);
 		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
 		cb.setContents(select, select);
 	}
 
+	/**
+	 * Display a {@link GuiScreen} with delay if in chat (to avoid screen close)
+	 * 
+	 * @param screen
+	 * @see GuiUtils#displayScreen(GuiScreen, boolean)
+	 * @since 2.0
+	 */
 	public static void displayScreen(GuiScreen screen) {
 		displayScreen(screen, false);
 	}
 
+	/**
+	 * Display a {@link GuiScreen} with delay if in chat (to avoid screen close)
+	 * 
+	 * @param screen
+	 * @param forceDelay
+	 *            force the delay if the currentScreen isn't a {@link GuiChat}
+	 * @see GuiUtils#displayScreen(GuiScreen)
+	 * @since 2.0
+	 */
 	public static void displayScreen(GuiScreen screen, boolean forceDelay) {
 		Minecraft mc = Minecraft.getMinecraft();
 		if (forceDelay || mc.currentScreen instanceof GuiChat)
@@ -61,14 +90,41 @@ public class GuiUtils {
 			mc.displayGuiScreen(screen);
 	}
 
+	/**
+	 * Draw a String centered
+	 * 
+	 * @since 2.0
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int)
+	 */
 	public static void drawCenterString(FontRenderer fontRenderer, String text, int x, int y, int color) {
 		drawCenterString(fontRenderer, text, x, y, color, fontRenderer.FONT_HEIGHT);
 	}
 
+	/**
+	 * Draw a String centered of a vertical segment
+	 * 
+	 * @param fontRenderer
+	 * @param text
+	 * @param x
+	 * @param y
+	 * @param color
+	 * @param height
+	 *            segment length
+	 * @since 2.0
+	 * @see #drawCenterString(FontRenderer, String, int, int, int)
+	 * @see #drawString(FontRenderer, String, int, int, int, int)
+	 */
 	public static void drawCenterString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
 		drawString(fontRenderer, text, x - fontRenderer.getStringWidth(text) / 2, y, color, height);
 	}
 
+	/**
+	 * Draw a rectangle with a vertical gradient
+	 * 
+	 * @see #drawGradientRect(int, int, int, int, int, int, int, int, float)
+	 * @since 2.0
+	 */
 	public static void drawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor,
 			float zLevel) {
 		float f = (float) (startColor >> 24 & 255) / 255.0F;
@@ -100,6 +156,12 @@ public class GuiUtils {
 		GlStateManager.enableTexture2D();
 	}
 
+	/**
+	 * Draw a gradient rectangle
+	 * 
+	 * @see #drawGradientRect(int, int, int, int, int, int, float)
+	 * @since 2.0
+	 */
 	public static void drawGradientRect(int left, int top, int right, int bottom, int leftColor, int topColor,
 			int rightColor, int bottomColor, float zLevel) {
 		float f = (float) (leftColor >> 24 & 255) / 255.0F;
@@ -139,12 +201,15 @@ public class GuiUtils {
 		GlStateManager.enableTexture2D();
 	}
 
+	/**
+	 * Draw an {@link ItemStack} on a {@link GuiScreen}
+	 * 
+	 * @since 2.0
+	 */
 	public static void drawItemStack(RenderItem itemRender, float zLevel, GuiScreen gui, ItemStack itemstack, int x,
 			int y) {
-
 		if (itemstack == null || itemstack.isEmpty())
 			return;
-
 		GlStateManager.enableDepth();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
 		itemRender.renderItemOverlayIntoGUI(gui.mc.fontRenderer, itemstack, x, y, null);
@@ -152,6 +217,12 @@ public class GuiUtils {
 		GlStateManager.disableLighting();
 	}
 
+	/**
+	 * Draw relatively a {@link GuiTextField}
+	 * 
+	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
+	 * @since 2.0
+	 */
 	public static void drawRelative(GuiTextField field, int offsetX, int offsetY) {
 		field.x += offsetX;
 		field.y += offsetY;
@@ -160,6 +231,12 @@ public class GuiUtils {
 		field.y -= offsetY;
 	}
 
+	/**
+	 * Draw relatively a {@link GuiButton}
+	 * 
+	 * @see #drawRelative(GuiTextField, int, int)
+	 * @since 2.0
+	 */
 	public static void drawRelative(Minecraft mc, GuiButton button, int offsetX, int offsetY, int mouseX, int mouseY,
 			float partialTicks) {
 		button.x += offsetX;
@@ -169,42 +246,107 @@ public class GuiUtils {
 		button.y -= offsetY;
 	}
 
+	/**
+	 * Draw a String to the right of a {@link GuiTextField}
+	 * 
+	 * @since 2.0
+	 * @see #drawRightString(FontRenderer, String, GuiTextField, int, int, int)
+	 */
 	public static void drawRightString(FontRenderer fontRenderer, String text, GuiTextField field, int color) {
 		drawRightString(fontRenderer, text, field.x, field.y, color, field.height);
 	}
 
+	/**
+	 * Draw a String to the right of a {@link GuiTextField} with offsets
+	 * 
+	 * @since 2.0
+	 * @see #drawRightString(FontRenderer, String, GuiTextField, int)
+	 */
 	public static void drawRightString(FontRenderer fontRenderer, String text, GuiTextField field, int color,
 			int offsetX, int offsetY) {
 		drawRightString(fontRenderer, text, field.x + offsetX, field.y + offsetY, color, field.height);
 	}
 
+	/**
+	 * Draw a String to the the right of a location
+	 * 
+	 * @since 2.0
+	 * @see #drawCenterString(FontRenderer, String, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
+	 */
+
 	public static void drawRightString(FontRenderer fontRenderer, String text, int x, int y, int color) {
 		drawCenterString(fontRenderer, text, x, y, color, fontRenderer.FONT_HEIGHT);
 	}
 
+	/**
+	 * Draw a String on the screen at middle of an height to the right of location
+	 * 
+	 * @since 2.0
+	 * @see #drawString(FontRenderer, String, int, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 */
 	public static void drawRightString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
 		drawString(fontRenderer, text, x - fontRenderer.getStringWidth(text), y, color, height);
 	}
 
+	/**
+	 * Draw a String on the screen at middle of an height
+	 * 
+	 * @since 2.0
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
+	 */
 	public static void drawString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
 		fontRenderer.drawString(text, x, y + height / 2 - fontRenderer.FONT_HEIGHT / 2, color);
 	}
 
+	/**
+	 * get a tuple of (x,y) location on the screen for a box to put it without
+	 * loosing it at borders
+	 * 
+	 * @since 2.0
+	 */
 	public static Tuple<Integer, Integer> getRelativeBoxPos(int x, int y, int width, int height, int parentWidth,
 			int parentHeight) {
 		if (x + width > parentWidth) {
 			x -= width + 5;
 			if (x < 0)
 				x = 0;
-		}
+		} else
+			x += 12;
 		if (y + height > parentHeight) {
 			y -= height + 5;
 			if (y < 0)
 				y = 0;
-		}
+		} else
+			y += 12;
 		return new Tuple<Integer, Integer>(x, y);
 	}
 
+	/**
+	 * Draw a text box on the screen
+	 * 
+	 * @since 2.1
+	 */
+	public static void drawTextBox(FontRenderer fontRenderer, int x, int y, int parentWidth, int parentHeight,
+			float zLevel, String... args) {
+		List<String> text = Arrays.asList(args);
+		int width = text.size() == 0 ? 0 : text.stream().mapToInt(fontRenderer::getStringWidth).max().getAsInt();
+		int height = text.size() * (1 + fontRenderer.FONT_HEIGHT);
+		Tuple<Integer, Integer> pos = getRelativeBoxPos(x, y, width, height, parentWidth, parentHeight);
+		drawBox(pos.a, pos.b, width, height, zLevel);
+		text.forEach(l -> {
+			fontRenderer.drawString(l, pos.a, pos.b, 0xffffffff);
+			pos.b += (1 + fontRenderer.FONT_HEIGHT);
+		});
+	}
+
+	/**
+	 * Draw a box on the screen
+	 * 
+	 * @since 2.0
+	 */
 	public static void drawBox(int x, int y, int width, int height, float zLevel) {
 		zLevel -= 50F;
 		GlStateManager.disableRescaleNormal();
@@ -229,18 +371,47 @@ public class GuiUtils {
 		GlStateManager.enableRescaleNormal();
 	}
 
+	/**
+	 * Get a respectively a green or a red integer color for true or false boolean
+	 * 
+	 * @since 2.0
+	 */
 	public static int getRedGreen(boolean value) {
-		return (value ? Color.GREEN : Color.RED).getRGB();
+		return value ? 0xff00ff00 : 0xffff0000;
 	}
 
+	/**
+	 * Check if a {@link GuiButton} is hover by a location (mouse)
+	 * 
+	 * @return true if the button is hover
+	 * @see #isHover(GuiTextField, int, int)
+	 * @see #isHover(int, int, int, int, int, int)
+	 * @since 2.0
+	 */
 	public static boolean isHover(GuiButton button, int mouseX, int mouseY) {
 		return isHover(button.x, button.y, button.width, button.height, mouseX, mouseY);
 	}
 
+	/**
+	 * Check if a {@link GuiTextField} is hover by a location (mouse)
+	 * 
+	 * @return true if the field is hover
+	 * @see #isHover(GuiButton, int, int)
+	 * @see #isHover(int, int, int, int, int, int)
+	 * @since 2.0
+	 */
 	public static boolean isHover(GuiTextField field, int mouseX, int mouseY) {
 		return isHover(field.x, field.y, field.width, field.height, mouseX, mouseY);
 	}
 
+	/**
+	 * Check if a box is hover by a location (mouse)
+	 * 
+	 * @return true if the field is hover
+	 * @see #isHover(GuiButton, int, int)
+	 * @see #isHover(GuiTextField, int, int)
+	 * @since 2.0
+	 */
 	public static boolean isHover(int X, int Y, int sizeX, int sizeY, int mouseX, int mouseY) {
 		return mouseX >= X && mouseX <= X + sizeX && mouseY >= Y && mouseY <= Y + sizeY;
 	}

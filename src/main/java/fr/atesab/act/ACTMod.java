@@ -2,10 +2,15 @@ package fr.atesab.act;
 
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,9 +21,14 @@ import fr.atesab.act.command.ACTCommand;
 import fr.atesab.act.command.SimpleCommand;
 import fr.atesab.act.gui.GuiGiver;
 import fr.atesab.act.gui.GuiMenu;
+import fr.atesab.act.gui.ModGuiFactory;
 import fr.atesab.act.gui.modifier.GuiModifier;
+import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
+import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.utils.ChatUtils;
+import fr.atesab.act.utils.CommandUtils;
 import fr.atesab.act.utils.ItemUtils;
+import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.resources.I18n;
@@ -30,46 +40,117 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
 
 @Mod(name = ACTMod.MOD_NAME, version = ACTMod.MOD_VERSION, canBeDeactivated = false, guiFactory = ACTMod.MOD_FACTORY, modid = ACTMod.MOD_ID, clientSideOnly = true)
 public class ACTMod {
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.0";
+	public static final String MOD_VERSION = "2.1";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
+	/**
+	 * Link to {@link ModGuiFactory}
+	 */
 	public static final String MOD_FACTORY = "fr.atesab.act.gui.ModGuiFactory";
-	private static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
-	private static KeyBinding giver, menu, edit;
-	public static ACTCommand theCommand;
-	public static String[] defaultCustomItems = {
+	public static final ACTCommand ACT_COMMAND = new ACTCommand();
+	public static final AdvancedItem ADVANCED_ITEM = (AdvancedItem) new AdvancedItem();
+	public static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
+	public static final String TEMPLATE_TAG_NAME = "TemplateData";
+	public static final String[] DEFAULT_CUSTOM_ITEMS = {
 			ItemUtils.getGiveCode(ItemUtils.buildStack(Blocks.WOOL, 42, 2, TextFormatting.LIGHT_PURPLE + "Pink verity",
 					new String[] { "" + TextFormatting.GOLD + TextFormatting.BOLD + "42 is life",
 							"" + TextFormatting.GOLD + TextFormatting.BOLD + "wait what ?" })) };
-	public static List<String> customItems = new ArrayList<>(Arrays.asList(defaultCustomItems));
+	private static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
+	private static KeyBinding giver, menu, edit;
+	private static List<String> customItems = new ArrayList<>(Arrays.asList(DEFAULT_CUSTOM_ITEMS));
 	private static List<ItemStack> templates = new ArrayList<>();
-	public static HashSet<IAttribute> attributes = new HashSet<>();
+	private static HashSet<IAttribute> attributes = new HashSet<>();
+	private static Map<String, Map<String, Consumer<StringModifier>>> stringModifier = new HashMap<>();
 	private static Configuration config;
 
-	public static final String TEMPLATE_TAG_NAME = "TemplateData";
+	private static <T> void forEachMatchIn(Object obj, Class<T> cls, Consumer<T> consumer) {
+		for (Field field : obj.getClass().getDeclaredFields()) {
+			if (field.getType().equals(cls)) {
+				field.setAccessible(true);
+				try {
+					consumer.accept((T) field.get(obj));
+				} catch (IllegalArgumentException e) {
+					;
+				} catch (IllegalAccessException e) {
+					;
+				}
+			}
+		}
+	}
 
+	/**
+	 * Get all registered {@link IAttribute}
+	 * <p>
+	 * To add Attributes, use {@link HashSet#add(IAttribute)}
+	 * </p>
+	 * 
+	 * @since 2.1
+	 */
+	public static HashSet<IAttribute> getAttributes() {
+		return attributes;
+	}
+
+	/**
+	 * Get saved custom items codes
+	 * 
+	 * @since 2.1
+	 */
+	public static List<String> getCustomItems() {
+		return customItems;
+	}
+
+	/**
+	 * Get the map by categories of modifiers
+	 * 
+	 * @since 2.1
+	 * @see #registerStringModifier(String, String, Consumer)
+	 */
+	public static Map<String, Map<String, Consumer<StringModifier>>> getStringModifier() {
+		return stringModifier;
+	}
+
+	/**
+	 * Get template give code of a template {@link ItemStack}
+	 * 
+	 * @since 2.0
+	 * @see #registerTemplate(String, ItemStack, String)
+	 * @see #getTemplates()
+	 */
 	public static String getTemplateData(ItemStack template) {
 		return ItemUtils.getCustomTag(template, TEMPLATE_TAG_NAME, null);
 	}
 
+	/**
+	 * Create a {@link Stream} with {@link ItemStack} templates with translated name
+	 * 
+	 * @since 2.0
+	 * @see #registerTemplate(String, ItemStack, String)
+	 */
 	public static Stream<ItemStack> getTemplates() {
 		return templates.stream().map(is -> {
 			String lang = ItemUtils.getCustomTag(is, TEMPLATE_TAG_NAME + "Lang", null);
@@ -78,20 +159,62 @@ public class ACTMod {
 		});
 	}
 
+	/**
+	 * Register a string modifier at root
+	 * 
+	 * @since 2.1
+	 * @see #getStringModifier()
+	 * @see #registerStringModifier(String, String, Consumer)
+	 */
+	public static void registerStringModifier(String name, Consumer<StringModifier> modifier) {
+		registerStringModifier(name, "", modifier);
+	}
+
+	/**
+	 * Register a string modifier in a category
+	 * 
+	 * @since 2.1
+	 * @see #getStringModifier()
+	 * @see #registerStringModifier(String, Consumer)
+	 */
+	public static void registerStringModifier(String name, String category, Consumer<StringModifier> modifier) {
+		Map<String, Consumer<StringModifier>> map = stringModifier.get(category);
+		if (map == null)
+			stringModifier.put(category, map = new HashMap<>());
+		map.put(name, modifier);
+	}
+
+	/**
+	 * Register a new Template with a lang code, an icon an give data
+	 * 
+	 * @since 2.0
+	 * @see #getTemplates()
+	 * @see #getTemplateData(ItemStack)
+	 */
 	public static void registerTemplate(String lang, ItemStack icon, String data) {
 		templates.add(ItemUtils.setCustomTag(ItemUtils.setCustomTag(icon.copy(), TEMPLATE_TAG_NAME, data),
 				TEMPLATE_TAG_NAME + "Lang", lang));
 	}
 
-	public static void saveConfig() {
-		config.get(Configuration.CATEGORY_GENERAL, "customItems", defaultCustomItems)
+	/**
+	 * Save mod configs
+	 * 
+	 * @since 2.0
+	 */
+	public static void saveConfigs() {
+		config.get(Configuration.CATEGORY_GENERAL, "customItems", DEFAULT_CUSTOM_ITEMS)
 				.set(customItems.toArray(new String[customItems.size()]));
 		config.save();
 	}
 
-	public static void syncConfig() {
+	/**
+	 * Load/Sync mod configs
+	 * 
+	 * @since 2.0
+	 */
+	public static void syncConfigs() {
 		customItems = new ArrayList<>(Arrays.asList(config.getStringList("customItems", Configuration.CATEGORY_GENERAL,
-				defaultCustomItems, "", null, "config.act.custom")));
+				DEFAULT_CUSTOM_ITEMS, "", null, "config.act.custom")));
 		config.save();
 	}
 
@@ -103,7 +226,7 @@ public class ACTMod {
 			Minecraft.getMinecraft().displayGuiScreen(new GuiMenu(null));
 		else if (edit.isPressed()) {
 			try {
-				theCommand.edit.processSubCommand(null, null, null);
+				ACT_COMMAND.SC_EDIT.processSubCommand(null, null, null);
 			} catch (CommandException e) {
 				ChatUtils.error(e.getClass().getName() + ": " + e.getMessage());
 			}
@@ -225,11 +348,122 @@ public class ACTMod {
 	}
 
 	@Mod.EventHandler
+	public void postInit(FMLPostInitializationEvent ev) {
+		Item.REGISTRY.forEach(i -> {
+			// Register modifier for every items
+			registerStringModifier(i.getUnlocalizedName() + ".name", "registry.items",
+					sm -> sm.setString(i.getRegistryName().toString()));
+			// build cheat tab
+			if (i.equals(ADVANCED_ITEM))
+				return;
+			else if (i.getCreativeTab() == null)
+				ADVANCED_ITEM.addSubitem(i);
+			else {
+				NonNullList<ItemStack> sub = NonNullList.create();
+				for (CreativeTabs tab : i.getCreativeTabs())
+					i.getSubItems(tab, sub);
+				if (!sub.stream()
+						.filter(is -> is.getItem().equals(i) && is.getMetadata() == 0
+								&& (is.getTagCompound() == null || is.getTagCompound().hasNoTags()))
+						.findFirst().isPresent())
+					ADVANCED_ITEM.addSubitem(i);
+			}
+		});
+		/*
+		 * Register modifier for every registries
+		 */
+		ForgeRegistries.BLOCKS.forEach(b -> registerStringModifier(b.getUnlocalizedName() + ".name", "registry.blocks",
+				sm -> sm.setString(b.getRegistryName().toString())));
+		ForgeRegistries.POTION_TYPES.forEach(p -> registerStringModifier(p.getNamePrefixed(""), "registry.potions",
+				sm -> sm.setString(p.getRegistryName().toString())));
+		ForgeRegistries.BIOMES.forEach(b -> registerStringModifier(b.getBiomeName(), "registry.biomes",
+				sm -> sm.setString(b.getRegistryName().toString())));
+		ForgeRegistries.SOUND_EVENTS.forEach(s -> registerStringModifier(s.getSoundName().toString(), "registry.sounds",
+				sm -> sm.setString(s.getSoundName().toString())));
+		ForgeRegistries.VILLAGER_PROFESSIONS.forEach(vp -> {
+			registerStringModifier(vp.getRegistryName().toString(), "registry.villagerProfessions",
+					sm -> sm.setString(vp.getRegistryName().toString()));
+			// Register modifier for careers of profession
+			forEachMatchIn(vp, List.class, list -> {
+				try {
+					((List<VillagerCareer>) list).forEach(
+							vc -> registerStringModifier(vp.getRegistryName().toString() + " - " + vc.getName(),
+									"registry.villagerProfessions", sm -> sm.setString(vc.getName())));
+				} catch (Exception e) {
+					; // if a non-VillagerCareer list is found
+				}
+			});
+		});
+		ForgeRegistries.ENTITIES.forEach(
+				ee -> registerStringModifier(ee.getEgg() != null ? "entity." + ee.getName() + ".name" : ee.getName(),
+						"registry.entities", sm -> sm.setString(ee.getRegistryName().toString())));
+
+		attributes.forEach(at -> registerStringModifier("attribute.name." + at.getName(), "attributes",
+				sm -> sm.setString(at.getName())));
+
+		for (EntityEquipmentSlot slot : EntityEquipmentSlot.class.getEnumConstants())
+			registerStringModifier("item.modifiers." + slot.getName(), "attributes.slot",
+					sm -> sm.setString(slot.getName()));
+
+		// giver
+
+		registerStringModifier("gui.act.modifier.string.giver", "",
+				sm -> sm.setNextScreen(new GuiGiver(sm.getNextScreen(), sm.getString(), sm::setString, false)));
+
+		// NBT editor
+
+		registerStringModifier("gui.act.modifier.string.nbt", "", sm -> {
+			try {
+				sm.setNextScreen(new GuiNBTModifier(sm.getNextScreen(), nbt -> sm.setString(nbt.toString()),
+						JsonToNBT.getTagFromJson(sm.getString())));
+			} catch (Exception e) {
+			}
+		});
+
+		// players names
+
+		registerStringModifier("gui.act.modifier.string.players", "", sm -> {
+			List<String> plr;
+			try {
+				plr = CommandUtils.getPlayerList();
+			} catch (Exception e) {
+				plr = new ArrayList<>();
+				plr.add(Minecraft.getMinecraft().getSession().getUsername());
+			}
+			List<Tuple<String, String>> btn = new ArrayList<>();
+			plr.forEach(pn -> btn.add(new Tuple<String, String>(pn, pn)));
+			sm.setNextScreen(new GuiButtonListSelector<String>(sm.getNextScreen(), btn, s -> {
+				sm.setString(s);
+				return null;
+			}));
+		});
+
+		// base 64 (en/de)coder
+
+		registerStringModifier("gui.act.modifier.string.b64.encode", "b64", sm -> {
+			try {
+				sm.setString(new String(Base64.getEncoder().encode(sm.getString().getBytes())));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		registerStringModifier("gui.act.modifier.string.b64.decode", "b64", sm -> {
+			try {
+				sm.setString(new String(Base64.getDecoder().decode(sm.getString().getBytes())));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent ev) {
+
 		config = new Configuration(ev.getSuggestedConfigurationFile());
-		syncConfig();
+		syncConfigs();
+
 		try {
-			ClientCommandHandler.instance.registerCommand(theCommand = new ACTCommand());
+			ClientCommandHandler.instance.registerCommand(ACT_COMMAND);
 			ClientCommandHandler.instance
 					.registerCommand(new SimpleCommand("gm", "gm", args -> Minecraft.getMinecraft().player
 							.sendChatMessage("/gamemode " + CommandBase.buildString(args, 0))));
@@ -241,11 +475,16 @@ public class ACTMod {
 		} catch (Throwable e) {
 			LOGGER.error("Can't register ATEHUD command\n" + e.getMessage());
 		}
+
 		ClientRegistry.registerKeyBinding(ACTMod.giver = new KeyBinding("key.act.giver", Keyboard.KEY_Y, MOD_NAME));
 		ClientRegistry.registerKeyBinding(ACTMod.menu = new KeyBinding("key.act.menu", Keyboard.KEY_N, MOD_NAME));
 		ClientRegistry.registerKeyBinding(ACTMod.edit = new KeyBinding("key.act.edit", Keyboard.KEY_H, MOD_NAME));
+
 		MinecraftForge.EVENT_BUS.register(this);
 		FMLCommonHandler.instance().bus().register(this);
+
+		// register attributes
+
 		attributes.add(SharedMonsterAttributes.ARMOR);
 		attributes.add(SharedMonsterAttributes.ARMOR_TOUGHNESS);
 		attributes.add(SharedMonsterAttributes.ATTACK_DAMAGE);
@@ -255,6 +494,8 @@ public class ACTMod {
 		attributes.add(SharedMonsterAttributes.LUCK);
 		attributes.add(SharedMonsterAttributes.MAX_HEALTH);
 		attributes.add(SharedMonsterAttributes.MOVEMENT_SPEED);
+
+		// register templates
 
 		registerTemplate("gui.act.menu.template.empty", new ItemStack(Items.PAPER), "");
 		registerTemplate("gui.act.menu.template.stone", new ItemStack(Blocks.STONE),
@@ -269,6 +510,11 @@ public class ACTMod {
 				ItemUtils.getGiveCode(new ItemStack(Blocks.COMMAND_BLOCK)));
 		registerTemplate("item.egg.name", new ItemStack(Items.SPAWN_EGG),
 				ItemUtils.getGiveCode(new ItemStack(Items.SPAWN_EGG)));
+
 	}
 
+	@SubscribeEvent
+	public void register(RegistryEvent.Register<Item> ev) {
+		ev.getRegistry().register(ADVANCED_ITEM);
+	}
 }
