@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.gui.selector.GuiTypeListSelector;
 import fr.atesab.act.utils.ChatUtils;
@@ -39,14 +40,16 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 		@Override
 		protected void actionPerformed(GuiButton button) throws IOException {
 			switch (button.id) {
-			case 0: {
+			case 0:
 				set(stack);
 				mc.displayGuiScreen(parent);
-			}
 				break;
-			case 1: {
+			case 1:
 				ItemUtils.setUnbreakable(stack, !ItemUtils.isUnbreakable(stack));
-			}
+				break;
+			case 2:
+				mc.displayGuiScreen(new GuiNBTModifier(this, tag -> stack.setTagCompound(tag),
+						stack.getTagCompound() != null ? stack.getTagCompound() : new NBTTagCompound()));
 				break;
 			}
 			super.actionPerformed(button);
@@ -67,6 +70,8 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 			int i = 0;
 			buttonList.add(unbreak = new GuiButton(1, width / 2 - 100, height / 2 - 21 + 21 * (i += 1),
 					I18n.format("item.unbreakable").replaceAll(ChatUtils.MODIFIER + "[a-fA-F0-9rRk-oK-O]", "")));
+			buttonList.add(new GuiButton(2, width / 2 - 100, height / 2 - 21 + 21 * (i += 1),
+					I18n.format("gui.act.modifier.tag.editor")));
 			buttonList.add(new GuiButton(0, width / 2 - 100, height / 2 - 17 + 21 * (i += 1), I18n.format("gui.done")));
 			super.initGui();
 		}
@@ -125,6 +130,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 				tag.merge(is.getTagCompound() == null ? new NBTTagCompound() : is.getTagCompound());
 				is.setTagCompound(tag);
 				currentItemStack = is;
+				return null;
 			}));
 		else if (button.id == 7) // meta
 			mc.displayGuiScreen(new GuiMetaModifier(this, is -> currentItemStack = is, currentItemStack));
@@ -145,6 +151,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 			potionType.add(new ItemStack(Items.TIPPED_ARROW));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
 				currentItemStack = ItemUtils.setItem(is.getItem(), currentItemStack);
+				return null;
 			}, potionType));
 		} else if (button.id == 12) // head
 			mc.displayGuiScreen(new GuiHeadModifier(this, is -> currentItemStack = is, currentItemStack));
@@ -166,6 +173,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 					if (tag.hasKey("id"))
 						tag.removeTag("id");
 				}
+				return null;
 			}));
 		} else if (button.id == 15) // firework
 			mc.displayGuiScreen(new GuiFireworksModifer(this, tag -> {
@@ -181,7 +189,6 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 					currentItemStack.setTagCompound(compound = new NBTTagCompound());
 				compound.setTag("Explosion", exp.getTag());
 			}, ItemUtils.getExplosionInformation(currentItemStack.getOrCreateSubCompound("Explosion"))));
-		; // TODO
 		super.actionPerformed(button);
 	}
 

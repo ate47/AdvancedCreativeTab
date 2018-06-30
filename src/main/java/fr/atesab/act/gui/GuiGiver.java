@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.gui.modifier.GuiItemStackModifier;
+import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
@@ -17,17 +18,17 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 
-public class GuiGiver extends GuiScreen {
+public class GuiGiver extends GuiModifier<String> {
 	private GuiButton giveButton, saveButton, doneButton;
-	private GuiScreen parent;
 	private GuiTextField code;
 	private String preText;
 	private ItemStack currentItemStack;
-	private Consumer<ItemStack> setter;
+	private Consumer<String> setter;
 	private boolean deleteButton;
 
 	public GuiGiver(GuiScreen parent) {
-		this.parent = parent;
+		super(parent, s -> {
+		});
 		if ((mc = Minecraft.getMinecraft()).player != null) {
 			ItemStack mainHand = mc.player.getHeldItem(EnumHand.MAIN_HAND);
 			this.currentItemStack = mainHand != null ? mainHand : mc.player.getHeldItem(EnumHand.OFF_HAND);
@@ -39,8 +40,9 @@ public class GuiGiver extends GuiScreen {
 		this(parent, itemStack, null, false);
 	}
 
-	public GuiGiver(GuiScreen parent, ItemStack itemStack, Consumer<ItemStack> setter, boolean deleteButton) {
-		this.parent = parent;
+	public GuiGiver(GuiScreen parent, ItemStack itemStack, Consumer<String> setter, boolean deleteButton) {
+		super(parent, s -> {
+		});
 		this.preText = itemStack != null ? ItemUtils.getGiveCode(itemStack) : "";
 		this.currentItemStack = itemStack;
 		this.setter = setter;
@@ -48,6 +50,11 @@ public class GuiGiver extends GuiScreen {
 	}
 
 	public GuiGiver(GuiScreen parent, String preText) {
+		this(parent, preText, s -> {
+		}, false);
+	}
+
+	public GuiGiver(GuiScreen parent, String preText, Consumer<String> setter, boolean deleteButton) {
 		this(parent, preText != null && !preText.isEmpty() ? ItemUtils.getFromGiveCode(preText) : null);
 		this.preText = preText;
 	}
@@ -56,7 +63,7 @@ public class GuiGiver extends GuiScreen {
 	protected void actionPerformed(GuiButton button) throws IOException {
 		if (button.id == 0) { // done
 			if (setter != null && currentItemStack != null)
-				setter.accept(currentItemStack);
+				setter.accept(code.getText());
 			mc.displayGuiScreen(parent);
 		} else if (button.id == 1) // give
 			ItemUtils.give(mc, currentItemStack);
@@ -72,7 +79,7 @@ public class GuiGiver extends GuiScreen {
 		} else if (button.id == 6) {
 			if (parent instanceof GuiMenu)
 				((GuiMenu) parent).get();
-			ACTMod.customItems.add(code.getText());
+			ACTMod.getCustomItems().add(code.getText());
 			mc.displayGuiScreen(new GuiMenu(parent));
 		}
 		super.actionPerformed(button);

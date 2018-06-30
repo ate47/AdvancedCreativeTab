@@ -59,6 +59,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 					effect = new PotionEffect(pot, effect.getDuration(), effect.getAmplifier(), effect.getIsAmbient(),
 							effect.doesShowParticles());
 					setButtonText();
+					return null;
 				}));
 				break;
 			case 1: // ambient
@@ -184,6 +185,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 				mc.displayGuiScreen(new GuiButtonListSelector<PotionType>(parent, pots, pot -> {
 					parent.main = pot;
 					defineButton();
+					return null;
 				}));
 				break;
 			}

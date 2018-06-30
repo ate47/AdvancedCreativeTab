@@ -159,8 +159,6 @@ public class GuiFireworksModifer extends GuiListModifier<NBTTagCompound> {
 				GlStateManager.disableAlpha();
 				GlStateManager.disableDepth();
 				GlStateManager.disableFog();
-				pos.a += 12;
-				pos.b += 12;
 				GuiUtils.drawBox(pos.a, pos.b, width, height, parent.zLevel);
 				pos.a++;
 				pos.b += 2;
@@ -250,6 +248,7 @@ public class GuiFireworksModifer extends GuiListModifier<NBTTagCompound> {
 				mc.displayGuiScreen(new GuiButtonListSelector<Integer>(this, elements, t -> {
 					exp.setType(t);
 					defineButton();
+					return null;
 				}));
 				break;
 			case 3:

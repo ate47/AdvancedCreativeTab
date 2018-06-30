@@ -8,19 +8,34 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.item.Item;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ClientCommandHandler;
 
+/**
+ * A set of tools to help to create commands
+ * 
+ * @author ATE47
+ * @since 2.0
+ */
 public class CommandUtils {
 
+	/**
+	 * Get registry name of items
+	 * 
+	 * @return items' names
+	 * @since 2.0
+	 */
 	public static List<String> getItemList() {
-		ArrayList<String> items = new ArrayList<String>();
-		for (ResourceLocation name : Item.REGISTRY.getKeys())
-			items.add(name.toString());
+		List<String> items = new ArrayList<>();
+		Item.REGISTRY.getKeys().forEach(rl -> items.add(rl.toString()));
 		return items;
 	}
 
+	/**
+	 * Get all visible players in tab
+	 * 
+	 * @return players' names
+	 * @since 2.0
+	 */
 	public static List<String> getPlayerList() {
 		List<NetworkPlayerInfo> networkPlayerInfos = new ArrayList<NetworkPlayerInfo>(
 				Minecraft.getMinecraft().player.connection.getPlayerInfoMap());
@@ -35,12 +50,16 @@ public class CommandUtils {
 		return players;
 	}
 
-	public static String getPlayerName(NetworkPlayerInfo networkPlayerInfoIn) {
-		return networkPlayerInfoIn.getDisplayName() != null ? networkPlayerInfoIn.getDisplayName().getFormattedText()
-				: ScorePlayerTeam.formatPlayerName(networkPlayerInfoIn.getPlayerTeam(),
-						networkPlayerInfoIn.getGameProfile().getName());
-	}
-
+	/**
+	 * Get all sub completion argument
+	 * 
+	 * @param options
+	 *            Possible sub arguments
+	 * @param args
+	 *            command arguments
+	 * @return List of string who match sorted by name
+	 * @since 2.0
+	 */
 	public static List<String> getTabCompletion(List<String> options, String[] args) {
 		List<String> options_End = new ArrayList<String>();
 		if (args.length == 0)
@@ -58,6 +77,13 @@ public class CommandUtils {
 		return options_End;
 	}
 
+	/**
+	 * Send a message in chat like with the client (Client command will be execute)
+	 * 
+	 * @param message
+	 *            chat message to send
+	 * @since 2.0
+	 */
 	public static void sendMessage(String message) {
 		EntityPlayerSP p;
 		if ((p = Minecraft.getMinecraft().player) != null) {

@@ -17,6 +17,8 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import com.google.gson.internal.LinkedTreeMap;
 
 import net.minecraft.block.Block;
@@ -27,10 +29,10 @@ import net.minecraft.command.NumberInvalidException;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
@@ -41,36 +43,56 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionType;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.registry.EntityEntry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
+/**
+ * A set of tools to help to create and modify {@link ItemStack}
+ * 
+ * @author ATE47
+ * @since 2.0
+ */
 public class ItemUtils {
-	private static final Random random = new Random();
-
+	/**
+	 * Information about an explosion
+	 * 
+	 * @author ATE47
+	 * @since 2.0
+	 */
 	public static final class ExplosionInformation implements Cloneable {
-		private int type;
-		private boolean trail, flicker;
 		private int[] colors;
 		private int[] fadeColors;
+		private boolean trail, flicker;
+		private int type;
 
+		/**
+		 * Create a random legit explosion {@link ExplosionInformation}
+		 * 
+		 * @since 2.1
+		 */
+		public ExplosionInformation() {
+			this(random.nextInt(5), random.nextBoolean(), random.nextBoolean(), new int[random.nextInt(6) + 1],
+					new int[random.nextInt(7)]);
+			colors = new int[random.nextInt(6 - ((trail ? 1 : 0) + (flicker ? 1 : 0))) + 1];
+			for (int i = 0; i < colors.length; i++)
+				colors[i] = ItemDye.DYE_COLORS[random.nextInt(ItemDye.DYE_COLORS.length)];
+			for (int i = 0; i < fadeColors.length; i++)
+				fadeColors[i] = ItemDye.DYE_COLORS[random.nextInt(ItemDye.DYE_COLORS.length)];
+
+		}
+
+		/**
+		 * Create an {@link ExplosionInformation}
+		 * 
+		 * @since 2.0
+		 */
 		public ExplosionInformation(int type, boolean trail, boolean flicker, int[] colors, int[] fadeColors) {
 			this.type = type;
 			this.trail = trail;
 			this.flicker = flicker;
 			this.colors = colors;
 			this.fadeColors = fadeColors;
-		}
-
-		public NBTTagCompound getTag() {
-			NBTTagCompound tag = new NBTTagCompound();
-			tag.setInteger("Type", type);
-			if (trail)
-				tag.setByte("Trail", (byte) 1);
-			if (flicker)
-				tag.setByte("Flicker", (byte) 1);
-			if (colors.length != 0)
-				tag.setIntArray("Colors", colors);
-			if (fadeColors.length != 0)
-				tag.setIntArray("FadeColors", fadeColors);
-			return tag;
 		}
 
 		@Override
@@ -84,6 +106,26 @@ public class ItemUtils {
 
 		public int[] getFadeColors() {
 			return fadeColors;
+		}
+
+		/**
+		 * Get Explosion tag for this explosion
+		 * 
+		 * @return the tag
+		 * @since 2.0
+		 */
+		public NBTTagCompound getTag() {
+			NBTTagCompound tag = new NBTTagCompound();
+			tag.setInteger("Type", type);
+			if (trail)
+				tag.setByte("Trail", (byte) 1);
+			if (flicker)
+				tag.setByte("Flicker", (byte) 1);
+			if (colors.length != 0)
+				tag.setIntArray("Colors", colors);
+			if (fadeColors.length != 0)
+				tag.setIntArray("FadeColors", fadeColors);
+			return tag;
 		}
 
 		public int getType() {
@@ -119,10 +161,16 @@ public class ItemUtils {
 		}
 	}
 
+	/**
+	 * Information about a potion
+	 * 
+	 * @author ATE47
+	 * @since 2.0
+	 */
 	public static final class PotionInformation {
 		private int customColor;
-		private PotionType main;
 		private List<PotionEffect> customEffects;
+		private PotionType main;
 
 		public PotionInformation(int customColor, PotionType main, List<PotionEffect> customEffects) {
 			this.customColor = customColor;
@@ -156,41 +204,84 @@ public class ItemUtils {
 
 	}
 
-	private static final Map<String, Tuple<Long, String>> UUID_CACHE = new HashMap<>();
+	private static final Random random = new Random();
+	/*
+	 * Caches are made to avoid the waiting time between requests to Mojang API
+	 */
 	private static final Map<String, Tuple<Long, NBTTagCompound>> SKIN_CACHE = new HashMap<>();
+	private static final Map<String, Tuple<Long, String>> UUID_CACHE = new HashMap<>();
 
-	public static String addHyphen(String uuid) {
+	private static String addHyphen(String uuid) {
 		if (uuid.length() < 20)
 			return uuid;
 		return uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-"
 				+ uuid.substring(16, 20) + "-" + uuid.substring(20, uuid.length());
 	}
 
-	public static ItemStack buildStack(Block block, int count, int meta, String name, String[] lore,
-			Tuple<Enchantment, Integer>... enchantments) {
+	/**
+	 * Create a custom stack
+	 * 
+	 * @param block
+	 * @param count
+	 * @param meta
+	 * @param name
+	 * @param lore
+	 * @param enchantments
+	 *            Array of {@link Tuple} of {@link Enchantment} with there level
+	 * @return your stack
+	 * @see #buildStack(Item, int, int, String, String[], Tuple...)
+	 */
+	public static ItemStack buildStack(Block block, int count, int meta, @Nullable String name, @Nullable String[] lore,
+			@Nullable Tuple<Enchantment, Integer>... enchantments) {
 		return buildStack(Item.getItemFromBlock(block), count, meta, name, lore, enchantments);
 	}
 
-	public static ItemStack buildStack(Item item, int count, int meta, String name, String[] lore,
-			Tuple<Enchantment, Integer>... enchantments) {
+	/**
+	 * Create a custom stack
+	 * 
+	 * @param item
+	 * @param count
+	 * @param meta
+	 * @param name
+	 * @param lore
+	 * @param enchantments
+	 *            Array of {@link Tuple} of {@link Enchantment} with there level
+	 * @return your stack
+	 * @see #buildStack(Block, int, int, String, String[], Tuple...)
+	 * @since 2.0
+	 */
+	public static ItemStack buildStack(Item item, int count, int meta, @Nullable String name, @Nullable String[] lore,
+			@Nullable Tuple<Enchantment, Integer>... enchantments) {
 		ItemStack is = new ItemStack(item, count, meta);
 		if (name != null)
 			is.setStackDisplayName(name);
 		if (lore != null)
 			setLore(is, lore);
-		if (enchantments.length != 0)
+		if (enchantments != null)
 			setEnchantments(Arrays.asList(enchantments), is, is.getItem().equals(Items.ENCHANTED_BOOK));
 		return is;
 	}
 
+	/**
+	 * Check if the player have a clear slot in his hotbar
+	 * 
+	 * @return true if a slot is clear
+	 * @since 2.0
+	 */
 	public static boolean canGive(Minecraft mc) {
 		for (int i = 0; i < 9; i++)
-			if (mc.player.inventory.getStackInSlot(i) == null) {
+			if (mc.player.inventory.getStackInSlot(i) == null
+					|| mc.player.inventory.getStackInSlot(i).getItem().equals(Items.AIR))
 				return true;
-			}
 		return false;
 	}
 
+	/**
+	 * Get a list of tuples of Slot / Attribute of a stack
+	 * 
+	 * @since 2.0
+	 * @see #setAttributes(List, ItemStack)
+	 */
 	public static List<Tuple<EntityEquipmentSlot, AttributeModifier>> getAttributes(ItemStack stack) {
 		LinkedTreeMap<Enchantment, Integer> map = new LinkedTreeMap<>(
 				(e1, e2) -> e2.getName().compareToIgnoreCase(e1.getName()));
@@ -212,6 +303,9 @@ public class ItemUtils {
 		return result;
 	}
 
+	/**
+	 * Get Leather armor integer color (10511680 if no color has been found)
+	 */
 	public static int getColor(ItemStack stack) {
 		NBTTagCompound tag = stack.getTagCompound();
 		return (tag == null || !tag.hasKey("display") || !tag.getCompoundTag("display").hasKey("color")) ? 10511680
@@ -219,44 +313,41 @@ public class ItemUtils {
 
 	}
 
-	public static ItemStack getCommandBlock(String cmd, String name) {
-		String cmdmod = cmd.replaceFirst("\\\\", "\\\\");
-		cmdmod = cmd.replaceFirst("\"", "\\\"");
-		ItemStack is = new ItemStack(Blocks.COMMAND_BLOCK);
-		if (is.getTagCompound() == null) {
-			is.setTagCompound(new NBTTagCompound());
-		}
-		NBTTagCompound cmd2 = new NBTTagCompound();
-		cmd2.setString("Command", cmdmod);
-		if (is.getTagCompound() != null)
-			is.getTagCompound().setTag("BlockEntityTag", cmd2);
-		if (name != null)
-			is.setStackDisplayName(name);
-		return is;
-	}
-
+	/**
+	 * Get a custom String tag at the nbt root of a stack or a default value
+	 * 
+	 * @since 2.0
+	 * @see #setCustomTag(ItemStack, String, String)
+	 */
 	public static String getCustomTag(ItemStack stack, String key, String defaultValue) {
 		NBTTagCompound tag = stack.getTagCompound();
 		if (tag == null)
-			stack.setTagCompound(tag = new NBTTagCompound());
+			return defaultValue;
 		return tag.hasKey(key) ? tag.getString(key) : defaultValue;
 	}
 
-	public static ExplosionInformation getExplosionInformation(NBTTagCompound explosion) {
-		return explosion == null
-				? new ExplosionInformation(random.nextInt(5), random.nextBoolean(), random.nextBoolean(),
-						new int[] { random.nextInt(0x1000000) + 0xff000000 }, new int[0])
-				: new ExplosionInformation(explosion.hasKey("Type") ? explosion.getInteger("Type") : 0,
-						explosion.hasKey("Trail") && explosion.getByte("Trail") == (byte) 1,
-						explosion.hasKey("Flicker") && explosion.getByte("Flicker") == (byte) 1,
-						explosion.hasKey("Colors") ? explosion.getIntArray("Colors") : new int[0],
-						explosion.hasKey("FadeColors") ? explosion.getIntArray("FadeColors") : new int[0]);
-	}
-
+	/**
+	 * Get {@link Enchantment}s of an {@link ItemStack}
+	 * 
+	 * @see #setEnchantments(List, ItemStack)
+	 * @see #getEnchantments(ItemStack)
+	 * @since 2.0
+	 */
 	public static List<Tuple<Enchantment, Integer>> getEnchantments(ItemStack stack) {
 		return getEnchantments(stack, false);
 	}
 
+	/**
+	 * Get {@link Enchantment}s of an {@link ItemStack} with checking if it is a
+	 * book
+	 * 
+	 * @param stack
+	 * @param book
+	 *            if this stack is a book or not
+	 * @see #setEnchantments(List, ItemStack, boolean)
+	 * @see #getEnchantments(ItemStack)
+	 * @since 2.0
+	 */
 	public static List<Tuple<Enchantment, Integer>> getEnchantments(ItemStack stack, boolean book) {
 		LinkedTreeMap<Enchantment, Integer> map = new LinkedTreeMap<>(
 				(e1, e2) -> e2.getName().compareToIgnoreCase(e1.getName()));
@@ -279,13 +370,32 @@ public class ItemUtils {
 		return result;
 	}
 
+	/**
+	 * Get {@link ExplosionInformation} from a tag, if the tag is null a
+	 * legit-random explosion will be return
+	 * 
+	 * @since 2.1
+	 */
+	public static ExplosionInformation getExplosionInformation(@Nullable NBTTagCompound explosion) {
+		return explosion == null ? new ExplosionInformation()
+				: new ExplosionInformation(explosion.hasKey("Type") ? explosion.getInteger("Type") : 0,
+						explosion.hasKey("Trail") && explosion.getByte("Trail") == (byte) 1,
+						explosion.hasKey("Flicker") && explosion.getByte("Flicker") == (byte) 1,
+						explosion.hasKey("Colors") ? explosion.getIntArray("Colors") : new int[0],
+						explosion.hasKey("FadeColors") ? explosion.getIntArray("FadeColors") : new int[0]);
+	}
+
+	/**
+	 * Get an {@link ItemStack} from a give code (like after a /give player (code))
+	 * 
+	 * @since 2.0
+	 * @see #getGiveCode(ItemStack)
+	 */
 	public static ItemStack getFromGiveCode(String code) {
-		ItemStack itemstack = null;
-		if (code == null)
-			return itemstack;
-		String[] args = code.split(" ");
-		ResourceLocation resourcelocation = new ResourceLocation(args[0]);
-		Item item = Item.REGISTRY.getObject(resourcelocation);
+		if (code == null || code.isEmpty())
+			return null;
+		String[] args = code.split(" ", 4);
+		Item item = Item.REGISTRY.getObject(new ResourceLocation(args[0]));
 		if (item != null) {
 			int i;
 			try {
@@ -299,25 +409,26 @@ public class ItemUtils {
 			} catch (NumberInvalidException e1) {
 				j = 0;
 			}
-			itemstack = new ItemStack(item, i, j);
+			ItemStack itemstack = new ItemStack(item, i, j);
 
-			if (args.length >= 4) {
-				String arg5 = args[3];
-				if (args.length > 4) {
-					for (int i1 = 4; i1 < args.length; i1++) {
-						arg5 = arg5 + " " + args[i1];
-					}
-				}
+			if (args.length == 4) {
 				try {
 					itemstack.setTagCompound(
-							JsonToNBT.getTagFromJson(arg5.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)) + ""));
+							JsonToNBT.getTagFromJson(args[3].replaceAll("&", String.valueOf(ChatUtils.MODIFIER)) + ""));
 				} catch (NBTException e) {
 				}
 			}
+			return itemstack;
 		}
-		return itemstack;
+		return null;
 	}
 
+	/**
+	 * Get a give code from a {@link ItemStack} (like after a /give player (code))
+	 * 
+	 * @since 2.0
+	 * @see #getFromGiveCode(String)
+	 */
 	public static String getGiveCode(ItemStack itemStack) {
 		boolean a = itemStack.getTagCompound() != null && !itemStack.getTagCompound().hasNoTags();
 		boolean b = itemStack.getMetadata() == 0 && !a;
@@ -330,6 +441,15 @@ public class ItemUtils {
 														+ (a ? " " + itemStack.getTagCompound().toString() : "")));
 	}
 
+	/**
+	 * Change a head with new skin information given by name
+	 * 
+	 * @since 2.0
+	 * @see #getHead(String)
+	 * @see #getHead(String, String, String)
+	 * @see #getHead(ItemStack, String, String, String)
+	 * @see #getHeads(String...)
+	 */
 	public static ItemStack getHead(ItemStack is, String name)
 			throws IOException, NBTException, NoSuchElementException {
 		NBTTagCompound skullOwner = is.getOrCreateSubCompound("SkullOwner");
@@ -340,6 +460,15 @@ public class ItemUtils {
 		return is;
 	}
 
+	/**
+	 * Change a head with new skin information given by uuid, url and name
+	 * 
+	 * @since 2.0
+	 * @see #getHead(String)
+	 * @see #getHead(ItemStack, String)
+	 * @see #getHead(ItemStack, String, String, String)
+	 * @see #getHeads(String...)
+	 */
 	public static ItemStack getHead(ItemStack is, String uuid, String url, String name) {
 		NBTTagCompound skullOwner = is.getOrCreateSubCompound("SkullOwner");
 		skullOwner.setString("Id", addHyphen(uuid.replaceAll("-", "")));
@@ -356,14 +485,41 @@ public class ItemUtils {
 		return is;
 	}
 
+	/**
+	 * Create a head with skin information given by name
+	 * 
+	 * @since 2.0
+	 * @see #getHead(ItemStack, String)
+	 * @see #getHead(String, String, String)
+	 * @see #getHead(ItemStack, String, String, String)
+	 * @see #getHeads(String...)
+	 */
 	public static ItemStack getHead(String name) throws IOException, NBTException, NoSuchElementException {
 		return getHead(new ItemStack(Items.SKULL, 1, 3), name);
 	}
 
+	/**
+	 * Create a head with skin information given by uuid, url and name
+	 * 
+	 * @since 2.0
+	 * @see #getHead(String)
+	 * @see #getHead(ItemStack, String)
+	 * @see #getHead(ItemStack, String, String, String)
+	 * @see #getHeads(String...)
+	 */
 	public static ItemStack getHead(String uuid, String url, String name) {
 		return getHead(new ItemStack(Items.SKULL, 1, 3), uuid, url, name);
 	}
 
+	/**
+	 * Create a heads with skin information given by names
+	 * 
+	 * @since 2.0
+	 * @see #getHead(String)
+	 * @see #getHead(ItemStack, String)
+	 * @see #getHead(String, String, String)
+	 * @see #getHead(ItemStack, String, String, String)
+	 */
 	public static List<ItemStack> getHeads(String... names) throws IOException, NBTException, NoSuchElementException {
 		List<ItemStack> stacks = new ArrayList<>();
 		getUUIDByNames(names).stream().forEach(tuple -> {
@@ -381,6 +537,12 @@ public class ItemUtils {
 		return stacks;
 	}
 
+	/**
+	 * Get lore(description) of an {@link ItemStack}
+	 * 
+	 * @since 2.0
+	 * @see #setLore(ItemStack, String[])
+	 */
 	public static String[] getLore(ItemStack stack) {
 		if (stack.getTagCompound() == null)
 			stack.setTagCompound(new NBTTagCompound());
@@ -400,6 +562,15 @@ public class ItemUtils {
 
 	}
 
+	/**
+	 * Get {@link PotionInformation} of stack
+	 * 
+	 * @param stack
+	 *            your potion
+	 * @return potion information
+	 * @see #setPotionInformation(ItemStack, PotionInformation)
+	 * @since 2.0
+	 */
 	public static PotionInformation getPotionInformation(ItemStack stack) {
 		List<PotionEffect> customEffects = new ArrayList<>();
 		NBTTagCompound tag = stack.getTagCompound();
@@ -423,8 +594,49 @@ public class ItemUtils {
 				customEffects);
 	}
 
-	public static NBTTagCompound getSkinInformationFromUUID(String uuid) throws IOException, NBTException {
+	/**
+	 * Get a random legitimate fireworks
+	 * 
+	 * @return your fireworks
+	 * @since 2.1
+	 */
+	public static ItemStack getRandomFireworks() {
+		NBTTagCompound fwt = new NBTTagCompound();
+		int flight = random.nextInt(3); // a number between 0 and 2 (number of additional gunpowder)
+		fwt.setInteger("Flight", flight + 1);
+		NBTTagList explosions = new NBTTagList();
+		int exp = random.nextInt(7 - flight) + 1; // a number between 1 and 7 - flight (number of additional
+													// gunpowder) -> (number of explosion)
+		for (int i = 0; i < exp; i++)
+			explosions.appendTag(new ExplosionInformation().getTag());
+		fwt.setTag("Explosions", explosions);
+		ItemStack fw = new ItemStack(Items.FIREWORKS);
+		NBTTagCompound tag = new NBTTagCompound();
+		tag.setTag("Fireworks", fwt);
+		fw.setTagCompound(tag);
+		// create a random name and description because "why not ?"
+		List<EntityEntry> list = ForgeRegistries.ENTITIES.getValues().stream().filter(ee -> ee.getEgg() != null)
+				.collect(Collectors.toList());
+		fw.setStackDisplayName(ChatUtils.MODIFIER + Integer.toHexString(random.nextInt(6) + 9)
+				+ I18n.format("entity." + list.get(random.nextInt(list.size())).getName() + ".name") + " "
+				+ (new char[] { 'X', 'Y', 'M', 'Z' })[random.nextInt(4)] + random.nextInt(1000));
+		setLore(fw, new String[] { TextFormatting.YELLOW + "" + TextFormatting.ITALIC + I18n.format("cmd.act.rfw") });
+		return fw;
+	}
 
+	/**
+	 * Request {@link NBTTagCompound} of Skin Information with the Mojang API
+	 * 
+	 * @param uuid
+	 *            Player's UUID
+	 * @return skin information
+	 * @throws IOException
+	 * @throws NBTException
+	 * @since 2.0
+	 */
+	public static NBTTagCompound getSkinInformationFromUUID(String uuid) throws IOException, NBTException {
+		// check if a skin is find in the cache (1min : the minimum time between
+		// request)
 		if (SKIN_CACHE.containsKey(uuid) && SKIN_CACHE.get(uuid).a + 60000 > System.currentTimeMillis())
 			return SKIN_CACHE.get(uuid).b.copy();
 		NBTTagCompound requestCompound = JsonToNBT.getTagFromJson(
@@ -449,15 +661,32 @@ public class ItemUtils {
 		return newTag;
 	}
 
+	/**
+	 * Request {@link Tuple} of name / UUID of users by there name with the Mojang
+	 * API
+	 * 
+	 * @param names
+	 *            Players' names
+	 * @return List of name find
+	 * @throws IOException
+	 * @throws NBTException
+	 * @since 2.0
+	 */
 	public static List<Tuple<String, String>> getUUIDByNames(String... names) throws IOException, NBTException {
 		List<Tuple<String, String>> list = new ArrayList<>();
 		String query = Arrays.stream(names).map(n -> {
+			// Check in cache for UUID (1min : the minimum time between request)
 			if (UUID_CACHE.containsKey(n) && UUID_CACHE.get(n).a + 60000 > System.currentTimeMillis()) {
 				list.add(new Tuple<>(n, UUID_CACHE.get(n).b));
 				return null;
 			}
 			return '"' + n + '"';
-		}).filter(s -> s != null).collect(Collectors.joining(","));
+		})
+				// remove find elements
+				.filter(s -> s != null)
+				// create the query
+				.collect(Collectors.joining(","));
+		// request only if names aren't in cache
 		if (!query.isEmpty()) {
 			NBTTagCompound tag = JsonToNBT
 					.getTagFromJson("{data:" + sendRequest("https://api.mojang.com/profiles/minecraft", "POST",
@@ -476,10 +705,34 @@ public class ItemUtils {
 		return list;
 	}
 
+	/**
+	 * Try to give an item in the hotbar
+	 * 
+	 * @param stack
+	 * @since 2.0
+	 * @see #give(ItemStack, int)
+	 */
 	public static void give(ItemStack stack) {
 		give(Minecraft.getMinecraft(), stack);
 	}
 
+	/**
+	 * Try to give an item in a slot
+	 * 
+	 * @since 2.1
+	 * @see #give(ItemStack)
+	 */
+	public static void give(ItemStack stack, int slot) {
+		give(Minecraft.getMinecraft(), stack, slot);
+	}
+
+	/**
+	 * Try to give an item in the hotbar
+	 * 
+	 * @since 2.0
+	 * @see #give(ItemStack)
+	 */
+	@Deprecated
 	public static void give(Minecraft mc, ItemStack stack) {
 		if (mc.player != null && mc.player.capabilities.isCreativeMode) {
 			if (stack != null) {
@@ -496,6 +749,13 @@ public class ItemUtils {
 			ChatUtils.error(I18n.format("gui.act.nocreative"));
 	}
 
+	/**
+	 * Try to give an item in a slot
+	 * 
+	 * @since 2.0
+	 * @see #give(ItemStack, int)
+	 */
+	@Deprecated
 	public static void give(Minecraft mc, ItemStack stack, int slot) {
 		if (mc.player.isCreative())
 			mc.playerController.sendSlotPacket(stack, slot);
@@ -503,6 +763,15 @@ public class ItemUtils {
 			ChatUtils.error(I18n.format("gui.act.nocreative"));
 	}
 
+	/**
+	 * Check if a {@link ItemStack} is unbreakable
+	 * 
+	 * @param stack
+	 *            your stack
+	 * @return if the stack is unbreakable
+	 * @see #setUnbreakable(ItemStack, boolean)
+	 * @since 2.0
+	 */
 	public static boolean isUnbreakable(ItemStack stack) {
 		NBTTagCompound tag = stack.getTagCompound();
 		if (tag == null)
@@ -515,7 +784,7 @@ public class ItemUtils {
 		Proxy proxy = Minecraft.getMinecraft() == null ? null : Minecraft.getMinecraft().getProxy();
 		if (proxy == null)
 			proxy = Proxy.NO_PROXY;
-		HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+		HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
 		if (method != null)
 			connection.setRequestMethod(method);
 		if (contentType != null)
@@ -540,6 +809,12 @@ public class ItemUtils {
 		return buffer.length() > 0 ? buffer.toString().substring(1) : "";
 	}
 
+	/**
+	 * Set a list of tuples of Slot / Attribute to a stack
+	 * 
+	 * @since 2.0
+	 * @see #getAttributes(ItemStack)
+	 */
 	public static ItemStack setAttributes(List<Tuple<EntityEquipmentSlot, AttributeModifier>> attributes,
 			ItemStack stack) {
 		NBTTagList nbttaglist = new NBTTagList();
@@ -561,6 +836,16 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Change the color of a leather armor
+	 * 
+	 * @param stack
+	 *            leather armor
+	 * @param color
+	 *            integer color
+	 * @return your stack
+	 * @since 2.0
+	 */
 	public static ItemStack setColor(ItemStack stack, int color) {
 		if (stack.getTagCompound() == null)
 			stack.setTagCompound(new NBTTagCompound());
@@ -577,6 +862,12 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Set or create a custom String tag at the nbt root of a stack
+	 * 
+	 * @since 2.0
+	 * @see #getCustomTag(ItemStack, String, String)
+	 */
 	public static ItemStack setCustomTag(ItemStack stack, String key, String value) {
 		NBTTagCompound tag = stack.getTagCompound();
 		if (tag == null)
@@ -585,10 +876,29 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Set {@link Enchantment}s of an {@link ItemStack}
+	 * 
+	 * @see #setEnchantments(List, ItemStack, boolean)
+	 * @see #getEnchantments(ItemStack)
+	 * @since 2.0
+	 */
 	public static ItemStack setEnchantments(List<Tuple<Enchantment, Integer>> enchantments, ItemStack stack) {
 		return setEnchantments(enchantments, stack, false);
 	}
 
+	/**
+	 * Set {@link Enchantment}s of an {@link ItemStack} with checking if it is a
+	 * book
+	 * 
+	 * @param enchantments
+	 * @param stack
+	 * @param book
+	 *            if this stack is a book or not
+	 * @see #setEnchantments(List, ItemStack)
+	 * @see #getEnchantments(ItemStack, boolean)
+	 * @since 2.0
+	 */
 	public static ItemStack setEnchantments(List<Tuple<Enchantment, Integer>> enchantments, ItemStack stack,
 			boolean book) {
 		NBTTagList nbttaglist = new NBTTagList();
@@ -607,12 +917,29 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Create a new {@link ItemStack} with the same count, metadata and
+	 * {@link NBTTagCompound} than the given stack but with a new {@link Item} type
+	 * 
+	 * @param item
+	 *            New {@link Item} type
+	 * @param stack
+	 *            Your stack to copy
+	 * @return Your new stack
+	 * @since 2.0
+	 */
 	public static ItemStack setItem(Item item, ItemStack stack) {
 		ItemStack is = new ItemStack(item, stack.getCount(), stack.getMetadata());
 		is.setTagCompound(stack.getTagCompound());
 		return is;
 	}
 
+	/**
+	 * Set lore(description) of a {@link ItemStack}
+	 * 
+	 * @since 2.0
+	 * @see #getLore(ItemStack)
+	 */
 	public static ItemStack setLore(ItemStack stack, String[] lore) {
 		if (stack.getTagCompound() == null)
 			stack.setTagCompound(new NBTTagCompound());
@@ -628,6 +955,17 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Set {@link PotionInformation} to a {@link ItemStack}
+	 * 
+	 * @param stack
+	 *            your stack to change
+	 * @param info
+	 *            {@link PotionInformation} to set
+	 * @return your stack
+	 * @see #getPotionInformation(ItemStack)
+	 * @since 2.0
+	 */
 	public static ItemStack setPotionInformation(ItemStack stack, PotionInformation info) {
 		NBTTagList nbttaglist = new NBTTagList();
 		info.getCustomEffects().forEach(effect -> {
@@ -651,11 +989,26 @@ public class ItemUtils {
 		return stack;
 	}
 
+	/**
+	 * Set a {@link ItemStack} Unbreakable
+	 * 
+	 * @param stack
+	 *            Your stack
+	 * @param value
+	 *            Unbreakable or not
+	 * @return Your stack
+	 * @see #isUnbreakable(ItemStack)
+	 * @since 2.0
+	 */
 	public static ItemStack setUnbreakable(ItemStack stack, boolean value) {
 		NBTTagCompound tag = stack.getTagCompound();
-		if (tag == null)
+		if (tag != null || (tag == null && value)) {
 			stack.setTagCompound(tag = new NBTTagCompound());
-		tag.setInteger("Unbreakable", value ? 1 : 0);
+			if (tag.hasKey("Unbreakable") && !value)
+				tag.removeTag("Unbreakable");
+			else
+				tag.setInteger("Unbreakable", 1);
+		}
 		return stack;
 	}
 }

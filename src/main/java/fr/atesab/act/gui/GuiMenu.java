@@ -61,7 +61,8 @@ public class GuiMenu extends GuiListModifier<Object> {
 						int i = parent.elements.indexOf(this);
 						parent.addListElement(i, new MenuListElement(parent, stack.copy()));
 					} else
-						mc.displayGuiScreen(new GuiGiver(parent, stack, is -> {
+						mc.displayGuiScreen(new GuiGiver(parent, stack, s -> {
+							ItemStack is = ItemUtils.getFromGiveCode(s);
 							if (is != null)
 								stack = is;
 							else
@@ -86,10 +87,12 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	private Runnable ADD = () -> {
 		mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
-			GuiGiver giver = new GuiGiver(this, null, ADD_STACK, false);
+			GuiGiver giver = new GuiGiver(this, (ItemStack) null, i -> ADD_STACK.accept(ItemUtils.getFromGiveCode(i)),
+					false);
 			if (mc.currentScreen instanceof GuiTypeListSelector)
 				((GuiTypeListSelector) mc.currentScreen).setParent(giver);
 			giver.setPreText(ItemUtils.getCustomTag(is, ACTMod.TEMPLATE_TAG_NAME, ""));
+			return null;
 		}, ACTMod.getTemplates()));
 	};
 
@@ -107,15 +110,15 @@ public class GuiMenu extends GuiListModifier<Object> {
 				}));
 		buttons = Minecraft.getMinecraft().player == null ? new Tuple[] { btn2 } : new Tuple[] { btn1, btn2 };
 		elements.add(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
-		ACTMod.customItems.forEach(data -> ADD_STACK.accept(ItemUtils.getFromGiveCode(data)));
+		ACTMod.getCustomItems().forEach(data -> ADD_STACK.accept(ItemUtils.getFromGiveCode(data)));
 	}
 
 	@Override
 	protected Object get() {
-		ACTMod.customItems.clear();
+		ACTMod.getCustomItems().clear();
 		elements.stream().filter(le -> le instanceof MenuListElement)
-				.forEach(m -> ACTMod.customItems.add(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
-		ACTMod.saveConfig();
+				.forEach(m -> ACTMod.getCustomItems().add(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
+		ACTMod.saveConfigs();
 		return null;
 	}
 

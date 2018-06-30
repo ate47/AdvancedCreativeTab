@@ -87,6 +87,7 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
 				stack = ItemUtils.setItem(is.getItem(), stack);
+				return null;
 			}, potionType));
 			break;
 		}

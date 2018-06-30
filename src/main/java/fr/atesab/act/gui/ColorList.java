@@ -66,8 +66,6 @@ public class ColorList {
 						height = text.size() * (fontRenderer.FONT_HEIGHT + 1);
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX, mouseY, width, height, parent.width,
 						parent.height);
-				pos.a += 12;
-				pos.b += 12;
 				GuiUtils.drawBox(pos.a, pos.b, width, height, zLevel);
 				pos.b += 1;
 				text.forEach(s -> {

@@ -24,7 +24,7 @@ public class GuiModifier<T> extends GuiScreen {
 
 	@Override
 	public boolean doesGuiPauseGame() {
-		return false;
+		return true;
 	}
 
 	public GuiScreen getParent() {
@@ -37,5 +37,13 @@ public class GuiModifier<T> extends GuiScreen {
 
 	public void setParent(GuiScreen parent) {
 		this.parent = parent;
+	}
+
+	public void setSetter(Consumer<T> setter) {
+		this.setter = setter;
+	}
+
+	public float getZLevel() {
+		return zLevel;
 	}
 }
