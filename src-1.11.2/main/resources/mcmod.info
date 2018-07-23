@@ -1,0 +1,16 @@
+[
+{
+  "modid": "act",
+  "name": "Advanced Creative Tab 2",
+  "description": "Borried about the old minecraft stuff ? This mod is made for you ! it add new items modifiers for your creative mode",
+  "version": "2.1",
+  "mcversion": "1.11.2",
+  "url": "https://minecraft.curseforge.com/projects/advanced-extended-creative-mode",
+  "authorList": ["ATE47"],
+  "logoFile": "logo.png",
+  
+  "screenshots": [],
+  "dependencies": [],
+  "useDependencyInformation": "true"
+}
+]
