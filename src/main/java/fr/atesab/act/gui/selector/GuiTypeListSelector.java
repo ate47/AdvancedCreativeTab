@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import fr.atesab.act.ACTMod;
 import fr.atesab.act.utils.GuiUtils;
+import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.registry.IRegistry;
 
 public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
@@ -26,7 +25,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			GuiUtils.drawItemStack(mc.getRenderItem(), parent.zLevel, parent, itemStack, offsetX + 1, offsetY + 1);
+			GuiUtils.drawItemStack(mc.getItemRenderer(), parent.zLevel, parent, itemStack, offsetX + 1, offsetY + 1);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
@@ -42,7 +41,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		@Override
 		public boolean match(String search) {
 			String s = search.toLowerCase();
-			return itemStack.getDisplayName().toLowerCase().contains(s)
+			return itemStack.getDisplayName().getUnformattedComponentText().toLowerCase().contains(s)
 					|| itemStack.getItem().getRegistryName().toString().toLowerCase().contains(s);
 		}
 
@@ -54,25 +53,12 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter) {
-		super(parent, new ArrayList<>(), setter, false);
+		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
 		NonNullList<ItemStack> stacks = NonNullList.create();
-		Item.REGISTRY.forEach(i -> {
-			if (i.equals(ACTMod.ADVANCED_ITEM))
-				return;
-			NonNullList<ItemStack> subStack = NonNullList.create();
-			i.getSubItems(i.getCreativeTab() == null ? CreativeTabs.SEARCH : i.getCreativeTab(), subStack);
-			boolean f = true;
-			for (ItemStack sub : subStack)
-				if (sub.getItem().equals(i) && sub.getCount() == 1 && sub.getMetadata() == 0
-						&& (sub.getTagCompound() == null || sub.getTagCompound().hasNoTags())) {
-					f = false;
-					break;
-				}
-			if (f)
-				stacks.add(new ItemStack(i));
-			stacks.addAll(subStack);
-		});
+		IRegistry.field_212630_s.forEach(i -> // Item.REGISTRY
+		stacks.add(new ItemStack(i)));
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}
 
@@ -80,13 +66,9 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		this(parent, setter, stacks.stream());
 	}
 
+	@SuppressWarnings("unchecked")
 	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter, Stream<ItemStack> stacks) {
-		super(parent, new ArrayList<>(), setter, false);
+		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
-	}
-
-	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
 }

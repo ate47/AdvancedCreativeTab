@@ -1,7 +1,6 @@
 package fr.atesab.act.gui;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.function.Consumer;
 
 import fr.atesab.act.ACTMod;
@@ -29,7 +28,7 @@ public class GuiGiver extends GuiModifier<String> {
 	public GuiGiver(GuiScreen parent) {
 		super(parent, s -> {
 		});
-		if ((mc = Minecraft.getMinecraft()).player != null) {
+		if ((mc = Minecraft.getInstance()).player != null) {
 			ItemStack mainHand = mc.player.getHeldItem(EnumHand.MAIN_HAND);
 			this.currentItemStack = mainHand != null ? mainHand : mc.player.getHeldItem(EnumHand.OFF_HAND);
 			this.preText = ItemUtils.getGiveCode(this.currentItemStack);
@@ -60,43 +59,17 @@ public class GuiGiver extends GuiModifier<String> {
 	}
 
 	@Override
-	protected void actionPerformed(GuiButton button) throws IOException {
-		if (button.id == 0) { // done
-			if (setter != null && currentItemStack != null)
-				setter.accept(code.getText());
-			mc.displayGuiScreen(parent);
-		} else if (button.id == 1) // give
-			ItemUtils.give(mc, currentItemStack);
-		else if (button.id == 2) // copy
-			GuiUtils.addToClipboard(code.getText());
-		else if (button.id == 3) // editor
-			mc.displayGuiScreen(new GuiItemStackModifier(this, currentItemStack, itemStack -> setCurrent(itemStack)));
-		else if (button.id == 4) { // cancel
-			mc.displayGuiScreen(parent);
-		} else if (button.id == 5) { // delete
-			setter.accept(null);
-			mc.displayGuiScreen(parent);
-		} else if (button.id == 6) {
-			if (parent instanceof GuiMenu)
-				((GuiMenu) parent).get();
-			ACTMod.getCustomItems().add(code.getText());
-			mc.displayGuiScreen(new GuiMenu(parent));
-		}
-		super.actionPerformed(button);
-	}
-
-	@Override
 	public boolean doesGuiPauseGame() {
 		return false || (parent != null && parent.doesGuiPauseGame());
 	}
 
 	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+	public void render(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
-		code.drawTextBox();
+		code.drawTextField(mouseX, mouseY, partialTicks);
 		GuiUtils.drawCenterString(fontRenderer, I18n.format("gui.act.give"), width / 2, code.y - 21,
 				Color.ORANGE.getRGB(), 20);
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		super.render(mouseX, mouseY, partialTicks);
 		if (currentItemStack != null) {
 			GuiUtils.drawItemStack(itemRender, zLevel, this, currentItemStack, code.x + code.width + 5, code.y - 2);
 			if (GuiUtils.isHover(code.x + code.width + 5, code.y, 20, 20, mouseX, mouseY))
@@ -106,6 +79,7 @@ public class GuiGiver extends GuiModifier<String> {
 
 	@Override
 	public void initGui() {
+
 		code = new GuiTextField(0, fontRenderer, width / 2 - 178, height / 2 + 2, 356, 16);
 		code.setMaxStringLength(Integer.MAX_VALUE);
 		if (preText != null)
@@ -113,40 +87,85 @@ public class GuiGiver extends GuiModifier<String> {
 		boolean flag2 = deleteButton; // deleteCancel
 		int s1 = flag2 ? 120 : 180;
 		int s2 = 120;
-		buttonList.add(giveButton = new GuiButton(1, width / 2 - 180, height / 2 + 21, s1, 20,
-				I18n.format("gui.act.give.give")));
-		buttonList.add(
-				new GuiButton(2, width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20, I18n.format("gui.act.give.copy")));
-		buttonList.add(new GuiButton(3, width / 2 - 180 + (flag2 ? 2 * s1 + 1 : 0), height / 2 + 21 + (flag2 ? 0 : 21),
-				(flag2 ? s1 - 1 : s2), 20, I18n.format("gui.act.give.editor")));
-		buttonList.add(doneButton = new GuiButton(0, width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
-				I18n.format("gui.done")));
+		addButton(giveButton = new GuiButton(1, width / 2 - 180, height / 2 + 21, s1, 20,
+				I18n.format("gui.act.give.give")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				ItemUtils.give(currentItemStack);
+				super.onClick(mouseX, mouseY);
+			}
+		});
+		addButton(
+				new GuiButton(2, width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20, I18n.format("gui.act.give.copy")) {
+					@Override
+					public void onClick(double mouseX, double mouseY) {
+						GuiUtils.addToClipboard(code.getText());
+						super.onClick(mouseX, mouseY);
+					}
+				});
+		addButton(new GuiButton(3, width / 2 - 180 + (flag2 ? 2 * s1 + 1 : 0), height / 2 + 21 + (flag2 ? 0 : 21),
+				(flag2 ? s1 - 1 : s2), 20, I18n.format("gui.act.give.editor")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				mc.displayGuiScreen(
+						new GuiItemStackModifier(GuiGiver.this, currentItemStack, itemStack -> setCurrent(itemStack)));
+				super.onClick(mouseX, mouseY);
+			}
+		});
+		addButton(doneButton = new GuiButton(0, width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
+				I18n.format("gui.done")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				if (setter != null && currentItemStack != null)
+					setter.accept(code.getText());
+				mc.displayGuiScreen(parent);
+				super.onClick(mouseX, mouseY);
+			}
+		});
 		if (setter != null)
-			buttonList
-					.add(new GuiButton(4, width / 2 - 58, height / 2 + 42, s2 - 2, 20, I18n.format("gui.act.cancel")));
+			addButton(new GuiButton(4, width / 2 - 58, height / 2 + 42, s2 - 2, 20, I18n.format("gui.act.cancel")) {
+				@Override
+				public void onClick(double mouseX, double mouseY) {
+					mc.displayGuiScreen(parent);
+					super.onClick(mouseX, mouseY);
+				}
+			});
 		else
-			buttonList.add(saveButton = new GuiButton(6, width / 2 - 58, height / 2 + 42, s2 - 2, 20,
-					I18n.format("gui.act.save")));
+			addButton(saveButton = new GuiButton(6, width / 2 - 58, height / 2 + 42, s2 - 2, 20,
+					I18n.format("gui.act.save")) {
+				@Override
+				public void onClick(double mouseX, double mouseY) {
+					if (parent instanceof GuiMenu)
+						((GuiMenu) parent).get();
+					ACTMod.getCustomItems().add(code.getText());
+					mc.displayGuiScreen(new GuiMenu(parent));
+					super.onClick(mouseX, mouseY);
+				}
+			});
 		if (deleteButton)
-			buttonList.add(new GuiButton(5, width / 2 - 180, height / 2 + 42, s2, 20, I18n.format("gui.act.delete")));
+			addButton(new GuiButton(5, width / 2 - 180, height / 2 + 42, s2, 20, I18n.format("gui.act.delete")) {
+				@Override
+				public void onClick(double mouseX, double mouseY) {
+					setter.accept(null);
+					mc.displayGuiScreen(parent);
+					super.onClick(mouseX, mouseY);
+				}
+			});
 		super.initGui();
 	}
 
 	@Override
-	protected void keyTyped(char typedChar, int keyCode) throws IOException {
-		code.textboxKeyTyped(typedChar, keyCode);
-		super.keyTyped(typedChar, keyCode);
+	public boolean charTyped(char key, int modifiers) {
+		return code.charTyped(key, modifiers);
+	}
+	@Override
+	public boolean keyPressed(int key, int scanCode, int modifiers) {
+		return code.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
 	}
 
 	@Override
-	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-		code.mouseClicked(mouseX, mouseY, mouseButton);
-		super.mouseClicked(mouseX, mouseY, mouseButton);
-	}
-
-	@Override
-	public void onResize(Minecraft mcIn, int w, int h) {
-		super.onResize(mcIn, w, h);
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+		return code.mouseClicked(mouseX, mouseY, mouseButton) || super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
 	private void setCurrent(ItemStack currentItemStack) {
@@ -164,14 +183,14 @@ public class GuiGiver extends GuiModifier<String> {
 	}
 
 	@Override
-	public void updateScreen() {
-		code.updateCursorCounter();
+	public void tick() {
+		code.tick();
 		this.currentItemStack = ItemUtils
 				.getFromGiveCode(code.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 		this.giveButton.enabled = this.currentItemStack != null && mc.player != null && mc.player.isCreative();
 		this.doneButton.enabled = (setter != null && this.currentItemStack != null) || setter == null;
 		if (saveButton != null)
 			saveButton.enabled = this.currentItemStack != null;
-		super.updateScreen();
+		super.tick();
 	}
 }

@@ -5,7 +5,7 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTIntArrayModifier;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagIntArray;
 
 public class NBTIntArrayElement extends NBTElement {
@@ -14,15 +14,16 @@ public class NBTIntArrayElement extends NBTElement {
 	public NBTIntArrayElement(GuiListModifier<?> parent, String key, NBTTagIntArray value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.intArray")));
-	}
-
-	@Override
-	protected void actionPerformed(GuiButton button) {
-		if (button.id == 0)
-			mc.displayGuiScreen(new GuiNBTIntArrayModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/",
-					parent, tag -> value = tag, value.copy()));
-		super.actionPerformed(button);
+		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.intArray")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				mc.displayGuiScreen(new GuiNBTIntArrayModifier(
+						parent instanceof GuiArrayModifierTitle ? ((GuiArrayModifierTitle) parent).getTitle()
+								: "" + key + "/",
+						parent, tag -> NBTIntArrayElement.this.value = tag, value.copy()));
+				super.onClick(mouseX, mouseY);
+			};
+		});
 	}
 
 	@Override
@@ -31,7 +32,7 @@ public class NBTIntArrayElement extends NBTElement {
 	}
 
 	@Override
-	public NBTBase get() {
+	public INBTBase get() {
 		return value.copy();
 	}
 

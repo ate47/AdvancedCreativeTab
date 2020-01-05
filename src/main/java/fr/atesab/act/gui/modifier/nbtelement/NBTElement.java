@@ -7,15 +7,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import fr.atesab.act.gui.modifier.GuiStringModifier;
 import fr.atesab.act.gui.modifier.GuiListModifier.AddElementButton;
 import fr.atesab.act.gui.modifier.GuiListModifier.ListElement;
 import fr.atesab.act.gui.modifier.GuiListModifier.RemoveElementButton;
 import fr.atesab.act.gui.modifier.GuiListModifier.RunElementButton;
+import fr.atesab.act.gui.modifier.GuiStringModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
@@ -79,7 +79,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	 * 
 	 * @return the base
 	 */
-	public abstract NBTBase get();
+	public abstract INBTBase get();
 
 	public String getKey() {
 		return key;
@@ -107,7 +107,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	 * @return
 	 * @since 2.1
 	 */
-	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, NBTBase base) {
+	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, INBTBase base) {
 		switch (base.getId()) {
 		case 0:
 			return new NBTTagElement(parent, key, new NBTTagCompound());

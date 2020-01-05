@@ -14,13 +14,13 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 /**
@@ -43,7 +43,7 @@ public class GuiUtils {
 		@SubscribeEvent
 		public void onTick(TickEvent ev) {
 			if (delay < 0) {
-				Minecraft.getMinecraft().displayGuiScreen(screen);
+				Minecraft.getInstance().displayGuiScreen(screen);
 				MinecraftForge.EVENT_BUS.unregister(this);
 			} else
 				delay--;
@@ -83,7 +83,7 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static void displayScreen(GuiScreen screen, boolean forceDelay) {
-		Minecraft mc = Minecraft.getMinecraft();
+		Minecraft mc = Minecraft.getInstance();
 		if (forceDelay || mc.currentScreen instanceof GuiChat)
 			new DelayScreen(screen, 20);
 		else
@@ -137,8 +137,8 @@ public class GuiUtils {
 		float f7 = (float) (endColor & 255) / 255.0F;
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
-		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+		GlStateManager.disableAlphaTest();
+		GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
 				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
 				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
@@ -152,7 +152,7 @@ public class GuiUtils {
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
-		GlStateManager.enableAlpha();
+		GlStateManager.enableAlphaTest();
 		GlStateManager.enableTexture2D();
 	}
 
@@ -182,8 +182,8 @@ public class GuiUtils {
 		float f15 = (float) (bottomColor & 255) / 255.0F;
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
-		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+		GlStateManager.disableAlphaTest();
+		GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
 				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
 				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
@@ -197,7 +197,7 @@ public class GuiUtils {
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
-		GlStateManager.enableAlpha();
+		GlStateManager.enableAlphaTest();
 		GlStateManager.enableTexture2D();
 	}
 
@@ -206,11 +206,11 @@ public class GuiUtils {
 	 * 
 	 * @since 2.0
 	 */
-	public static void drawItemStack(RenderItem itemRender, float zLevel, GuiScreen gui, ItemStack itemstack, int x,
+	public static void drawItemStack(ItemRenderer itemRender, float zLevel, GuiScreen gui, ItemStack itemstack, int x,
 			int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
-		GlStateManager.enableDepth();
+		GlStateManager.enableDepthTest();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
 		itemRender.renderItemOverlayIntoGUI(gui.mc.fontRenderer, itemstack, x, y, null);
 		GlStateManager.disableBlend();
@@ -223,10 +223,11 @@ public class GuiUtils {
 	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
 	 * @since 2.0
 	 */
-	public static void drawRelative(GuiTextField field, int offsetX, int offsetY) {
+	public static void drawRelative(GuiTextField field, int offsetX, int offsetY, int mouseX, int mouseY,
+			float partialTicks) {
 		field.x += offsetX;
 		field.y += offsetY;
-		field.drawTextBox();
+		field.drawTextField(mouseX, mouseY, partialTicks);
 		field.x -= offsetX;
 		field.y -= offsetY;
 	}
@@ -241,7 +242,7 @@ public class GuiUtils {
 			float partialTicks) {
 		button.x += offsetX;
 		button.y += offsetY;
-		button.drawButton(mc, mouseX + offsetX, mouseY + offsetY, partialTicks);
+		button.render(mouseX + offsetX, mouseY + offsetY, partialTicks);
 		button.x -= offsetX;
 		button.y -= offsetY;
 	}
@@ -352,21 +353,18 @@ public class GuiUtils {
 		GlStateManager.disableRescaleNormal();
 		RenderHelper.disableStandardItemLighting();
 		GlStateManager.disableLighting();
-		GlStateManager.disableDepth();
-		int l = -267386864;
+		GlStateManager.disableDepthTest();
 		drawGradientRect(x - 3, y - 4, x + width + 3, y - 3, -267386864, -267386864, zLevel);
 		drawGradientRect(x - 3, y + height + 3, x + width + 3, y + height + 4, -267386864, -267386864, zLevel);
 		drawGradientRect(x - 3, y - 3, x + width + 3, y + height + 3, -267386864, -267386864, zLevel);
 		drawGradientRect(x - 4, y - 3, x - 3, y + height + 3, -267386864, -267386864, zLevel);
 		drawGradientRect(x + width + 3, y - 3, x + width + 4, y + height + 3, -267386864, -267386864, zLevel);
-		int i1 = 1347420415;
-		int j1 = (i1 & 16711422) >> 1 | i1 & -16777216;
 		drawGradientRect(x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, 1347420415, 1344798847, zLevel);
 		drawGradientRect(x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, 1347420415, 1344798847, zLevel);
 		drawGradientRect(x - 3, y - 3, x + width + 3, y - 3 + 1, 1347420415, 1347420415, zLevel);
 		drawGradientRect(x - 3, y + height + 2, x + width + 3, y + height + 3, 1344798847, 1344798847, zLevel);
 		GlStateManager.enableLighting();
-		GlStateManager.enableDepth();
+		GlStateManager.enableDepthTest();
 		RenderHelper.enableStandardItemLighting();
 		GlStateManager.enableRescaleNormal();
 	}
@@ -377,7 +375,7 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static int getRedGreen(boolean value) {
-		return value ? 0xff00ff00 : 0xffff0000;
+		return value ? 0xff77ff77 : 0xffff7777;
 	}
 
 	/**

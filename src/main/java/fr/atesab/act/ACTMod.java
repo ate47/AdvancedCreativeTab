@@ -1,93 +1,150 @@
 package fr.atesab.act;
 
-import org.apache.logging.log4j.Logger;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
-import org.lwjgl.input.Keyboard;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
-import fr.atesab.act.command.ACTCommand;
-import fr.atesab.act.command.SimpleCommand;
+import com.google.common.collect.Maps;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
+
+import fr.atesab.act.command.ModdedCommand;
+import fr.atesab.act.command.ModdedCommandACT;
+import fr.atesab.act.command.ModdedCommandGamemode;
+import fr.atesab.act.command.ModdedCommandGamemodeQuick;
+import fr.atesab.act.config.Configuration;
+import fr.atesab.act.gui.GuiACT;
 import fr.atesab.act.gui.GuiGiver;
 import fr.atesab.act.gui.GuiMenu;
 import fr.atesab.act.gui.ModGuiFactory;
+import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
-import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.CommandUtils;
+import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.command.CommandBase;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.command.CommandException;
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.ISuggestionProvider;
+import net.minecraft.command.arguments.SuggestionProviders;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.registry.IRegistry;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextComponentUtils;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.world.GameType;
+import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent;
+import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
+import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfession;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.registries.GameData;
 
-@Mod(name = ACTMod.MOD_NAME, version = ACTMod.MOD_VERSION, canBeDeactivated = false, guiFactory = ACTMod.MOD_FACTORY, modid = ACTMod.MOD_ID, clientSideOnly = true)
+@Mod(ACTMod.MOD_ID)
 public class ACTMod {
+	public enum ACTState {
+		RELEASE(null), BETA(TextFormatting.GOLD), ALPHA(TextFormatting.DARK_RED);
+
+		private TextFormatting color;
+
+		private ACTState(TextFormatting color) {
+			this.color = color;
+		}
+
+		public boolean isShow() {
+			return color != null;
+		}
+
+		public TextFormatting getColor() {
+			return color;
+		}
+	}
+
+	public static final ACTState MOD_STATE = ACTState.BETA;
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.1";
+	public static final String MOD_VERSION = "2.2";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 	/**
 	 * Link to {@link ModGuiFactory}
 	 */
 	public static final String MOD_FACTORY = "fr.atesab.act.gui.ModGuiFactory";
-	public static final ACTCommand ACT_COMMAND = new ACTCommand();
-	public static final AdvancedItem ADVANCED_ITEM = (AdvancedItem) new AdvancedItem();
+	public static final ModdedCommandACT ACT_COMMAND = new ModdedCommandACT();
 	public static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
 	public static final String TEMPLATE_TAG_NAME = "TemplateData";
+	public static final Random RANDOM = new Random();
+	@SuppressWarnings("unchecked")
 	public static final String[] DEFAULT_CUSTOM_ITEMS = {
-			ItemUtils.getGiveCode(ItemUtils.buildStack(Blocks.WOOL, 42, 2, TextFormatting.LIGHT_PURPLE + "Pink verity",
-					new String[] { "" + TextFormatting.GOLD + TextFormatting.BOLD + "42 is life",
-							"" + TextFormatting.GOLD + TextFormatting.BOLD + "wait what ?" })) };
-	private static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
+			ItemUtils
+					.getGiveCode(
+							ItemUtils.buildStack(Blocks.PINK_WOOL, 42, TextFormatting.LIGHT_PURPLE + "Pink verity",
+									new String[] { "" + TextFormatting.GOLD + TextFormatting.BOLD + "42 is life",
+											"" + TextFormatting.GOLD + TextFormatting.BOLD + "wait what ?" },
+									new Tuple[0])) };
+	public static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
 	private static KeyBinding giver, menu, edit;
-	private static List<String> customItems = new ArrayList<>(Arrays.asList(DEFAULT_CUSTOM_ITEMS));
 	private static List<ItemStack> templates = new ArrayList<>();
 	private static HashSet<IAttribute> attributes = new HashSet<>();
 	private static Map<String, Map<String, Consumer<StringModifier>>> stringModifier = new HashMap<>();
 	private static Configuration config;
+	private static CommandDispatcher<CommandSource> dispatcher = new CommandDispatcher<>();
+	private static Set<String> commandSet = new HashSet<>();
+	private static CommandDispatcher<ISuggestionProvider> suggestionProvider;
 
+	@SuppressWarnings("unchecked")
 	private static <T> void forEachMatchIn(Object obj, Class<T> cls, Consumer<T> consumer) {
 		for (Field field : obj.getClass().getDeclaredFields()) {
 			if (field.getType().equals(cls)) {
@@ -121,7 +178,7 @@ public class ACTMod {
 	 * @since 2.1
 	 */
 	public static List<String> getCustomItems() {
-		return customItems;
+		return config.getCustomitems();
 	}
 
 	/**
@@ -154,9 +211,38 @@ public class ACTMod {
 	public static Stream<ItemStack> getTemplates() {
 		return templates.stream().map(is -> {
 			String lang = ItemUtils.getCustomTag(is, TEMPLATE_TAG_NAME + "Lang", null);
-			return is.copy().setStackDisplayName(
-					TextFormatting.AQUA + (lang != null ? I18n.format(lang) : is.getDisplayName()));
+			ITextComponent display = (lang != null ? new TextComponentTranslation(lang) : is.getDisplayName());
+			display.getStyle().setColor(TextFormatting.AQUA);
+			return is.copy().setDisplayName(display);
 		});
+	}
+
+	/**
+	 * open the giver with the inhand item
+	 * 
+	 * @since 2.1
+	 * 
+	 * @throws NullPointerException
+	 *             if the game isn't started
+	 */
+	public static void openGiver() {
+		Minecraft mc = Minecraft.getInstance();
+		final int slot = mc.player.inventory.currentItem;
+		GuiUtils.displayScreen(new GuiItemStackModifier(null, mc.player.getHeldItemMainhand().copy(),
+				is -> ItemUtils.give(is, 36 + slot)));
+	}
+
+	/**
+	 * register a creative command to the act command dispatcher (unless we can't
+	 * create client command)
+	 * 
+	 * @param command
+	 *            the command
+	 * @since 2.0
+	 */
+	public static void registerCommand(ModdedCommand command) {
+		commandSet.addAll(command.getAliases());
+		command.register(dispatcher);
 	}
 
 	/**
@@ -202,185 +288,105 @@ public class ACTMod {
 	 * @since 2.0
 	 */
 	public static void saveConfigs() {
-		config.get(Configuration.CATEGORY_GENERAL, "customItems", DEFAULT_CUSTOM_ITEMS)
-				.set(customItems.toArray(new String[customItems.size()]));
 		config.save();
 	}
 
-	/**
-	 * Load/Sync mod configs
-	 * 
-	 * @since 2.0
-	 */
-	public static void syncConfigs() {
-		customItems = new ArrayList<>(Arrays.asList(config.getStringList("customItems", Configuration.CATEGORY_GENERAL,
-				DEFAULT_CUSTOM_ITEMS, "", null, "config.act.custom")));
-		config.save();
+	public ACTMod() {
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
+		config = new Configuration();
+		config.sync(FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml").toFile());
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
-	@SubscribeEvent
-	public void onKeyInput(InputEvent.KeyInputEvent ev) {
-		if (giver.isPressed())
-			Minecraft.getMinecraft().displayGuiScreen(new GuiGiver(null));
-		else if (menu.isPressed())
-			Minecraft.getMinecraft().displayGuiScreen(new GuiMenu(null));
-		else if (edit.isPressed()) {
-			try {
-				ACT_COMMAND.SC_EDIT.processSubCommand(null, null, null);
-			} catch (CommandException e) {
-				ChatUtils.error(e.getClass().getName() + ": " + e.getMessage());
-			}
-		}
+	private void commandSetup() {
+		// /act
+		registerCommand(new ModdedCommandACT());
 
+		// /gm
+		registerCommand(new ModdedCommandGamemode("gm"));
+		registerCommand(new ModdedCommandGamemodeQuick("gmc", GameType.CREATIVE));
+		registerCommand(new ModdedCommandGamemodeQuick("gma", GameType.ADVENTURE));
+		registerCommand(new ModdedCommandGamemodeQuick("gms", GameType.SURVIVAL));
+		registerCommand(new ModdedCommandGamemodeQuick("gmsp", GameType.SPECTATOR));
+
+		LOGGER.info("Commands registered.");
 	}
 
-	@SubscribeEvent
-	public void onRenderTooltip(ItemTooltipEvent ev) {
-		Minecraft mc = Minecraft.getMinecraft();
-		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
-				&& giver.getKeyCode() != 0 && Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-			;
-		} else if (mc.currentScreen instanceof GuiMenu) {
-			ev.getToolTip().add(TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.format("gui.act.leftClick")
-					+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.format(
-							Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? "gui.act.give.copy" : "gui.act.give.editor"));
-			if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
-				ev.getToolTip()
-						.add(TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.format("gui.act.rightClick")
-								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.format("gui.act.delete"));
-			else if (mc.player != null && mc.player.isCreative())
-				ev.getToolTip()
-						.add(TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.format("gui.act.rightClick")
-								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW
-								+ I18n.format("gui.act.give.give"));
-		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-			NBTTagCompound compound = ev.getItemStack().getTagCompound();
-			String s = (!ev.getFlags().isAdvanced() ? ev.getItemStack().getItem().getRegistryName().toString() : "");
-			if (!(mc.currentScreen != null && mc.currentScreen instanceof GuiContainerCreative
-					&& ((GuiContainerCreative) mc.currentScreen).getSelectedTabIndex() == CreativeTabs.SEARCH
-							.getTabIndex())
-					&& ev.getItemStack().getItem().getCreativeTab() != null)
-				s += TextFormatting.WHITE + (s.isEmpty() ? "" : " ") + "("
-						+ I18n.format(ev.getItemStack().getItem().getCreativeTab().getTranslatedTabLabel()) + ")";
-			if (!s.isEmpty())
-				ev.getToolTip().add(s);
-			if (compound != null && compound.hasKey("CustomPotionColor", 99))
-				ev.getToolTip()
-						.add(TextFormatting.GOLD + net.minecraft.util.text.translation.I18n
-								.translateToLocalFormatted("item.color", TextFormatting.YELLOW
-										+ String.format("#%06X", compound.getInteger("CustomPotionColor"))));
-			if (!ev.getFlags().isAdvanced()) {
-				if (ev.getToolTip().size() != 0)
-					ev.getToolTip().set(0,
-							ev.getToolTip().get(0) + TextFormatting.WHITE + " (#"
-									+ Item.getIdFromItem(ev.getItemStack().getItem())
-									+ (ev.getItemStack().getMetadata() != 0 && !ev.getItemStack().isItemDamaged()
-											? "/" + ev.getItemStack().getMetadata()
-											: "")
-									+ ")" + TextFormatting.WHITE);
-				if (compound != null && compound.hasKey("display", 10)
-						&& compound.getCompoundTag("display").hasKey("color", 99))
-					ev.getToolTip().add(TextFormatting.GOLD + net.minecraft.util.text.translation.I18n
-							.translateToLocalFormatted("item.color", TextFormatting.YELLOW
-									+ String.format("#%06X", compound.getCompoundTag("display").getInteger("color"))));
-				if (ev.getItemStack().isItemDamaged()) {
-					int dmg = Math.abs(ev.getItemStack().getItemDamage() - ev.getItemStack().getMaxDamage()) + 1;
-					double maxdmg = (double) (ev.getItemStack().getMaxDamage() + 1);
-					ev.getToolTip()
-							.add(TextFormatting.YELLOW + I18n.format("item.durability",
-									(new StringBuilder().append('\247').append(dmg < (int) (1.0D * maxdmg) ? "2"
-											: (dmg < (int) (0.75D * maxdmg) ? "a"
-													: (dmg < (int) (0.5D * maxdmg) ? "6"
-															: (dmg < (int) (0.25D * maxdmg) ? "c"
-																	: (dmg < (int) (0.1D * maxdmg) ? "4" : "2")))))
-											.toString()) + dmg,
-									(ev.getItemStack().getMaxDamage() + 1)));
-				}
-			}
-			if (compound != null && compound.getSize() != 0) {
-				if (ev.getItemStack().getTagCompound().hasKey("RepairCost")) {
-					int dmg = ev.getItemStack().getTagCompound().getInteger("RepairCost");
-					double maxdmg = 31;
-					ev.getToolTip()
-							.add((new StringBuilder()).append("\247e")
-									.append("RepairCost: "
-											+ (new StringBuilder()).append('\247')
-													.append(dmg < (int) (.1D * maxdmg) ? "2"
-															: (dmg < (int) (0.25D * maxdmg) ? "a"
-																	: (dmg < (int) (0.5D * maxdmg) ? "6"
-																			: (dmg < (int) (0.75D * maxdmg) ? "c"
-																					: (dmg < (int) (1D * maxdmg) ? "4"
-																							: "2")))))
-													.toString()
-											+ String.valueOf(dmg))
-									.toString());
-				}
-				ev.getToolTip()
-						.add(TextFormatting.GOLD + I18n.format("gui.act.tags") + "(" + compound.getSize() + "): "
-								+ TextFormatting.YELLOW + compound.getKeySet().stream().collect(
-										Collectors.joining(TextFormatting.GOLD + ", " + TextFormatting.YELLOW)));
-			}
-		}
-		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
-				&& giver.getKeyCode() != 0 && Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) {
-			if (Keyboard.isKeyDown(giver.getKeyCode()))
-				mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
-			ev.getToolTip()
-					.add(TextFormatting.GOLD + "[" + TextFormatting.YELLOW + Keyboard.getKeyName(giver.getKeyCode())
-							+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.format("cmd.act.opengiver"));
-			if (menu.getKeyCode() != 0) {
-				if (menu.getKeyCode() != 0) {
-					if (Keyboard.isKeyDown(menu.getKeyCode())) {
-						ACTMod.customItems.add(ItemUtils.getGiveCode(ev.getItemStack()));
-						mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
-					}
-					ev.getToolTip()
-							.add(TextFormatting.GOLD + "[" + TextFormatting.YELLOW
-									+ Keyboard.getKeyName(menu.getKeyCode()) + TextFormatting.GOLD + "] "
-									+ TextFormatting.YELLOW + I18n.format("gui.act.save"));
-				}
-			}
-		}
-		if (!Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
-			ev.getToolTip().add(TextFormatting.YELLOW + Keyboard.getKeyName(Keyboard.KEY_LSHIFT) + TextFormatting.GOLD
-					+ " " + I18n.format("gui.act.shift"));
-	}
+	@SuppressWarnings({ "deprecation", "unchecked" })
+	private void commonSetup(FMLCommonSetupEvent ev) {
 
-	@Mod.EventHandler
-	public void postInit(FMLPostInitializationEvent ev) {
-		Item.REGISTRY.forEach(i -> {
+		ModList.get().getModContainerById(MOD_ID).ifPresent(con -> {
+			con.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (mc, parent) -> new GuiMenu(parent));
+		});
+
+		commandSetup();
+
+		ClientRegistry.registerKeyBinding(ACTMod.giver = new KeyBinding("key.act.giver", GLFW.GLFW_KEY_Y, MOD_NAME));
+		ClientRegistry.registerKeyBinding(ACTMod.menu = new KeyBinding("key.act.menu", GLFW.GLFW_KEY_N, MOD_NAME));
+		ClientRegistry.registerKeyBinding(ACTMod.edit = new KeyBinding("key.act.edit", GLFW.GLFW_KEY_H, MOD_NAME));
+
+		// register attributes
+		attributes.add(SharedMonsterAttributes.ARMOR);
+		attributes.add(SharedMonsterAttributes.ARMOR_TOUGHNESS);
+		attributes.add(SharedMonsterAttributes.ATTACK_DAMAGE);
+		attributes.add(SharedMonsterAttributes.ATTACK_SPEED);
+		attributes.add(SharedMonsterAttributes.FLYING_SPEED);
+		attributes.add(SharedMonsterAttributes.FOLLOW_RANGE);
+		attributes.add(SharedMonsterAttributes.KNOCKBACK_RESISTANCE);
+		attributes.add(SharedMonsterAttributes.LUCK);
+		attributes.add(SharedMonsterAttributes.MAX_HEALTH);
+		attributes.add(SharedMonsterAttributes.MOVEMENT_SPEED);
+
+		// register templates
+
+		registerTemplate("gui.act.menu.template.empty", new ItemStack(Items.PAPER), "");
+		registerTemplate("gui.act.menu.template.stone", new ItemStack(Blocks.STONE),
+				ItemUtils.getGiveCode(new ItemStack(Blocks.STONE)));
+		registerTemplate("gui.act.menu.template.potion", new ItemStack(Items.POTION),
+				ItemUtils.getGiveCode(new ItemStack(Items.POTION)));
+		registerTemplate("gui.act.menu.template.fireworks", new ItemStack(Items.FIREWORK_ROCKET),
+				ItemUtils.getGiveCode(new ItemStack(Items.FIREWORK_ROCKET)));
+		registerTemplate(Items.PLAYER_HEAD.getTranslationKey(), new ItemStack(Items.PLAYER_HEAD),
+				ItemUtils.getGiveCode(new ItemStack(Items.PLAYER_HEAD)));
+		registerTemplate("gui.act.menu.template.command", new ItemStack(Blocks.COMMAND_BLOCK),
+				ItemUtils.getGiveCode(new ItemStack(Blocks.COMMAND_BLOCK)));
+		registerTemplate(Items.EGG.getTranslationKey(), new ItemStack(Items.EGG),
+				ItemUtils.getGiveCode(new ItemStack(Items.EGG)));
+
+		// Item.REGISTRY
+		IRegistry.field_212630_s.forEach(i -> {
 			// Register modifier for every items
-			registerStringModifier(i.getUnlocalizedName() + ".name", "registry.items",
+			registerStringModifier(i.getTranslationKey() + ".name", "registry.items",
 					sm -> sm.setString(i.getRegistryName().toString()));
 			// build cheat tab
-			if (i.equals(ADVANCED_ITEM))
-				return;
-			else if (i.getCreativeTab() == null)
-				ADVANCED_ITEM.addSubitem(i);
+			if (i.getCreativeTabs() == null || i.getCreativeTabs().isEmpty() || i.getGroup() == null)
+				ADVANCED_CREATIVE_TAB.addSubitem(i);
 			else {
 				NonNullList<ItemStack> sub = NonNullList.create();
-				for (CreativeTabs tab : i.getCreativeTabs())
-					i.getSubItems(tab, sub);
-				if (!sub.stream()
-						.filter(is -> is.getItem().equals(i) && is.getMetadata() == 0
-								&& (is.getTagCompound() == null || is.getTagCompound().hasNoTags()))
+				i.fillItemGroup(ItemGroup.SEARCH, sub);
+				if (!sub.stream().filter(is -> is.getItem().equals(i) && (is.getTag() == null || is.getTag().isEmpty()))
 						.findFirst().isPresent())
-					ADVANCED_ITEM.addSubitem(i);
+					ADVANCED_CREATIVE_TAB.addSubitem(i);
 			}
 		});
 		/*
 		 * Register modifier for every registries
 		 */
-		ForgeRegistries.BLOCKS.forEach(b -> registerStringModifier(b.getUnlocalizedName() + ".name", "registry.blocks",
-				sm -> sm.setString(b.getRegistryName().toString())));
-		ForgeRegistries.POTION_TYPES.forEach(p -> registerStringModifier(p.getNamePrefixed(""), "registry.potions",
+		// ForgeRegistries.BLOCKS
+		IRegistry.field_212618_g
+				.forEach(b -> registerStringModifier(b.getNameTextComponent().getUnformattedComponentText() + ".name",
+						"registry.blocks", sm -> sm.setString(b.getRegistryName().toString())));
+		// ForgeRegistries.POTION_TYPES
+		IRegistry.field_212621_j.forEach(p -> registerStringModifier(p.getNamePrefixed(""), "registry.potions",
 				sm -> sm.setString(p.getRegistryName().toString())));
-		ForgeRegistries.BIOMES.forEach(b -> registerStringModifier(b.getBiomeName(), "registry.biomes",
-				sm -> sm.setString(b.getRegistryName().toString())));
-		ForgeRegistries.SOUND_EVENTS.forEach(s -> registerStringModifier(s.getSoundName().toString(), "registry.sounds",
-				sm -> sm.setString(s.getSoundName().toString())));
-		ForgeRegistries.VILLAGER_PROFESSIONS.forEach(vp -> {
+		// ForgeRegistries.BIOMES
+		IRegistry.field_212624_m.forEach(b -> registerStringModifier(b.getDisplayName().getUnformattedComponentText(),
+				"registry.biomes", sm -> sm.setString(b.getRegistryName().toString())));
+		// ForgeRegistries.SOUND_EVENTS
+		IRegistry.field_212633_v.forEach(s -> registerStringModifier(s.getName().toString(), "registry.sounds",
+				sm -> sm.setString(s.getName().toString())));
+		// ForgeRegistries.VILLAGER_PROFESSIONS
+		GameData.getWrapper(VillagerProfession.class).forEach(vp -> {
 			registerStringModifier(vp.getRegistryName().toString(), "registry.villagerProfessions",
 					sm -> sm.setString(vp.getRegistryName().toString()));
 			// Register modifier for careers of profession
@@ -394,9 +400,9 @@ public class ACTMod {
 				}
 			});
 		});
-		ForgeRegistries.ENTITIES.forEach(
-				ee -> registerStringModifier(ee.getEgg() != null ? "entity." + ee.getName() + ".name" : ee.getName(),
-						"registry.entities", sm -> sm.setString(ee.getRegistryName().toString())));
+		// ForgeRegistries.ENTITIES
+		IRegistry.field_212629_r.forEach(ee -> registerStringModifier(ee.getTranslationKey(), "registry.entities",
+				sm -> sm.setString(ee.getRegistryName().toString())));
 
 		attributes.forEach(at -> registerStringModifier("attribute.name." + at.getName(), "attributes",
 				sm -> sm.setString(at.getName())));
@@ -428,7 +434,7 @@ public class ACTMod {
 				plr = CommandUtils.getPlayerList();
 			} catch (Exception e) {
 				plr = new ArrayList<>();
-				plr.add(Minecraft.getMinecraft().getSession().getUsername());
+				plr.add(Minecraft.getInstance().getSession().getUsername());
 			}
 			List<Tuple<String, String>> btn = new ArrayList<>();
 			plr.forEach(pn -> btn.add(new Tuple<String, String>(pn, pn)));
@@ -454,67 +460,297 @@ public class ACTMod {
 				e.printStackTrace();
 			}
 		});
+
 	}
 
-	@Mod.EventHandler
-	public void preInit(FMLPreInitializationEvent ev) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void createSuggestion(CommandNode<CommandSource> dispatcher,
+			CommandNode<ISuggestionProvider> rootCommandNode, CommandSource player,
+			Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> suggestions) {
+		for (CommandNode<CommandSource> child : dispatcher.getChildren()) {
+			ArgumentBuilder<ISuggestionProvider, ?> argumentbuilder = (ArgumentBuilder) child.createBuilder();
+			argumentbuilder.requires((ctx) -> true);
+			if (argumentbuilder.getCommand() != null)
+				argumentbuilder.executes((ctx) -> 0);
 
-		config = new Configuration(ev.getSuggestedConfigurationFile());
-		syncConfigs();
+			if (argumentbuilder instanceof RequiredArgumentBuilder) {
+				RequiredArgumentBuilder<ISuggestionProvider, ?> requiredargumentbuilder = (RequiredArgumentBuilder) argumentbuilder;
+				if (requiredargumentbuilder.getSuggestionsProvider() != null) {
+					requiredargumentbuilder.suggests(
+							SuggestionProviders.func_197496_b(requiredargumentbuilder.getSuggestionsProvider()));
+				}
+			}
 
-		try {
-			ClientCommandHandler.instance.registerCommand(ACT_COMMAND);
-			ClientCommandHandler.instance
-					.registerCommand(new SimpleCommand("gm", "gm", args -> Minecraft.getMinecraft().player
-							.sendChatMessage("/gamemode " + CommandBase.buildString(args, 0))));
-			ClientCommandHandler.instance.registerCommand(new SimpleCommand("gmc", "gmc",
-					args -> Minecraft.getMinecraft().player.sendChatMessage("/gamemode 1")));
-			ClientCommandHandler.instance.registerCommand(new SimpleCommand("gms", "gms",
-					args -> Minecraft.getMinecraft().player.sendChatMessage("/gamemode 0")));
-			LOGGER.info("Commands register.");
-		} catch (Throwable e) {
-			LOGGER.error("Can't register ATEHUD command\n" + e.getMessage());
+			if (argumentbuilder.getRedirect() != null) {
+				argumentbuilder.redirect(suggestions.get(argumentbuilder.getRedirect()));
+			}
+
+			CommandNode<ISuggestionProvider> commandnode1 = argumentbuilder.build();
+			suggestions.put(child, commandnode1);
+			rootCommandNode.addChild(commandnode1);
+			if (!child.getChildren().isEmpty()) {
+				this.createSuggestion(child, commandnode1, player, suggestions);
+			}
 		}
 
-		ClientRegistry.registerKeyBinding(ACTMod.giver = new KeyBinding("key.act.giver", Keyboard.KEY_Y, MOD_NAME));
-		ClientRegistry.registerKeyBinding(ACTMod.menu = new KeyBinding("key.act.menu", Keyboard.KEY_N, MOD_NAME));
-		ClientRegistry.registerKeyBinding(ACTMod.edit = new KeyBinding("key.act.edit", Keyboard.KEY_H, MOD_NAME));
+	}
 
-		MinecraftForge.EVENT_BUS.register(this);
-		FMLCommonHandler.instance().bus().register(this);
-
-		// register attributes
-
-		attributes.add(SharedMonsterAttributes.ARMOR);
-		attributes.add(SharedMonsterAttributes.ARMOR_TOUGHNESS);
-		attributes.add(SharedMonsterAttributes.ATTACK_DAMAGE);
-		attributes.add(SharedMonsterAttributes.ATTACK_SPEED);
-		attributes.add(SharedMonsterAttributes.FOLLOW_RANGE);
-		attributes.add(SharedMonsterAttributes.KNOCKBACK_RESISTANCE);
-		attributes.add(SharedMonsterAttributes.LUCK);
-		attributes.add(SharedMonsterAttributes.MAX_HEALTH);
-		attributes.add(SharedMonsterAttributes.MOVEMENT_SPEED);
-
-		// register templates
-
-		registerTemplate("gui.act.menu.template.empty", new ItemStack(Items.PAPER), "");
-		registerTemplate("gui.act.menu.template.stone", new ItemStack(Blocks.STONE),
-				ItemUtils.getGiveCode(new ItemStack(Blocks.STONE)));
-		registerTemplate("gui.act.menu.template.potion", new ItemStack(Items.POTIONITEM),
-				ItemUtils.getGiveCode(new ItemStack(Items.POTIONITEM)));
-		registerTemplate("gui.act.menu.template.fireworks", new ItemStack(Items.FIREWORKS),
-				ItemUtils.getGiveCode(new ItemStack(Items.FIREWORKS)));
-		registerTemplate("item.skull.char.name", new ItemStack(Items.SKULL, 1, 3),
-				ItemUtils.getGiveCode(new ItemStack(Items.SKULL, 1, 3)));
-		registerTemplate("gui.act.menu.template.command", new ItemStack(Blocks.COMMAND_BLOCK),
-				ItemUtils.getGiveCode(new ItemStack(Blocks.COMMAND_BLOCK)));
-		registerTemplate("item.egg.name", new ItemStack(Items.SPAWN_EGG),
-				ItemUtils.getGiveCode(new ItemStack(Items.SPAWN_EGG)));
-
+	private void injectSuggestions() {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player != null && mc.player.connection != null) {
+			CommandDispatcher<ISuggestionProvider> current = mc.player.connection.func_195515_i(); // getSuggestionProvider()
+			if (current != suggestionProvider) {
+				suggestionProvider = current;
+				if (current != null) {
+					Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> map = Maps.newHashMap();
+					RootCommandNode<ISuggestionProvider> root = suggestionProvider.getRoot();
+					map.put(dispatcher.getRoot(), root);
+					createSuggestion(dispatcher.getRoot(), root, mc.player.getCommandSource(), map);
+				}
+			}
+		}
 	}
 
 	@SubscribeEvent
-	public void register(RegistryEvent.Register<Item> ev) {
-		ev.getRegistry().register(ADVANCED_ITEM);
+	public void onChatMessage(ClientChatEvent ev) {
+		String msg = ev.getMessage();
+		// check if it is a command
+		if (!msg.startsWith("/"))
+			return;
+
+		final String command = msg.substring(1);
+
+		// check if we know it
+		if (!commandSet.contains(command.split(" ", 2)[0]))
+			return;
+
+		// we know it, we remove it
+		ev.setCanceled(true);
+		Minecraft.getInstance().ingameGUI.getChatGUI().addToSentMessages(msg);
+
+		StringReader reader = new StringReader(msg);
+		if (reader.canRead())
+			reader.skip(); // remove the '/'
+		CommandSource source = Minecraft.getInstance().player.getCommandSource();
+
+		try {
+			ParseResults<CommandSource> parse = dispatcher.parse(reader, source);
+			dispatcher.execute(parse);
+		} catch (CommandException e) {
+			source.sendErrorMessage(e.getComponent());
+		} catch (CommandSyntaxException e) {
+			source.sendErrorMessage(TextComponentUtils.toTextComponent(e.getRawMessage()));
+			if (e.getInput() != null && e.getCursor() >= 0) {
+				int messageSize = Math.min(e.getInput().length(), e.getCursor());
+				ITextComponent error = (new TextComponentString("")).applyTextStyle(TextFormatting.GRAY)
+						.applyTextStyle((style) -> {
+							style.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, msg));
+						});
+				if (messageSize > 10) {
+					error.appendText("...");
+				}
+
+				error.appendText(e.getInput().substring(Math.max(0, messageSize - 10), messageSize));
+				if (messageSize < e.getInput().length()) {
+					ITextComponent itextcomponent2 = (new TextComponentString(e.getInput().substring(messageSize)))
+							.applyTextStyles(new TextFormatting[] { TextFormatting.RED, TextFormatting.UNDERLINE });
+					error.appendSibling(itextcomponent2);
+				}
+
+				error.appendSibling((new TextComponentTranslation("command.context.here"))
+						.applyTextStyles(new TextFormatting[] { TextFormatting.RED, TextFormatting.ITALIC }));
+				source.sendErrorMessage(error);
+			}
+		} catch (Exception e) {
+			ITextComponent error = new TextComponentString(
+					e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			if (LOGGER.isDebugEnabled()) {
+				StackTraceElement[] trace = e.getStackTrace();
+
+				for (int j = 0; j < Math.min(trace.length, 3); ++j) {
+					error.appendText("\n\n").appendText(trace[j].getMethodName()).appendText("\n ")
+							.appendText(trace[j].getFileName()).appendText(":")
+							.appendText(String.valueOf(trace[j].getLineNumber()));
+				}
+			}
+
+			source.sendErrorMessage((new TextComponentTranslation("command.failed")).applyTextStyle((style) -> {
+				style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, error));
+			}));
+		}
 	}
+
+	@SubscribeEvent
+	public void onInitGui(InitGuiEvent.Post ev) {
+		injectSuggestions();
+	}
+
+	@SubscribeEvent
+	public void onDrawScreen(DrawScreenEvent.Post ev) {
+		if (ev.getGui() instanceof GuiACT && MOD_STATE.isShow()) {
+			Minecraft.getInstance().fontRenderer
+					.drawString("Warning! Currently in " + MOD_STATE.getColor() + MOD_STATE.name(), 5, 5, 0xffffffff);
+		}
+	}
+
+	@SubscribeEvent
+	public void onKeyInput(KeyInputEvent ev) {
+		if (giver.isPressed())
+			GuiUtils.displayScreen(new GuiGiver(null));
+		else if (menu.isPressed())
+			GuiUtils.displayScreen(new GuiMenu(null));
+		else if (edit.isPressed()) {
+			openGiver();
+		}
+	}
+
+	@SubscribeEvent
+	public void onRenderTooltip(ItemTooltipEvent ev) {
+		Minecraft mc = Minecraft.getInstance();
+		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
+				&& giver.getKey().getKeyCode() != 0 && InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+			;
+		} else if (mc.currentScreen instanceof GuiMenu) {
+			ev.getToolTip()
+					.add(ModdedCommand
+							.createPrefix(I18n.format("gui.act.leftClick"), TextFormatting.YELLOW, TextFormatting.GOLD)
+							.appendSibling(ModdedCommand.createText(
+									I18n.format(InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) ? "gui.act.give.copy"
+											: "gui.act.give.editor"),
+									TextFormatting.YELLOW)));
+			if (InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
+				ev.getToolTip().add(ModdedCommand
+						.createPrefix(I18n.format("gui.act.rightClick"), TextFormatting.YELLOW, TextFormatting.GOLD)
+						.appendSibling(ModdedCommand.createText(I18n.format("gui.act.delete"), TextFormatting.YELLOW)));
+			else if (mc.player != null && mc.player.isCreative())
+				ev.getToolTip().add(ModdedCommand
+						.createPrefix(I18n.format("gui.act.rightClick"), TextFormatting.YELLOW, TextFormatting.GOLD)
+						.appendSibling(
+								ModdedCommand.createText(I18n.format("gui.act.give.give"), TextFormatting.YELLOW)));
+		}
+		if (InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+			NBTTagCompound compound = ev.getItemStack().getTag();
+			String s = (!ev.getFlags().isAdvanced() ? ev.getItemStack().getItem().getRegistryName().toString() : "");
+			if (!(mc.currentScreen != null && mc.currentScreen instanceof GuiContainerCreative
+					&& ((GuiContainerCreative) mc.currentScreen).getSelectedTabIndex() == ItemGroup.SEARCH.getIndex())
+					&& ev.getItemStack().getItem().getCreativeTabs() != null)
+				s += TextFormatting.WHITE + (s.isEmpty() ? "" : " ")
+						+ ev.getItemStack().getItem().getCreativeTabs().stream().filter(Objects::nonNull)
+								.map(i -> I18n.format(i.getTranslationKey())).collect(Collectors.joining(", "));
+			if (!s.isEmpty())
+				ev.getToolTip().add(new TextComponentString(s));
+			if (compound != null && compound.contains("CustomPotionColor", 99))
+				ev.getToolTip()
+						.add(ModdedCommand.createText(
+								I18n.format("item.color",
+										TextFormatting.YELLOW
+												+ String.format("#%06X", compound.getInt("CustomPotionColor"))),
+								TextFormatting.GOLD));
+			if (!ev.getFlags().isAdvanced()) {
+				if (ev.getToolTip().size() != 0)
+					ev.getToolTip().set(0,
+							ev.getToolTip().get(0)
+									.appendText(" (#" + Item.getIdFromItem(ev.getItemStack().getItem())
+											+ (ev.getItemStack().getDamage() != 0 && !ev.getItemStack().isDamaged()
+													? "/" + ev.getItemStack().getDamage()
+													: "")
+											+ ")")
+									.setStyle(new Style().setColor(TextFormatting.WHITE)));
+				if (compound != null && compound.contains("display", 10)
+						&& compound.getCompound("display").contains("color", 99))
+					ev.getToolTip()
+							.add(ModdedCommand.createText(
+									I18n.format("item.color",
+											TextFormatting.YELLOW + String.format("#%06X",
+													compound.getCompound("display").getInt("color"))),
+									TextFormatting.GOLD));
+				if (ev.getItemStack().isDamaged()) {
+					int dmg = Math.abs(ev.getItemStack().getDamage() - ev.getItemStack().getMaxDamage()) + 1;
+					double maxdmg = (double) (ev.getItemStack().getMaxDamage() + 1);
+					ev.getToolTip()
+							.add(ModdedCommand.createText("RepairCost: ", TextFormatting.YELLOW)
+									.appendSibling(ModdedCommand.createText(String.valueOf(dmg),
+											dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
+													: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
+															: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
+																	: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
+																			: (dmg < (int) (1D * maxdmg)
+																					? TextFormatting.DARK_RED
+																					: TextFormatting.DARK_GREEN)))))));
+					ev.getToolTip().add(ModdedCommand.createText(I18n.format("item.durability",
+							(dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
+									: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
+											: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
+													: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
+															: (dmg < (int) (1D * maxdmg) ? TextFormatting.DARK_RED
+																	: TextFormatting.DARK_GREEN))))).toString()
+									+ dmg,
+							(ev.getItemStack().getMaxDamage() + 1)), TextFormatting.YELLOW));
+				}
+			}
+			if (compound != null && compound.size() != 0) {
+				if (ev.getItemStack().getTag().hasKey("RepairCost")) {
+					int dmg = ev.getItemStack().getTag().getInt("RepairCost");
+					double maxdmg = 31;
+					ev.getToolTip()
+							.add(ModdedCommand.createText("RepairCost: ", TextFormatting.YELLOW)
+									.appendSibling(ModdedCommand.createText(String.valueOf(dmg),
+											dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
+													: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
+															: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
+																	: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
+																			: (dmg < (int) (1D * maxdmg)
+																					? TextFormatting.DARK_RED
+																					: TextFormatting.DARK_GREEN)))))));
+				}
+
+				ITextComponent tags = ModdedCommand
+						.createText(I18n.format("gui.act.tags") + "(" + compound.size() + "): ", TextFormatting.GOLD);
+				int count = 0;
+				for (String tag : compound.keySet()) {
+					if (count != 0)
+						tags.appendSibling(ModdedCommand.createText(", ", TextFormatting.GOLD));
+
+					tags.appendSibling(ModdedCommand.createText("" + tag, TextFormatting.YELLOW));
+					count++;
+				}
+
+				ev.getToolTip().add(tags);
+			}
+		}
+		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
+				&& giver.getKey().getKeyCode() != 0 && InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+			if (InputMappings.isKeyDown(giver.getKey().getKeyCode()))
+				mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
+			ev.getToolTip()
+					.add(ModdedCommand.createText("[", TextFormatting.GOLD)
+							.appendSibling(ModdedCommand.createText(giver.getKey().getName(), TextFormatting.YELLOW))
+							.appendSibling(ModdedCommand.createText("] ", TextFormatting.GOLD)).appendSibling(
+									ModdedCommand.createText(I18n.format("cmd.act.opengiver"), TextFormatting.YELLOW)));
+			if (menu.getKey().getKeyCode() != 0) {
+				if (menu.getKey().getKeyCode() != 0) {
+					if (InputMappings.isKeyDown(menu.getKey().getKeyCode())) {
+						getCustomItems().add(ItemUtils.getGiveCode(ev.getItemStack()));
+						mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
+					}
+					ev.getToolTip().add(new TextComponentString("[").setStyle(new Style().setColor(TextFormatting.GOLD))
+							.appendText(menu.getKey().getName()).setStyle(new Style().setColor(TextFormatting.YELLOW))
+							.appendText("] ").setStyle(new Style().setColor(TextFormatting.GOLD))
+							.appendText(I18n.format("gui.act.save"))
+							.setStyle(new Style().setColor(TextFormatting.YELLOW)));
+				}
+			}
+		}
+		if (!InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
+			ev.getToolTip()
+					.add(new TextComponentString("SHIFT").setStyle(new Style().setColor(TextFormatting.YELLOW))
+							.appendText(" " + I18n.format("gui.act.shift"))
+							.setStyle(new Style().setColor(TextFormatting.GOLD)));
+
+	}
+
+	public static CommandDispatcher<CommandSource> getDispatcher() {
+		return dispatcher;
+	}
+
 }

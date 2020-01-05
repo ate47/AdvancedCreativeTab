@@ -3,7 +3,7 @@ package fr.atesab.act.gui.modifier.nbtelement;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 
 public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	private T value;
@@ -26,23 +26,28 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	public NBTElement clone() {
 		return new NBTNumericElement<T>(type, parent, key, value) {
 			@Override
-			public NBTBase get(T value) {
-				return this.get(value);
+			public INBTBase get(T value) {
+				return NBTNumericElement.this.get(value);
 			}
 
 			@Override
 			public T parseValue(String text) throws NumberFormatException {
-				return this.parseValue(text);
+				return NBTNumericElement.this.parseValue(text);
+			}
+
+			@Override
+			public void setNull() {
+				NBTNumericElement.this.setNull();
 			}
 		};
 	}
 
 	@Override
-	public NBTBase get() {
+	public INBTBase get() {
 		return get(value);
 	}
 
-	public abstract NBTBase get(T value);
+	public abstract INBTBase get(T value);
 
 	@Override
 	public String getType() {
@@ -53,24 +58,50 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 		return value;
 	}
 
+	public void setValue(T value) {
+		this.value = value;
+	}
+
 	@Override
 	public boolean match(String search) {
 		return field.getText().toLowerCase().contains(search.toLowerCase()) || super.match(search);
 	}
 
 	@Override
-	public void keyTyped(char typedChar, int keyCode) {
-		super.keyTyped(typedChar, keyCode);
-		try {
-			if (field.getText().isEmpty())
-				value = (T) ((Integer) 0);
-			else
-				value = parseValue(field.getText());
-			field.setTextColor(0xffffffff);
-		} catch (NumberFormatException e) {
-			field.setTextColor(0xffff0000);
+	public boolean charTyped(char key, int modifiers) {
+		if (super.charTyped(key, modifiers)) {
+			try {
+				if (field.getText().isEmpty())
+					setNull();
+				else
+					value = parseValue(field.getText());
+				field.setTextColor(0xffffffff);
+			} catch (NumberFormatException e) {
+				field.setTextColor(0xffff0000);
+			}
+			return true;
 		}
+		return false;
 	}
+
+	@Override
+	public boolean keyPressed(int key, int scanCode, int modifiers) {
+		if (super.keyPressed(key, scanCode, modifiers)) {
+			try {
+				if (field.getText().isEmpty())
+					setNull();
+				else
+					value = parseValue(field.getText());
+				field.setTextColor(0xffffffff);
+			} catch (NumberFormatException e) {
+				field.setTextColor(0xffff0000);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public abstract void setNull();
 
 	public abstract T parseValue(String text) throws NumberFormatException;
 

@@ -11,6 +11,7 @@
 
 - new NBT editor (in item editor / meta)
 - new tab with invisible items
+- color menu update
 - new commands :
 -- /act rfw : give a random Fireworks
 

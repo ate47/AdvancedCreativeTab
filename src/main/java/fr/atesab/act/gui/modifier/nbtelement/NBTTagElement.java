@@ -5,7 +5,7 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 
 public class NBTTagElement extends NBTElement {
@@ -14,15 +14,14 @@ public class NBTTagElement extends NBTElement {
 	public NBTTagElement(GuiListModifier<?> parent, String key, NBTTagCompound value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.tag")));
-	}
-
-	@Override
-	protected void actionPerformed(GuiButton button) {
-		if (button.id == 0)
-			mc.displayGuiScreen(new GuiNBTModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
-					tag -> value = tag, value.copy()));
-		super.actionPerformed(button);
+		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.tag")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				mc.displayGuiScreen(new GuiNBTModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
+						tag -> NBTTagElement.this.value = tag, value.copy()));
+				super.onClick(mouseX, mouseY);
+			}
+		});
 	}
 
 	@Override
@@ -31,13 +30,13 @@ public class NBTTagElement extends NBTElement {
 	}
 
 	@Override
-	public NBTBase get() {
+	public INBTBase get() {
 		return value.copy();
 	}
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.getSize() + "]";
+		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.size() + "]";
 	}
 
 }

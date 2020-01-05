@@ -2,12 +2,12 @@ package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 
 public class NBTUnknownElement extends NBTElement {
-	private NBTBase value;
+	private INBTBase value;
 
-	public NBTUnknownElement(GuiListModifier<?> parent, String key, NBTBase value) {
+	public NBTUnknownElement(GuiListModifier<?> parent, String key, INBTBase value) {
 		super(parent, key, 200, 21);
 		this.value = value;
 	}
@@ -18,7 +18,7 @@ public class NBTUnknownElement extends NBTElement {
 	}
 
 	@Override
-	public NBTBase get() {
+	public INBTBase get() {
 		return value.copy();
 	}
 

@@ -2,7 +2,7 @@ package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagLongArray;
 
 public class NBTLongArrayElement extends NBTElement {
@@ -19,7 +19,7 @@ public class NBTLongArrayElement extends NBTElement {
 	}
 
 	@Override
-	public NBTBase get() {
+	public INBTBase get() {
 		return value.copy();
 	}
 
