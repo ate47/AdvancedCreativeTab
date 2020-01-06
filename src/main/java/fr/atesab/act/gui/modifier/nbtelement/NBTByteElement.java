@@ -1,7 +1,7 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagByte;
 
 public class NBTByteElement extends NBTNumericElement<Byte> {
@@ -15,8 +15,13 @@ public class NBTByteElement extends NBTNumericElement<Byte> {
 	}
 
 	@Override
-	public NBTBase get(Byte value) {
+	public INBTBase get(Byte value) {
 		return new NBTTagByte(value);
+	}
+
+	@Override
+	public void setNull() {
+		setValue((byte) 0);
 	}
 
 	@Override

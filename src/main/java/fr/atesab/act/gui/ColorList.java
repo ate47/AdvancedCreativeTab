@@ -36,7 +36,7 @@ public class ColorList {
 		this.sizeX = sizeX;
 		this.x = x;
 		this.y = y;
-		this.mc = Minecraft.getMinecraft();
+		this.mc = Minecraft.getInstance();
 		this.fontRenderer = this.mc.fontRenderer;
 		this.parent = parent;
 	}

@@ -1,7 +1,6 @@
 package fr.atesab.act.gui.modifier;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.function.Consumer;
 
 import fr.atesab.act.gui.selector.GuiTypeListSelector;
@@ -15,10 +14,11 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
@@ -32,20 +32,20 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	}
 
 	private void setData() {
-		NBTTagCompound tag = stack.getOrCreateSubCompound("BlockEntityTag");
-		tag.setString("CustomName",
-				name.getText().isEmpty() ? "@" : name.getText().replaceAll("&", "" + ChatUtils.MODIFIER));
+		NBTTagCompound tag = stack.getOrCreateChildTag("BlockEntityTag");
+		stack.setDisplayName(new TextComponentString(name.getText().isEmpty() ? "@"
+				: name.getText().replaceAll("&", "" + ChatUtils.MODIFIER) + TextFormatting.RESET));
 		tag.setString("Command", command.getText().replaceAll("&", "" + ChatUtils.MODIFIER));
 		tag.setByte("auto", (byte) (autoValue ? 1 : 0));
 	}
 
 	private void loadData() {
-		NBTTagCompound tag = stack.getOrCreateSubCompound("BlockEntityTag");
-		name.setText((tag.hasKey("CustomName", 8) ? tag.getString("CustomName") : "@")
+		NBTTagCompound tag = stack.getOrCreateChildTag("BlockEntityTag");
+		name.setText((stack.hasDisplayName() ? stack.getDisplayName().getFormattedText() : "@")
 				.replaceAll("" + ChatUtils.MODIFIER, "&"));
 		command.setText(
-				(tag.hasKey("Command", 8) ? tag.getString("Command") : "").replaceAll("" + ChatUtils.MODIFIER, "&"));
-		autoValue = tag.hasKey("auto", 99) && tag.getByte("auto") == (byte) 1;
+				(tag.contains("Command", 8) ? tag.getString("Command") : "").replaceAll("" + ChatUtils.MODIFIER, "&"));
+		autoValue = tag.contains("auto", 99) && tag.getByte("auto") == (byte) 1;
 	}
 
 	@Override
@@ -56,84 +56,95 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 		command = new GuiTextField(0, fontRenderer, width / 2 - 148 + l, height / 2 + 2, 296 - l, 16);
 		name.setMaxStringLength(Integer.MAX_VALUE);
 		command.setMaxStringLength(Integer.MAX_VALUE);
-		buttonList.add(auto = new GuiButton(2, width / 2 + 1, height / 2 + 21, 149, 20,
-				I18n.format("advMode.mode.redstoneTriggered")));
-		buttonList
-				.add(new GuiButton(3, width / 2 - 150, height / 2 + 21, 150, 20, I18n.format("gui.act.modifier.type")));
-		buttonList.add(new GuiButton(1, width / 2 + 1, height / 2 + 42, 149, 20, I18n.format("gui.act.cancel")));
-		buttonList.add(new GuiButton(0, width / 2 - 150, height / 2 + 42, 150, 20, I18n.format("gui.done")));
+		addButton(auto = new GuiButton(2, width / 2 + 1, height / 2 + 21, 149, 20,
+				I18n.format("advMode.mode.redstoneTriggered")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				autoValue = !autoValue;
+				super.onClick(mouseX, mouseY);
+			}
+		});
+		addButton(new GuiButton(3, width / 2 - 150, height / 2 + 21, 150, 20, I18n.format("gui.act.modifier.type")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				setData();
+				NonNullList<ItemStack> potionType = NonNullList.create();
+				potionType.add(new ItemStack(Blocks.COMMAND_BLOCK));
+				potionType.add(new ItemStack(Blocks.REPEATING_COMMAND_BLOCK));
+				potionType.add(new ItemStack(Blocks.CHAIN_COMMAND_BLOCK));
+				potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
+				mc.displayGuiScreen(new GuiTypeListSelector(GuiCommandBlockModifier.this, is -> {
+					stack = ItemUtils.setItem(is.getItem(), stack);
+					return null;
+				}, potionType));
+				super.onClick(mouseX, mouseY);
+			}
+		});
+		addButton(new GuiButton(1, width / 2 + 1, height / 2 + 42, 149, 20, I18n.format("gui.act.cancel")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				mc.displayGuiScreen(parent);
+				super.onClick(mouseX, mouseY);
+			}
+		});
+		addButton(new GuiButton(0, width / 2 - 150, height / 2 + 42, 150, 20, I18n.format("gui.done")) {
+			@Override
+			public void onClick(double mouseX, double mouseY) {
+				setData();
+				set(stack);
+				mc.displayGuiScreen(parent);
+				super.onClick(mouseX, mouseY);
+			}
+		});
 		loadData();
 		super.initGui();
 	}
 
 	@Override
-	protected void actionPerformed(GuiButton button) throws IOException {
-		switch (button.id) {
-		case 0:
-			setData();
-			set(stack);
-		case 1:
-			mc.displayGuiScreen(parent);
-			break;
-		case 2:
-			autoValue = !autoValue;
-			break;
-		case 3:
-			setData();
-			NonNullList<ItemStack> potionType = NonNullList.create();
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.COMMAND_BLOCK)));
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.REPEATING_COMMAND_BLOCK)));
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.CHAIN_COMMAND_BLOCK)));
-			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
-			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
-				stack = ItemUtils.setItem(is.getItem(), stack);
-				return null;
-			}, potionType));
-			break;
-		}
-		super.actionPerformed(button);
-	}
-
-	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+	public void render(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
 		GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150,
 				command.y, Color.WHITE.getRGB(), command.height);
 		GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150,
 				name.y, Color.WHITE.getRGB(), name.height);
-		command.drawTextBox();
-		name.drawTextBox();
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		command.drawTextField(mouseX, mouseY, partialTicks);
+		name.drawTextField(mouseX, mouseY, partialTicks);
+		super.render(mouseX, mouseY, partialTicks);
 		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, width / 2 - 10, name.y - 20);
 		if (GuiUtils.isHover(width / 2 - 10, name.y - 20, 20, 20, mouseX, mouseY))
 			renderToolTip(stack, mouseX, mouseY);
-		GlStateManager.color(1.0F, 1.0F, 1.0F);
+		GlStateManager.color3f(1.0F, 1.0F, 1.0F);
 	}
 
 	@Override
-	public void updateScreen() {
-		command.updateCursorCounter();
-		name.updateCursorCounter();
-		auto.packedFGColour = GuiUtils.getRedGreen(!autoValue);
-		super.updateScreen();
+	public void tick() {
+		command.tick();
+		name.tick();
+		auto.packedFGColor = GuiUtils.getRedGreen(!autoValue);
+		super.tick();
 	}
 
 	@Override
-	protected void keyTyped(char typedChar, int keyCode) throws IOException {
-		command.textboxKeyTyped(typedChar, keyCode);
-		name.textboxKeyTyped(typedChar, keyCode);
-		super.keyTyped(typedChar, keyCode);
+	public boolean charTyped(char key, int modifiers) {
+		return command.charTyped(key, modifiers) || name.charTyped(key, modifiers) || super.charTyped(key, modifiers);
 	}
 
 	@Override
-	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+	public boolean keyPressed(int key, int scanCode, int modifiers) {
+		command.keyPressed(key, scanCode, modifiers);
+		name.keyPressed(key, scanCode, modifiers);
+		return super.keyPressed(key, scanCode, modifiers);
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		command.mouseClicked(mouseX, mouseY, mouseButton);
 		name.mouseClicked(mouseX, mouseY, mouseButton);
-		if (GuiUtils.isHover(command, mouseX, mouseY) && mouseButton == 1)
+		if (GuiUtils.isHover(command, (int) mouseX, (int) mouseY) && mouseButton == 1)
 			command.setText("");
-		if (GuiUtils.isHover(name, mouseX, mouseY) && mouseButton == 1)
+		if (GuiUtils.isHover(name, (int) mouseX, (int) mouseY) && mouseButton == 1)
 			name.setText("");
-		super.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
 }

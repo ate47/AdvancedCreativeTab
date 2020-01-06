@@ -1,7 +1,7 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.INBTBase;
 import net.minecraft.nbt.NBTTagDouble;
 
 public class NBTDoubleElement extends NBTNumericElement<Double> {
@@ -15,13 +15,18 @@ public class NBTDoubleElement extends NBTNumericElement<Double> {
 	}
 
 	@Override
-	public NBTBase get(Double value) {
+	public INBTBase get(Double value) {
 		return new NBTTagDouble(value);
 	}
 
 	@Override
 	public Double parseValue(String text) {
 		return text.isEmpty() ? 0 : Double.parseDouble(text);
+	}
+
+	@Override
+	public void setNull() {
+		setValue(0.0);
 	}
 
 }

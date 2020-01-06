@@ -28,24 +28,21 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 			this.textField = new GuiTextField(0, fontRenderer, 112, 1, 46, 18);
 			textField.setMaxStringLength(6);
 			textField.setText(String.valueOf(level == 0 ? "" : level));
-			buttonList.add(new GuiButton(0, 160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max")));
-		}
-
-		@Override
-		protected void actionPerformed(GuiButton button) {
-			if (button.id == 0) {
-				textField.setText(String.valueOf(enchantment.getMaxLevel()));
-			}
-			super.actionPerformed(button);
+			buttonList.add(new GuiButton(0, 160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max")) {
+				@Override
+				public void onClick(double mouseX, double mouseY) {
+					textField.setText(String.valueOf(enchantment.getMaxLevel()));
+					super.onClick(mouseX, mouseY);
+				}
+			});
 		}
 
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			GuiUtils.drawRelative(textField, offsetX, offsetY);
-			GuiUtils.drawRightString(fontRenderer,
-					net.minecraft.util.text.translation.I18n.translateToLocal(enchantment.getName()) + " : ",
-					offsetX + textField.x, offsetY + textField.y,
-					(err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(), textField.height);
+			GuiUtils.drawRelative(textField, offsetX, offsetY, mouseY, mouseY, partialTicks);
+			GuiUtils.drawRightString(fontRenderer, I18n.format(enchantment.getName()) + " : ", offsetX + textField.x,
+					offsetY + textField.y, (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
+					textField.height);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
@@ -59,15 +56,17 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		}
 
 		@Override
-		public void keyTyped(char typedChar, int keyCode) {
-			textField.textboxKeyTyped(typedChar, keyCode);
-			super.keyTyped(typedChar, keyCode);
+		public boolean charTyped(char key, int modifiers) {
+			return textField.charTyped(key, modifiers) || super.charTyped(key, modifiers);
+		}
+		@Override
+		public boolean keyPressed(int key, int scanCode, int modifiers) {
+			return textField.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
 		}
 
 		@Override
 		public boolean match(String search) {
-			return net.minecraft.util.text.translation.I18n.translateToLocal(enchantment.getName()).toLowerCase()
-					.contains(search.toLowerCase());
+			return I18n.format(enchantment.getName()).toLowerCase().contains(search.toLowerCase());
 		}
 
 		@Override
@@ -80,7 +79,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 
 		@Override
 		public void update() {
-			textField.updateCursorCounter();
+			textField.tick();
 			try {
 				level = textField.getText().isEmpty() ? 0 : Integer.valueOf(textField.getText());
 				err = false;
@@ -91,9 +90,10 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public GuiEnchModifier(GuiScreen parent, List<Tuple<Enchantment, Integer>> ench,
 			Consumer<List<Tuple<Enchantment, Integer>>> setter) {
-		super(parent, new ArrayList<>(), setter);
+		super(parent, new ArrayList<>(), setter, null);
 		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.modifier.ench.max"),
 				new Tuple<>(
 						() -> elements.stream().map(le -> (EnchListElement) le)

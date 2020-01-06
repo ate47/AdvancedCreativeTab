@@ -3,15 +3,16 @@ package fr.atesab.act.utils;
 import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
+import net.minecraft.util.text.event.HoverEvent;
 
 /**
  * A set of tools to help to communicate in chat with the player
@@ -78,31 +79,21 @@ public class ChatUtils {
 	 * @since 2.0
 	 */
 	public static void itemStack(ItemStack itemStack) {
-		if (itemStack != null)
-			send(getPrefix()
-					.appendSibling(
-							new TextComponentString(I18n.format("gui.act.give.msg") + " (" + itemStack.getDisplayName()
-									+ TextFormatting.RESET + ")")
-											.setStyle(
-													new Style()
-															.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM,
-																	new TextComponentString("{id:\""
-																			+ Item.REGISTRY
-																					.getNameForObject(
-																							itemStack.getItem())
-																					.toString()
-																			+ "\",Count:" + itemStack.getCount() + "b"
-																			+ (itemStack.getTagCompound() != null
-																					? ",tag:" + itemStack
-																							.getTagCompound().toString()
-																					: "")
-																			+ "}")))
-															.setClickEvent(new ClickEvent(Action.RUN_COMMAND,
-																	"/" + ACTMod.ACT_COMMAND.getName() + " "
-																			+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName()
-																			+ " "
-																			+ ItemUtils.getGiveCode(itemStack))))));
-		else
+		if (itemStack != null) {
+			NBTTagCompound item = new NBTTagCompound();
+			item.setString("id", itemStack.getItem().getRegistryName().toString());
+			item.setInt("Count", itemStack.getCount());
+			if (itemStack.getTag() != null)
+				item.setTag("tag", itemStack.getTag());
+			send(getPrefix().appendSibling(new TextComponentTranslation("gui.act.give.msg").appendText(": ")
+					.applyTextStyle(s -> s.setColor(TextFormatting.GOLD))
+					.appendSibling(itemStack.getDisplayName().createCopy().applyTextStyle(style -> {
+						style.setHoverEvent(
+								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new TextComponentString(item.toString())));
+						style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + ACTMod.ACT_COMMAND.getName() + " "
+								+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName() + " " + ItemUtils.getGiveCode(itemStack)));
+					}))));
+		} else
 			error(I18n.format("gui.act.give.fail2"));
 	}
 
@@ -116,8 +107,8 @@ public class ChatUtils {
 	 * @see ChatUtils#error(String)
 	 */
 	public static void send(ITextComponent message) {
-		if (Minecraft.getMinecraft().player != null)
-			Minecraft.getMinecraft().player.sendMessage(message);
+		if (Minecraft.getInstance().player != null)
+			Minecraft.getInstance().player.sendMessage(message);
 	}
 
 	/**

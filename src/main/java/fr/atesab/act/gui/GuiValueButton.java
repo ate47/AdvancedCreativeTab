@@ -2,7 +2,7 @@ package fr.atesab.act.gui;
 
 import net.minecraft.client.gui.GuiButton;
 
-public class GuiValueButton<T> extends GuiButton {
+public abstract class GuiValueButton<T> extends GuiButton {
 	private T Value;
 
 	public GuiValueButton(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText, T value) {
