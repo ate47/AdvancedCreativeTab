@@ -24,16 +24,16 @@ public class ItemReader {
 
 	public ItemReader() {
 		dispatcher.register(LiteralArgumentBuilder.<StackReference>literal(CMD)
-				.then(RequiredArgumentBuilder.<StackReference, ItemInput>argument("item", ItemArgument.itemStack())
+				.then(RequiredArgumentBuilder.<StackReference, ItemInput>argument("item", ItemArgument.item())
 						.then(RequiredArgumentBuilder
 								.<StackReference, Integer>argument("count", IntegerArgumentType.integer())
 								.executes(ctx -> {
-									ctx.getSource().stack = ItemArgument.getItemStack(ctx, "item")
+									ctx.getSource().stack = ItemArgument.getItem(ctx, "item")
 											.createStack(IntegerArgumentType.getInteger(ctx, "count"), false);
 									return 1;
 								}))
 						.executes(ctx -> {
-							ctx.getSource().stack = ItemArgument.getItemStack(ctx, "item").createStack(1, false);
+							ctx.getSource().stack = ItemArgument.getItem(ctx, "item").createStack(1, false);
 							return 1;
 						})));
 	}

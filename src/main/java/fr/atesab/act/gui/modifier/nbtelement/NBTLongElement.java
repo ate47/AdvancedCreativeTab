@@ -1,8 +1,8 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.LongNBT;
 
 public class NBTLongElement extends NBTNumericElement<Long> {
 
@@ -15,8 +15,8 @@ public class NBTLongElement extends NBTNumericElement<Long> {
 	}
 
 	@Override
-	public INBTBase get(Long value) {
-		return new NBTTagLong(value);
+	public INBT get(Long value) {
+		return new LongNBT(value);
 	}
 	@Override
 	public void setNull() {

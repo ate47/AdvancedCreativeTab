@@ -3,25 +3,21 @@ package fr.atesab.act.gui.modifier.nbtelement;
 import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTListModifier;
-import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
 
 public class NBTListElement extends NBTElement {
-	private NBTTagList value;
+	private ListNBT value;
 
-	public NBTListElement(GuiListModifier<?> parent, String key, NBTTagList value) {
+	public NBTListElement(GuiListModifier<?> parent, String key, ListNBT value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.list")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
-				mc.displayGuiScreen(new GuiNBTListModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/",
-						parent, tag -> NBTListElement.this.value = tag, value.copy()));
-				super.onClick(mouseX, mouseY);
-			}
-		});
+		buttonList.add(new Button(0, 0, 200, 20, I18n.format("gui.act.modifier.tag.editor.list"), b -> {
+			mc.displayGuiScreen(new GuiNBTListModifier(((GuiArrayModifierTitle) parent).getListModifierTitle() + key + "/", parent,
+					tag -> NBTListElement.this.value = tag, value.copy()));
+		}));
 	}
 
 	@Override
@@ -30,14 +26,14 @@ public class NBTListElement extends NBTElement {
 	}
 
 	@Override
-	public INBTBase get() {
+	public INBT get() {
 		return value.copy();
 	}
 
 	@Override
 	public String getType() {
-		return INBTBase.NBT_TYPES[value.getTagType()] + " " + I18n.format("gui.act.modifier.tag.editor.list") + "["
-				+ value.size() + "]";
+		return INBT.NBT_TYPES[value.getTagType()].toLowerCase() + " " + I18n.format("gui.act.modifier.tag.editor.list")
+				+ "[" + value.size() + "]";
 	}
 
 }

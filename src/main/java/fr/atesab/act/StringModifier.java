@@ -2,12 +2,12 @@ package fr.atesab.act;
 
 import java.util.function.Consumer;
 
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 
 public class StringModifier {
 	private String string;
 	private Consumer<String> setter;
-	private GuiScreen nextScreen;
+	private Screen nextScreen;
 
 	public String getString() {
 		return string;
@@ -18,15 +18,15 @@ public class StringModifier {
 		this.string = string;
 	}
 
-	public GuiScreen getNextScreen() {
+	public Screen getNextScreen() {
 		return nextScreen;
 	}
 
-	public void setNextScreen(GuiScreen nextScreen) {
+	public void setNextScreen(Screen nextScreen) {
 		this.nextScreen = nextScreen;
 	}
 
-	public StringModifier(String string, GuiScreen nextScreen, Consumer<String> setter) {
+	public StringModifier(String string, Screen nextScreen, Consumer<String> setter) {
 		this.string = string;
 		this.nextScreen = nextScreen;
 		this.setter = setter;

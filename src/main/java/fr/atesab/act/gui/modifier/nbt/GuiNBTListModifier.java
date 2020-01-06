@@ -9,31 +9,31 @@ import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
 
 @GuiNBTList
-public class GuiNBTListModifier extends GuiListModifier<NBTTagList> implements GuiArrayModifierTitle {
-	private NBTTagList list;
+public class GuiNBTListModifier extends GuiListModifier<ListNBT> implements GuiArrayModifierTitle {
+	private ListNBT list;
 	private String title;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTListModifier(String title, GuiScreen parent, Consumer<NBTTagList> setter, NBTTagList list) {
+	public GuiNBTListModifier(String title, Screen parent, Consumer<ListNBT> setter, ListNBT list) {
 		super(parent, new ArrayList<>(), setter, new Tuple[0]);
 		this.title = title;
 		this.list = list.copy();
 		String k = "...";
-		for (INBTBase base : list) {
+		for (INBT base : list) {
 			elements.add(NBTElement.getElementByBase(this, k, base));
 		}
 		elements.add(new AddElementList(this, () -> {
 			if (this.list.getTagType() != 0) {
-				INBTBase base = GuiNBTModifier.getDefaultElement(this.list.getTagType());
+				INBT base = GuiNBTModifier.getDefaultElement(this.list.getTagType());
 				if (base != null)
 					addListElement(elements.size() - 1, NBTElement.getElementByBase(this, k, base));
 			} else
-				mc.displayGuiScreen(GuiNBTModifier.addElement(elements.size() - 1, this, k));
+				getMinecraft().displayGuiScreen(GuiNBTModifier.addElement(elements.size() - 1, this, k));
 			return null;
 		}));
 		setPaddingLeft(5);
@@ -49,14 +49,14 @@ public class GuiNBTListModifier extends GuiListModifier<NBTTagList> implements G
 	}
 
 	@Override
-	protected NBTTagList get() {
-		NBTTagList list = new NBTTagList();
+	protected ListNBT get() {
+		ListNBT list = new ListNBT();
 		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> list.add(((NBTElement) le).get()));
 		return list;
 	}
 
 	@Override
-	public String getTitle() {
+	public String getListModifierTitle() {
 		return title;
 	}
 

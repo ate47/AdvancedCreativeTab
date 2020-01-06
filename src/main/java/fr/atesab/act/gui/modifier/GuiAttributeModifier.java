@@ -10,82 +10,72 @@ import fr.atesab.act.ACTMod;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.EquipmentSlotType;
 
-public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquipmentSlot, AttributeModifier>>> {
+public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSlotType, AttributeModifier>>> {
 
 	static class AttributeListElement extends ListElement {
-		private GuiTextField amount;
+		private TextFieldWidget amount;
 		private boolean errAmount = false;
 		private double amountValue;
 		private int operationValue;
 		private String name;
-		private EntityEquipmentSlot slot;
-		private GuiButton slotButton;
-		private GuiButton typeButton;
-		private GuiButton operationButton;
+		private EquipmentSlotType slot;
+		private Button slotButton;
+		private Button typeButton;
+		private Button operationButton;
 
-		public AttributeListElement(GuiAttributeModifier parent, Tuple<EntityEquipmentSlot, AttributeModifier> tuple) {
+		public AttributeListElement(GuiAttributeModifier parent, Tuple<EquipmentSlotType, AttributeModifier> tuple) {
 			super(400, 50);
 			slot = tuple.a;
 			name = tuple.b.getName();
 			int l = 5 + fontRenderer.getStringWidth(I18n.format("gui.act.modifier.attr.amount") + " : ");
-			amount = new GuiTextField(0, fontRenderer, 202 + l, 1, 154 - l, 18);
+			amount = new TextFieldWidget(fontRenderer, 202 + l, 1, 154 - l, 18, "");
 			amount.setMaxStringLength(8);
 			amount.setText(String.valueOf(amountValue = tuple.b.getAmount()));
-			operationValue = tuple.b.getOperation();
-			buttonList.add(slotButton = new GuiButton(0, 2, 0, 198, 20, "") {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					List<Tuple<String, EntityEquipmentSlot>> slots = new ArrayList<>();
-					slots.add(new Tuple<>(I18n.format("gui.act.none"), null));
-					for (EntityEquipmentSlot slot : EntityEquipmentSlot.class.getEnumConstants()) {
-						String s = I18n.format("item.modifiers." + slot.getName());
-						slots.add(new Tuple<>(s.endsWith(":") ? s.substring(0, s.length() - 1) : s, slot));
-					}
-					mc.displayGuiScreen(new GuiButtonListSelector<>(parent, slots, slot -> {
-						AttributeListElement.this.slot = slot;
-						defineButtonText();
-						return null;
-					}));
-					super.onClick(mouseX, mouseY);
+			operationValue = tuple.b.getOperation().getId();
+			buttonList.add(slotButton = new Button(2, 0, 198, 20, "", b -> {
+				List<Tuple<String, EquipmentSlotType>> slots = new ArrayList<>();
+				slots.add(new Tuple<>(I18n.format("gui.act.none"), null));
+				for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+					String s = I18n.format("item.modifiers." + slot.getName());
+					slots.add(new Tuple<>(s.endsWith(":") ? s.substring(0, s.length() - 1) : s, slot));
 				}
-			});
-			buttonList.add(typeButton = new GuiButton(1, 2, 21, 198, 20, "") {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					List<Tuple<String, IAttribute>> attributes = new ArrayList<>();
-					ACTMod.getAttributes().forEach(
-							atr -> attributes.add(new Tuple<>(I18n.format("attribute.name." + atr.getName()), atr)));
-					mc.displayGuiScreen(new GuiButtonListSelector<>(parent, attributes, atr -> {
-						AttributeListElement.this.name = atr.getName();
-						defineButtonText();
-						return null;
-					}));
-					super.onClick(mouseX, mouseY);
-				}
-			});
-			buttonList.add(operationButton = new GuiButton(2, 202, 21, 157, 20, "") {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					List<Tuple<String, Integer>> operations = new ArrayList<>();
-					operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.0") + " (0)", 0));
-					operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.1") + " (1)", 1));
-					operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.2") + " (2)", 2));
-					mc.displayGuiScreen(new GuiButtonListSelector<>(parent, operations, i -> {
-						AttributeListElement.this.operationValue = i;
-						defineButtonText();
-						return null;
-					}));
-				};
-			});
+				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, slots, slot -> {
+					AttributeListElement.this.slot = slot;
+					defineButtonText();
+					return null;
+				}));
+			}));
+			buttonList.add(typeButton = new Button(2, 21, 198, 20, "", b -> {
+				List<Tuple<String, IAttribute>> attributes = new ArrayList<>();
+				ACTMod.getAttributes().forEach(
+						atr -> attributes.add(new Tuple<>(I18n.format("attribute.name." + atr.getName()), atr)));
+				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, attributes, atr -> {
+					AttributeListElement.this.name = atr.getName();
+					defineButtonText();
+					return null;
+				}));
+			}));
+			buttonList.add(operationButton = new Button(202, 21, 157, 20, "", b -> {
+				List<Tuple<String, Integer>> operations = new ArrayList<>();
+				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.0") + " (0)", 0));
+				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.1") + " (1)", 1));
+				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.2") + " (2)", 2));
+				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, operations, i -> {
+					AttributeListElement.this.operationValue = i;
+					defineButtonText();
+					return null;
+				}));
+			}));
 			buttonList.add(new RemoveElementButton(parent, 359, 0, 20, 20, this));
 			buttonList.add(new AddElementButton(parent, 381, 0, 20, 20, this, parent.supplier));
 			buttonList.add(new AddElementButton(parent, 359, 21, 43, 20, I18n.format("gui.act.give.copy"), this,
@@ -95,12 +85,12 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 
 		private void defineButtonText() {
 			String s = (slot == null ? I18n.format("gui.act.none") : I18n.format("item.modifiers." + slot.getName()));
-			slotButton.displayString = I18n.format("gui.act.modifier.attr.slot") + " - "
-					+ (s.endsWith(":") ? s.substring(0, s.length() - 1) : s);
-			typeButton.displayString = I18n.format("gui.act.modifier.attr.type") + " - "
-					+ I18n.format("attribute.name." + name);
-			operationButton.displayString = I18n.format("gui.act.modifier.attr.operation") + " - "
-					+ I18n.format("gui.act.modifier.attr.operation." + operationValue) + " (" + operationValue + ")";
+			slotButton.setMessage(I18n.format("gui.act.modifier.attr.slot") + " - "
+					+ (s.endsWith(":") ? s.substring(0, s.length() - 1) : s));
+			typeButton.setMessage(
+					I18n.format("gui.act.modifier.attr.type") + " - " + I18n.format("attribute.name." + name));
+			operationButton.setMessage(I18n.format("gui.act.modifier.attr.operation") + " - "
+					+ I18n.format("gui.act.modifier.attr.operation." + operationValue) + " (" + operationValue + ")");
 		}
 
 		@Override
@@ -112,11 +102,12 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 		}
 
 		private AttributeModifier getModifier() {
-			return new AttributeModifier(name, amountValue, operationValue);
+			return new AttributeModifier(name, amountValue, Operation.byId(operationValue));
 		}
 
+		@Override
 		public void init() {
-			amount.setFocused(false);
+			amount.setFocused2(false);
 		}
 
 		@Override
@@ -128,6 +119,7 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 		public boolean charTyped(char key, int modifiers) {
 			return amount.charTyped(key, modifiers);
 		}
+
 		@Override
 		public boolean keyPressed(int key, int scanCode, int modifiers) {
 			amount.keyPressed(key, scanCode, modifiers);
@@ -136,9 +128,9 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 
 		@Override
 		public boolean match(String search) {
-			return slotButton.displayString.toLowerCase().contains(search.toLowerCase())
-					|| typeButton.displayString.toLowerCase().contains(search.toLowerCase())
-					|| operationButton.displayString.toLowerCase().contains(search.toLowerCase());
+			return slotButton.getMessage().toLowerCase().contains(search.toLowerCase())
+					|| typeButton.getMessage().toLowerCase().contains(search.toLowerCase())
+					|| operationButton.getMessage().toLowerCase().contains(search.toLowerCase());
 		}
 
 		@Override
@@ -164,20 +156,20 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EntityEquip
 		}
 	}
 
-	private final Supplier<ListElement> supplier = () -> new AttributeListElement(this,
-			new Tuple<>(null, new AttributeModifier(SharedMonsterAttributes.ARMOR.getName(), 0, 0)));
+	private final Supplier<ListElement> supplier = () -> new AttributeListElement(this, new Tuple<>(null,
+			new AttributeModifier(SharedMonsterAttributes.ARMOR.getName(), 0, AttributeModifier.Operation.ADDITION)));
 
 	@SuppressWarnings("unchecked")
-	public GuiAttributeModifier(GuiScreen parent, List<Tuple<EntityEquipmentSlot, AttributeModifier>> attr,
-			Consumer<List<Tuple<EntityEquipmentSlot, AttributeModifier>>> setter) {
+	public GuiAttributeModifier(Screen parent, List<Tuple<EquipmentSlotType, AttributeModifier>> attr,
+			Consumer<List<Tuple<EquipmentSlotType, AttributeModifier>>> setter) {
 		super(parent, new ArrayList<>(), setter, new Tuple[0]);
 		attr.forEach(tuple -> elements.add(new AttributeListElement(this, tuple)));
 		elements.add(new AddElementList(this, supplier));
 	}
 
 	@Override
-	protected List<Tuple<EntityEquipmentSlot, AttributeModifier>> get() {
-		List<Tuple<EntityEquipmentSlot, AttributeModifier>> result = new ArrayList<>();
+	protected List<Tuple<EquipmentSlotType, AttributeModifier>> get() {
+		List<Tuple<EquipmentSlotType, AttributeModifier>> result = new ArrayList<>();
 		elements.stream().filter(le -> le instanceof AttributeListElement).map(le -> (AttributeListElement) le)
 				.forEach(ale -> result.add(new Tuple<>(ale.slot, ale.getModifier())));
 		return result;

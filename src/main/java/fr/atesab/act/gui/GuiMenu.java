@@ -14,9 +14,8 @@ import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.InputMappings;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 
@@ -33,15 +32,15 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			GuiUtils.drawItemStack(mc.getItemRenderer(), parent.zLevel, parent, stack, offsetX + 1, offsetY + 1);
+			GuiUtils.drawItemStack(mc.getItemRenderer(), parent, stack, offsetX + 1, offsetY + 1);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
 		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			if (GuiUtils.isHover(0, 0, 18, 18, mouseX, mouseY)) {
-				drawRect(offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
-				parent.renderToolTip(stack, mouseX + offsetX, mouseY + offsetY);
+				GuiUtils.drawRect(offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
+				parent.renderTooltip(stack, mouseX + offsetX, mouseY + offsetY);
 			}
 			super.drawNext(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
@@ -59,7 +58,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 			if (GuiUtils.isHover(0, 0, 18, 18, mouseX, mouseY)) {
 				playClick();
 				if (mouseButton == 0) {
-					if (InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+					if (ACTMod.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 						int i = parent.elements.indexOf(this);
 						parent.addListElement(i, new MenuListElement(parent, stack.copy()));
 					} else
@@ -71,7 +70,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 								parent.removeListElement(this);
 						}, true));
 				} else if (mouseButton == 1)
-					if (InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
+					if (ACTMod.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
 						parent.removeListElement(this);
 					else
 						ItemUtils.give(stack);
@@ -86,25 +85,25 @@ public class GuiMenu extends GuiListModifier<Object> {
 	};
 
 	private Runnable ADD = () -> {
-		mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
+		getMinecraft().displayGuiScreen(new GuiTypeListSelector(this, is -> {
 			GuiGiver giver = new GuiGiver(this, (ItemStack) null,
 					i -> ADD_STACK
 							.accept(ItemUtils.getFromGiveCode(i.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))),
 					false);
-			if (mc.currentScreen instanceof GuiTypeListSelector)
-				((GuiTypeListSelector) mc.currentScreen).setParent(giver);
+			if (getMinecraft().currentScreen instanceof GuiTypeListSelector)
+				((GuiTypeListSelector) getMinecraft().currentScreen).setParent(giver);
 			giver.setPreText(ItemUtils.getCustomTag(is, ACTMod.TEMPLATE_TAG_NAME, ""));
 			return null;
 		}, ACTMod.getTemplates()));
 	};
 
 	@SuppressWarnings("unchecked")
-	public GuiMenu(GuiScreen parent) {
+	public GuiMenu(Screen parent) {
 		super(parent, new ArrayList<>(), o -> {
 		}, true, false, new Tuple[0]);
 		Tuple<?, ?> btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("cmd.act.edit"), new Tuple<>(() -> {
-			final int slot = mc.player.inventory.currentItem;
-			mc.displayGuiScreen(new GuiItemStackModifier(this, mc.player.getHeldItemMainhand().copy(),
+			final int slot = getMinecraft().player.inventory.currentItem;
+			getMinecraft().displayGuiScreen(new GuiItemStackModifier(this, getMinecraft().player.getHeldItemMainhand().copy(),
 					is -> ItemUtils.give(is, 36 + slot)));
 		}, () -> {
 		}));

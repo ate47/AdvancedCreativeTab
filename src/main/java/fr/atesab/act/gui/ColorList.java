@@ -11,12 +11,12 @@ import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 
 public class ColorList {
-	private GuiScreen parent;
+	private Screen parent;
 	private Minecraft mc;
 	private FontRenderer fontRenderer;
 	private List<Integer> list;
@@ -26,7 +26,7 @@ public class ColorList {
 	public int x;
 	public int y;
 
-	public ColorList(GuiScreen parent, int x, int y, int sizeX, int[] list, String title, int maxElement) {
+	public ColorList(Screen parent, int x, int y, int sizeX, int[] list, String title, int maxElement) {
 		this.list = new ArrayList<>(list.length);
 		Arrays.stream(list).forEach(this.list::add);
 		this.title = title;

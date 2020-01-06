@@ -2,13 +2,13 @@ package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagLongArray;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.LongArrayNBT;
 
 public class NBTLongArrayElement extends NBTElement {
-	private NBTTagLongArray value;
+	private LongArrayNBT value;
 
-	public NBTLongArrayElement(GuiListModifier<?> parent, String key, NBTTagLongArray value) {
+	public NBTLongArrayElement(GuiListModifier<?> parent, String key, LongArrayNBT value) {
 		super(parent, key, 200, 21);
 		this.value = value;
 	}
@@ -19,7 +19,7 @@ public class NBTLongArrayElement extends NBTElement {
 	}
 
 	@Override
-	public INBTBase get() {
+	public INBT get() {
 		return value.copy();
 	}
 

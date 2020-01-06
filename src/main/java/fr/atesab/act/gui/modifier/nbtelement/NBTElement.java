@@ -15,18 +15,18 @@ import fr.atesab.act.gui.modifier.GuiStringModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagFloat;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagIntArray;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.nbt.NBTTagLongArray;
-import net.minecraft.nbt.NBTTagShort;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.nbt.ByteNBT;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.DoubleNBT;
+import net.minecraft.nbt.FloatNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.IntArrayNBT;
+import net.minecraft.nbt.IntNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.LongArrayNBT;
+import net.minecraft.nbt.LongNBT;
+import net.minecraft.nbt.ShortNBT;
+import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.text.TextFormatting;
 
 public abstract class NBTElement extends ListElement implements Cloneable {
@@ -79,7 +79,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	 * 
 	 * @return the base
 	 */
-	public abstract INBTBase get();
+	public abstract INBT get();
 
 	public String getKey() {
 		return key;
@@ -107,32 +107,32 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	 * @return
 	 * @since 2.1
 	 */
-	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, INBTBase base) {
+	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, INBT base) {
 		switch (base.getId()) {
 		case 0:
-			return new NBTTagElement(parent, key, new NBTTagCompound());
+			return new NBTTagElement(parent, key, new CompoundNBT());
 		case 1:
-			return new NBTByteElement(parent, key, ((NBTTagByte) base).getByte());
+			return new NBTByteElement(parent, key, ((ByteNBT) base).getByte());
 		case 2:
-			return new NBTShortElement(parent, key, ((NBTTagShort) base).getShort());
+			return new NBTShortElement(parent, key, ((ShortNBT) base).getShort());
 		case 3:
-			return new NBTIntegerElement(parent, key, ((NBTTagInt) base).getInt());
+			return new NBTIntegerElement(parent, key, ((IntNBT) base).getInt());
 		case 4:
-			return new NBTLongElement(parent, key, ((NBTTagLong) base).getLong());
+			return new NBTLongElement(parent, key, ((LongNBT) base).getLong());
 		case 5:
-			return new NBTFloatElement(parent, key, ((NBTTagFloat) base).getFloat());
+			return new NBTFloatElement(parent, key, ((FloatNBT) base).getFloat());
 		case 6:
-			return new NBTDoubleElement(parent, key, ((NBTTagDouble) base).getDouble());
+			return new NBTDoubleElement(parent, key, ((DoubleNBT) base).getDouble());
 		case 8:
-			return new NBTStringElement(parent, key, ((NBTTagString) base).getString());
+			return new NBTStringElement(parent, key, ((StringNBT) base).getString());
 		case 9:
-			return new NBTListElement(parent, key, ((NBTTagList) base));
+			return new NBTListElement(parent, key, ((ListNBT) base));
 		case 10:
-			return new NBTTagElement(parent, key, (NBTTagCompound) base);
+			return new NBTTagElement(parent, key, (CompoundNBT) base);
 		case 11:
-			return new NBTIntArrayElement(parent, key, (NBTTagIntArray) base);
+			return new NBTIntArrayElement(parent, key, (IntArrayNBT) base);
 		case 12:
-			return new NBTLongArrayElement(parent, key, (NBTTagLongArray) base);
+			return new NBTLongArrayElement(parent, key, (LongArrayNBT) base);
 		default:
 			return new NBTUnknownElement(parent, key, base);
 		}

@@ -9,21 +9,21 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 
 public class ModdedCommandOpenMenu extends ModdedCommand {
-	private Function<String[], GuiScreen> menu;
+	private Function<String[], Screen> menu;
 	private boolean allowArguments;
 
-	public ModdedCommandOpenMenu(String name, String description, Function<String[], GuiScreen> menu) {
+	public ModdedCommandOpenMenu(String name, String description, Function<String[], Screen> menu) {
 		super(name, description, CommandClickOption.doCommand);
 		this.menu = menu;
 		this.allowArguments = true;
 	}
 
-	public ModdedCommandOpenMenu(String name, String description, Supplier<GuiScreen> menu) {
+	public ModdedCommandOpenMenu(String name, String description, Supplier<Screen> menu) {
 		super(name, description, CommandClickOption.doCommand);
 		this.menu = arg -> menu.get();
 		this.allowArguments = false;

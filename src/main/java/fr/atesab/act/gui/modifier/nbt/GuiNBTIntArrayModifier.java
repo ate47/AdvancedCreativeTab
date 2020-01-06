@@ -6,21 +6,21 @@ import java.util.function.Consumer;
 
 import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
+import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import fr.atesab.act.gui.modifier.nbtelement.NBTIntegerElement;
 import fr.atesab.act.utils.Tuple;
-import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.NBTTagIntArray;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.nbt.IntArrayNBT;
 
 @GuiNBTList
-public class GuiNBTIntArrayModifier extends GuiListModifier<NBTTagIntArray> implements GuiArrayModifierTitle {
+public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> implements GuiArrayModifierTitle {
 	private List<Integer> list;
 	private String title;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTIntArrayModifier(String title, GuiScreen parent, Consumer<NBTTagIntArray> setter,
-			NBTTagIntArray array) {
+	public GuiNBTIntArrayModifier(String title, Screen parent, Consumer<IntArrayNBT> setter,
+			IntArrayNBT array) {
 		super(parent, new ArrayList<>(), setter, new Tuple[0]);
 		this.title = title;
 		this.list = new ArrayList<>();
@@ -38,12 +38,12 @@ public class GuiNBTIntArrayModifier extends GuiListModifier<NBTTagIntArray> impl
 	}
 
 	@Override
-	protected NBTTagIntArray get() {
-		return new NBTTagIntArray(list);
+	protected IntArrayNBT get() {
+		return new IntArrayNBT(list);
 	}
 
 	@Override
-	public String getTitle() {
+	public String getListModifierTitle() {
 		return title;
 	}
 }

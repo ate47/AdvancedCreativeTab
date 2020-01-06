@@ -4,12 +4,12 @@ import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.ClickEvent.Action;
 import net.minecraft.util.text.event.HoverEvent;
@@ -43,7 +43,7 @@ public class ChatUtils {
 	 * @see ChatUtils#getPrefix()
 	 */
 	public static ITextComponent getErrorPrefix() {
-		return getPrefix(new TextComponentString(I18n.format("gui.act.error"))
+		return getPrefix(new StringTextComponent(I18n.format("gui.act.error"))
 				.setStyle(new Style().setColor(TextFormatting.RED)), TextFormatting.WHITE);
 	}
 
@@ -59,16 +59,16 @@ public class ChatUtils {
 	}
 
 	private static ITextComponent getPrefix(ITextComponent notif, TextFormatting endColor) {
-		ITextComponent p = new TextComponentString("")
+		ITextComponent p = new StringTextComponent("")
 				.setStyle(new Style().setColor(endColor != null ? endColor : TextFormatting.WHITE))
-				.appendSibling(new TextComponentString("[").setStyle(new Style().setColor(TextFormatting.RED))
-						.appendSibling(new TextComponentString(ACTMod.MOD_LITTLE_NAME)
+				.appendSibling(new StringTextComponent("[").setStyle(new Style().setColor(TextFormatting.RED))
+						.appendSibling(new StringTextComponent(ACTMod.MOD_LITTLE_NAME)
 								.setStyle(new Style().setColor(TextFormatting.GOLD))));
 		if (notif != null)
-			p.appendSibling(new TextComponentString("/").setStyle(new Style().setColor(TextFormatting.WHITE)))
+			p.appendSibling(new StringTextComponent("/").setStyle(new Style().setColor(TextFormatting.WHITE)))
 					.appendSibling(notif);
-		return p.appendSibling(new TextComponentString("]").setStyle(new Style().setColor(TextFormatting.RED)))
-				.appendSibling(new TextComponentString(" "));
+		return p.appendSibling(new StringTextComponent("]").setStyle(new Style().setColor(TextFormatting.RED)))
+				.appendSibling(new StringTextComponent(" "));
 	}
 
 	/**
@@ -80,16 +80,16 @@ public class ChatUtils {
 	 */
 	public static void itemStack(ItemStack itemStack) {
 		if (itemStack != null) {
-			NBTTagCompound item = new NBTTagCompound();
-			item.setString("id", itemStack.getItem().getRegistryName().toString());
-			item.setInt("Count", itemStack.getCount());
+			CompoundNBT item = new CompoundNBT();
+			item.putString("id", itemStack.getItem().getRegistryName().toString());
+			item.putInt("Count", itemStack.getCount());
 			if (itemStack.getTag() != null)
-				item.setTag("tag", itemStack.getTag());
-			send(getPrefix().appendSibling(new TextComponentTranslation("gui.act.give.msg").appendText(": ")
+				item.put("tag", itemStack.getTag());
+			send(getPrefix().appendSibling(new TranslationTextComponent("gui.act.give.msg").appendText(": ")
 					.applyTextStyle(s -> s.setColor(TextFormatting.GOLD))
-					.appendSibling(itemStack.getDisplayName().createCopy().applyTextStyle(style -> {
+					.appendSibling(itemStack.getDisplayName().deepCopy().applyTextStyle(style -> {
 						style.setHoverEvent(
-								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new TextComponentString(item.toString())));
+								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new StringTextComponent(item.toString())));
 						style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + ACTMod.ACT_COMMAND.getName() + " "
 								+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName() + " " + ItemUtils.getGiveCode(itemStack)));
 					}))));

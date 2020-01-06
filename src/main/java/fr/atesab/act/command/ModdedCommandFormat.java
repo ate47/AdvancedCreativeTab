@@ -8,7 +8,7 @@ import fr.atesab.act.command.arguments.StringListArgumentType;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.HoverEvent;
 
@@ -41,7 +41,7 @@ public class ModdedCommandFormat extends ModdedCommand {
 	@Override
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
-			ITextComponent text = new TextComponentString("");
+			ITextComponent text = new StringTextComponent("");
 			int element = 0;
 			int line = 0;
 			for (TextFormatting format : TextFormatting.values()) {
@@ -56,7 +56,7 @@ public class ModdedCommandFormat extends ModdedCommand {
 						.appendSibling(createText(" ", TextFormatting.RESET));
 				if (++element == ELEMENT_PER_LINE) {
 					c.getSource().sendFeedback(text, false);
-					text = new TextComponentString("");
+					text = new StringTextComponent("");
 					element = 0;
 					line++;
 				}

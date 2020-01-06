@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.enchantment.Enchantment;
 
@@ -18,23 +18,19 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 	static class EnchListElement extends ListElement {
 		private Enchantment enchantment;
 		private int level;
-		private GuiTextField textField;
+		private TextFieldWidget textField;
 		private boolean err = false;
 
 		public EnchListElement(Enchantment enchantment, int level) {
 			super(200, 21);
 			this.enchantment = enchantment;
 			this.level = level;
-			this.textField = new GuiTextField(0, fontRenderer, 112, 1, 46, 18);
+			this.textField = new TextFieldWidget(fontRenderer, 112, 1, 46, 18, "");
 			textField.setMaxStringLength(6);
 			textField.setText(String.valueOf(level == 0 ? "" : level));
-			buttonList.add(new GuiButton(0, 160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max")) {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					textField.setText(String.valueOf(enchantment.getMaxLevel()));
-					super.onClick(mouseX, mouseY);
-				}
-			});
+			buttonList.add(new Button(160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max"), b -> {
+				textField.setText(String.valueOf(enchantment.getMaxLevel()));
+			}));
 		}
 
 		@Override
@@ -42,12 +38,12 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 			GuiUtils.drawRelative(textField, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawRightString(fontRenderer, I18n.format(enchantment.getName()) + " : ", offsetX + textField.x,
 					offsetY + textField.y, (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
-					textField.height);
+					textField.getHeight());
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		public void init() {
-			textField.setFocused(false);
+			textField.setFocused2(false);
 		}
 
 		@Override
@@ -59,6 +55,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		public boolean charTyped(char key, int modifiers) {
 			return textField.charTyped(key, modifiers) || super.charTyped(key, modifiers);
 		}
+
 		@Override
 		public boolean keyPressed(int key, int scanCode, int modifiers) {
 			return textField.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
@@ -91,7 +88,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiEnchModifier(GuiScreen parent, List<Tuple<Enchantment, Integer>> ench,
+	public GuiEnchModifier(Screen parent, List<Tuple<Enchantment, Integer>> ench,
 			Consumer<List<Tuple<Enchantment, Integer>>> setter) {
 		super(parent, new ArrayList<>(), setter, null);
 		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.modifier.ench.max"),

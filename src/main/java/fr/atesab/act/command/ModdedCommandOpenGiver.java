@@ -11,7 +11,7 @@ import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 
 public class ModdedCommandOpenGiver extends ModdedCommand {
 
@@ -32,7 +32,7 @@ public class ModdedCommandOpenGiver extends ModdedCommand {
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
 			GuiUtils.displayScreen(new GuiGiver(null,
-					ItemUtils.getGiveCode(Minecraft.getInstance().player.getHeldItem(EnumHand.MAIN_HAND))));
+					ItemUtils.getGiveCode(Minecraft.getInstance().player.getHeldItem(Hand.MAIN_HAND))));
 			return 0;
 		};
 	}

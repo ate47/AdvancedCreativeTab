@@ -105,7 +105,7 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 	}
 
 	@Override
-	public <S> String[] parse(StringReader reader) throws CommandSyntaxException {
+	public String[] parse(StringReader reader) throws CommandSyntaxException {
 		Collection<String> element = new ArrayList<>();
 		if (wordOnly) {
 			String end = reader.getRemaining();
@@ -132,4 +132,5 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 				number++;
 		return number % 2 == 1;
 	}
+
 }

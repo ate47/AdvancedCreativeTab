@@ -1,20 +1,20 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBTBase;
+import net.minecraft.nbt.INBT;
 
 public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	private T value;
-	private GuiTextField field;
+	private TextFieldWidget field;
 	private String type;
 
 	public NBTNumericElement(String type, GuiListModifier<?> parent, String key, int sizeX, int sizeY, T value) {
 		super(parent, key, Math.max(sizeX, 200), Math.max(sizeY, 21));
 		this.value = value;
 		this.type = type;
-		fieldList.add(field = new GuiTextField(0, fontRenderer, 2, 2, 196, 16));
+		fieldList.add(field = new TextFieldWidget(fontRenderer, 2, 2, 196, 16, ""));
 		field.setText(String.valueOf(value));
 	}
 
@@ -26,7 +26,7 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	public NBTElement clone() {
 		return new NBTNumericElement<T>(type, parent, key, value) {
 			@Override
-			public INBTBase get(T value) {
+			public INBT get(T value) {
 				return NBTNumericElement.this.get(value);
 			}
 
@@ -43,11 +43,11 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	}
 
 	@Override
-	public INBTBase get() {
+	public INBT get() {
 		return get(value);
 	}
 
-	public abstract INBTBase get(T value);
+	public abstract INBT get(T value);
 
 	@Override
 	public String getType() {

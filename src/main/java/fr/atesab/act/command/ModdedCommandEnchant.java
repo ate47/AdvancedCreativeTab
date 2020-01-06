@@ -27,7 +27,7 @@ public class ModdedCommandEnchant extends ModdedCommand {
 
 	@Override
 	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
-		return command.then(Commands.argument("enchantname", EnchantmentArgument.itemEnchantment()).executes(c -> {
+		return command.then(Commands.argument("enchantname", EnchantmentArgument.enchantment()).executes(c -> {
 			Enchantment e = EnchantmentArgument.getEnchantment(c, "enchantname");
 			Minecraft mc = Minecraft.getInstance();
 			ItemStack is = mc.player.getHeldItemMainhand().copy();

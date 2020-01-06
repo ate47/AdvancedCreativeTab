@@ -1,8 +1,8 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.INBTBase;
-import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.DoubleNBT;
+import net.minecraft.nbt.INBT;
 
 public class NBTDoubleElement extends NBTNumericElement<Double> {
 
@@ -15,8 +15,8 @@ public class NBTDoubleElement extends NBTNumericElement<Double> {
 	}
 
 	@Override
-	public INBTBase get(Double value) {
-		return new NBTTagDouble(value);
+	public INBT get(Double value) {
+		return new DoubleNBT(value);
 	}
 
 	@Override

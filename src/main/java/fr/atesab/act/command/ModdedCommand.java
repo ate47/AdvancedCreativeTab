@@ -19,9 +19,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public abstract class ModdedCommand {
 
@@ -32,7 +32,7 @@ public abstract class ModdedCommand {
 	}
 
 	public static ITextComponent createText(String text, TextFormatting color) {
-		return new TextComponentString(Objects.requireNonNull(text)).applyTextStyle(color);
+		return new StringTextComponent(Objects.requireNonNull(text)).applyTextStyle(color);
 	}
 
 	public static ITextComponent createTranslatedPrefix(String text, TextFormatting color, TextFormatting border,
@@ -42,7 +42,7 @@ public abstract class ModdedCommand {
 	}
 
 	public static ITextComponent createTranslatedText(String lang, TextFormatting color, Object... args) {
-		return new TextComponentTranslation(Objects.requireNonNull(lang), args).applyTextStyle(color);
+		return new TranslationTextComponent(Objects.requireNonNull(lang), args).applyTextStyle(color);
 	}
 
 	private final Map<String, ModdedCommand> NAME_TO_COMMAND = new TreeMap<>();
@@ -193,7 +193,7 @@ public abstract class ModdedCommand {
 	 */
 	protected Command<CommandSource> onNoArgument() {
 		return defaultCommand != null ? defaultCommand.onNoArgument() : c -> {
-			c.getSource().sendErrorMessage(new TextComponentTranslation("cmd.act.error.noargument")
+			c.getSource().sendErrorMessage(new TranslationTextComponent("cmd.act.error.noargument")
 					.applyTextStyles(new TextFormatting[] { TextFormatting.RED, TextFormatting.ITALIC }));
 			return 1;
 		};

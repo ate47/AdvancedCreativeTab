@@ -11,7 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
 
 public class ModdedCommandRename extends ModdedCommand {
 
@@ -26,7 +26,7 @@ public class ModdedCommandRename extends ModdedCommand {
 			Minecraft mc = Minecraft.getInstance();
 			ItemStack is = mc.player.getHeldItemMainhand();
 			if (is != null) {
-				is.setDisplayName(new TextComponentString(StringArgumentType.getString(c, "itemname")
+				is.setDisplayName(new StringTextComponent(StringArgumentType.getString(c, "itemname")
 						.replaceAll("&([0-9a-fA-FrRk-oK-O])", ChatUtils.MODIFIER + "$1")
 						.replaceAll("&" + ChatUtils.MODIFIER, "&")));
 				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);

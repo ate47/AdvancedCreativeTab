@@ -13,5 +13,5 @@ public interface GuiArrayModifierTitle {
 	 * @return the title
 	 * @since 2.1
 	 */
-	public String getTitle();
+	public String getListModifierTitle();
 }

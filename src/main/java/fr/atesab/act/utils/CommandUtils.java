@@ -7,9 +7,9 @@ import java.util.Random;
 
 import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.util.registry.IRegistry;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.network.play.NetworkPlayerInfo;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.event.ForgeEventFactory;
 
 /**
@@ -34,7 +34,7 @@ public class CommandUtils {
 	@SuppressWarnings("deprecation")
 	public static List<String> getItemList() {
 		List<String> items = new ArrayList<>();
-		IRegistry.field_212630_s.getKeys().forEach(rl -> items.add(rl.toString())); // Item.REGISTRY
+		Registry.ITEM.keySet().forEach(rl -> items.add(rl.toString()));
 		return items;
 	}
 
@@ -94,7 +94,7 @@ public class CommandUtils {
 	 * @since 2.0
 	 */
 	public static void sendMessage(String message) {
-		EntityPlayerSP p;
+		ClientPlayerEntity p;
 		if ((p = Minecraft.getInstance().player) != null) {
 			if (ForgeEventFactory.onClientSendMessage(message).isEmpty())
 				return;

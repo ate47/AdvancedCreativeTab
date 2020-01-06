@@ -17,13 +17,13 @@ public class ModdedCommandGive extends ModdedCommand {
 
 	@Override
 	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
-		return command.then(Commands.argument("giveoption", ItemArgument.itemStack())
+		return command.then(Commands.argument("giveoption", ItemArgument.item())
 				.then(Commands.argument("givecount", IntegerArgumentType.integer()).executes(c -> {
-					ItemUtils.give(ItemArgument.getItemStack(c, "giveoption")
+					ItemUtils.give(ItemArgument.getItem(c, "giveoption")
 							.createStack(IntegerArgumentType.getInteger(c, "givecount"), false));
 					return 0;
 				})).executes(c -> {
-					ItemUtils.give(ItemArgument.getItemStack(c, "giveoption").createStack(1, false));
+					ItemUtils.give(ItemArgument.getItem(c, "giveoption").createStack(1, false));
 					return 0;
 				}));
 	}

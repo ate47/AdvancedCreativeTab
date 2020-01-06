@@ -6,33 +6,29 @@ import java.util.function.Function;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
 
 public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 
 	static class SelectorListElement<T> extends ListElement {
-		private GuiButton button;
+		private Button button;
+
 		public SelectorListElement(GuiButtonListSelector<T> parent, Tuple<String, T> element) {
 			super(201, 21);
-			buttonList.add(button = new GuiValueButton<T>(0, 0, 0, element.a, element.b) {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					parent.select(getValue());
-					super.onClick(mouseX, mouseY);
-				}
-			});
+			buttonList.add(
+					button = new GuiValueButton<T>(0, 0, element.a, element.b, b -> parent.select(b.getValue())));
 		}
 
 		@Override
 		public boolean match(String search) {
-			return button.displayString.toLowerCase().contains(search.toLowerCase());
+			return button.getMessage().toLowerCase().contains(search.toLowerCase());
 		}
 
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiButtonListSelector(GuiScreen parent, List<Tuple<String, T>> elements, Function<T, GuiScreen> setter) {
+	public GuiButtonListSelector(Screen parent, List<Tuple<String, T>> elements, Function<T, Screen> setter) {
 		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
 		if (elements != null)
 			setElements(elements);

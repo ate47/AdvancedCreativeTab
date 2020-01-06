@@ -5,24 +5,24 @@ import java.util.function.Function;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.screen.Screen;
 
 public class GuiListSelector<T> extends GuiListModifier<T> {
-	private Function<T, GuiScreen> selector;
+	private Function<T, Screen> selector;
 
-	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
-			boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
+	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
+			boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		super(parent, elements, t -> setter.apply(t), doneButton, cancelButton, buttons);
 		this.selector = setter;
 	}
 
-	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
-			boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
+	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
+			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		super(parent, elements, t -> setter.apply(t), doneButton, buttons);
 		this.selector = setter;
 	}
 
-	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
+	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter,
 			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		super(parent, elements, t -> setter.apply(t), buttons);
 		this.selector = setter;
@@ -35,8 +35,8 @@ public class GuiListSelector<T> extends GuiListModifier<T> {
 
 	public void select(T t) {
 		playClick();
-		GuiScreen screen = selector.apply(t);
-		mc.displayGuiScreen(screen == null ? parent : screen);
+		Screen screen = selector.apply(t);
+		getMinecraft().displayGuiScreen(screen == null ? parent : screen);
 	}
 
 }

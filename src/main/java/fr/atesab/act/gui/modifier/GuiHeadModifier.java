@@ -18,34 +18,34 @@ import javax.swing.filechooser.FileFilter;
 
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.text.TextFormatting;
 
 public class GuiHeadModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
-	private GuiTextField name;
-	private GuiTextField uuid;
-	private GuiTextField link;
-	private GuiButton save, loadName, loadLink;
+	private TextFieldWidget name;
+	private TextFieldWidget uuid;
+	private TextFieldWidget link;
+	private Button save, loadName, loadLink;
 	private Thread saveThread = null;
 	private AtomicReference<String> errType = new AtomicReference<String>(null);
 	private AtomicReference<String> err = new AtomicReference<String>(null);
 
-	public GuiHeadModifier(GuiScreen parent, Consumer<ItemStack> setter, ItemStack stack) {
+	public GuiHeadModifier(Screen parent, Consumer<ItemStack> setter, ItemStack stack) {
 		super(parent, setter);
 		this.stack = stack.copy();
 	}
 
 	@Override
 	public void render(int mouseX, int mouseY, float partialTicks) {
-		drawDefaultBackground();
+		renderBackground();
 		List<String> err = new ArrayList<>();
 		boolean flagLink = !((!link.getText().isEmpty()
 				&& link.getText().matches("http://textures.minecraft.net/texture/[a-zA-Z0-9]+"))
@@ -66,98 +66,91 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 		if (this.errType.get() != null)
 			err.add(this.errType.get() + ": ");
 		for (int i = 0; i < err.size(); i++)
-			GuiUtils.drawCenterString(fontRenderer, err.get(i), width / 2,
-					name.y - 2 - (fontRenderer.FONT_HEIGHT + 1) * (i + 1), Color.RED.getRGB());
-		fontRenderer.drawString(I18n.format("gui.act.config.name") + " : ", width / 2 - 178,
-				name.y + 10 - fontRenderer.FONT_HEIGHT / 2, (flagName ? Color.RED : Color.WHITE).getRGB());
-		fontRenderer.drawString(I18n.format("gui.act.uuid") + " : ", width / 2 - 178,
-				uuid.y + 10 - fontRenderer.FONT_HEIGHT / 2, (flagUuid ? Color.RED : Color.WHITE).getRGB());
-		fontRenderer.drawString(I18n.format("gui.act.link") + " : ", width / 2 - 178,
-				link.y + 10 - fontRenderer.FONT_HEIGHT / 2, (flagLink ? Color.RED : Color.WHITE).getRGB());
-		name.drawTextField(mouseX, mouseY, partialTicks);
-		uuid.drawTextField(mouseX, mouseY, partialTicks);
-		link.drawTextField(mouseX, mouseY, partialTicks);
-		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, uuid.x + uuid.width + 10, uuid.y + uuid.height / 2 - 8);
+			GuiUtils.drawCenterString(font, err.get(i), width / 2, name.y - 2 - (font.FONT_HEIGHT + 1) * (i + 1),
+					Color.RED.getRGB());
+		font.drawString(I18n.format("gui.act.config.name") + " : ", width / 2 - 178, name.y + 10 - font.FONT_HEIGHT / 2,
+				(flagName ? Color.RED : Color.WHITE).getRGB());
+		font.drawString(I18n.format("gui.act.uuid") + " : ", width / 2 - 178, uuid.y + 10 - font.FONT_HEIGHT / 2,
+				(flagUuid ? Color.RED : Color.WHITE).getRGB());
+		font.drawString(I18n.format("gui.act.link") + " : ", width / 2 - 178, link.y + 10 - font.FONT_HEIGHT / 2,
+				(flagLink ? Color.RED : Color.WHITE).getRGB());
+		name.render(mouseX, mouseY, partialTicks);
+		uuid.render(mouseX, mouseY, partialTicks);
+		link.render(mouseX, mouseY, partialTicks);
+		GuiUtils.drawItemStack(itemRenderer, this, stack, uuid.x + uuid.getWidth() + 10,
+				uuid.y + uuid.getHeight() / 2 - 8);
 		super.render(mouseX, mouseY, partialTicks);
-		if (GuiUtils.isHover(uuid.x + uuid.width + 10, uuid.y + uuid.height / 2 - 16 / 2, 16, 16, mouseX, mouseY))
-			renderToolTip(stack, mouseX, mouseY);
+		if (GuiUtils.isHover(uuid.x + uuid.getWidth() + 10, uuid.y + uuid.getHeight() / 2 - 16 / 2, 16, 16, mouseX,
+				mouseY))
+			renderTooltip(stack, mouseX, mouseY);
 	}
 
 	@Override
-	public void initGui() {
+	public void init() {
 
-		int l = Math.max(fontRenderer.getStringWidth(I18n.format("gui.act.config.name") + " : "),
-				Math.max(fontRenderer.getStringWidth(I18n.format("gui.act.uuid") + " : "),
-						fontRenderer.getStringWidth(I18n.format("gui.act.link") + " : ")))
+		int l = Math.max(font.getStringWidth(I18n.format("gui.act.config.name") + " : "),
+				Math.max(font.getStringWidth(I18n.format("gui.act.uuid") + " : "),
+						font.getStringWidth(I18n.format("gui.act.link") + " : ")))
 				+ 3;
-		name = new GuiTextField(0, fontRenderer, width / 2 - 178 + l, height / 2 - 61, 356 - l, 16);
-		uuid = new GuiTextField(0, fontRenderer, width / 2 - 178 + l, height / 2 - 40, 356 - l, 16);
-		link = new GuiTextField(0, fontRenderer, width / 2 - 178 + l, height / 2 - 19, 356 - l, 16);
+		name = new TextFieldWidget(font, width / 2 - 178 + l, height / 2 - 61, 356 - l, 16, "");
+		uuid = new TextFieldWidget(font, width / 2 - 178 + l, height / 2 - 40, 356 - l, 16, "");
+		link = new TextFieldWidget(font, width / 2 - 178 + l, height / 2 - 19, 356 - l, 16, "");
 		name.setMaxStringLength(16);
 		link.setMaxStringLength(Integer.MAX_VALUE);
 		uuid.setMaxStringLength(Integer.MAX_VALUE);
-		addButton(new GuiButton(2, width / 2 - 180, height / 2, 180, 20, I18n.format("gui.act.modifier.head.me")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
-				name.setText(mc.getSession().getUsername());
-				super.onClick(mouseX, mouseY);
-			}
-		});
-		addButton(save = new GuiButton(5, width / 2 + 1, height / 2, 179, 20,
-				I18n.format("gui.act.modifier.head.saveSkin")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
-				if (!(saveThread != null && saveThread.isAlive()))
-					(saveThread = new Thread(() -> {
-						JFileChooser fileChooser = new JFileChooser();
-						fileChooser.setFileFilter(new FileFilter() {
-							@Override
-							public boolean accept(File f) {
-								return f.isDirectory() || f.getName().endsWith(".png");
-							}
-
-							@Override
-							public String getDescription() {
-								return "skin (*.png)";
-							}
-						});
-						fileChooser.setSelectedFile(
-								new File(name.getText().isEmpty() ? "skin.png" : name.getText() + ".png"));
-						if (fileChooser.showDialog(null, I18n.format("gui.act.save")) == JFileChooser.APPROVE_OPTION) {
-							try {
-								err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
-								URL url = new URL(link.getText());
-								InputStream stream = url.openStream();
-								byte[] buffer = new byte[stream.available()];
-								stream.read(buffer);
-								File f = fileChooser.getSelectedFile();
-								OutputStream writer = new FileOutputStream(f);
-								writer.write(buffer);
-								writer.close();
-								errType.set(TextFormatting.GREEN + I18n.format("gui.act.modifier.head.fileSaved"));
-								String s = f.toString();
-								if (s.length() > 50)
-									s = s.substring(0, 50) + "...";
-								err.set(TextFormatting.GREEN + s);
-							} catch (Exception e) {
-								errType.set(e instanceof FileNotFoundException
-										? I18n.format("gui.act.modifier.head.fileNotFound")
-										: e.getClass().getSimpleName());
-								String s = e.getMessage();
-								if (s.length() > 50) {
-									s = s.substring(0, 50) + "...";
+		addButton(new Button(width / 2 - 180, height / 2, 180, 20, I18n.format("gui.act.modifier.head.me"), b -> {
+			name.setText(getMinecraft().getSession().getUsername());
+		}));
+		addButton(save = new Button(width / 2 + 1, height / 2, 179, 20, I18n.format("gui.act.modifier.head.saveSkin"),
+				b -> {
+					if (!(saveThread != null && saveThread.isAlive()))
+						(saveThread = new Thread(() -> {
+							JFileChooser fileChooser = new JFileChooser();
+							fileChooser.setFileFilter(new FileFilter() {
+								@Override
+								public boolean accept(File f) {
+									return f.isDirectory() || f.getName().endsWith(".png");
 								}
-								err.set(s);
+
+								@Override
+								public String getDescription() {
+									return "skin (*.png)";
+								}
+							});
+							fileChooser.setSelectedFile(
+									new File(name.getText().isEmpty() ? "skin.png" : name.getText() + ".png"));
+							if (fileChooser.showDialog(null,
+									I18n.format("gui.act.save")) == JFileChooser.APPROVE_OPTION) {
+								try {
+									err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
+									URL url = new URL(link.getText());
+									InputStream stream = url.openStream();
+									byte[] buffer = new byte[stream.available()];
+									stream.read(buffer);
+									File f = fileChooser.getSelectedFile();
+									OutputStream writer = new FileOutputStream(f);
+									writer.write(buffer);
+									writer.close();
+									errType.set(TextFormatting.GREEN + I18n.format("gui.act.modifier.head.fileSaved"));
+									String s = f.toString();
+									if (s.length() > 50)
+										s = s.substring(0, 50) + "...";
+									err.set(TextFormatting.GREEN + s);
+								} catch (Exception e) {
+									errType.set(e instanceof FileNotFoundException
+											? I18n.format("gui.act.modifier.head.fileNotFound")
+											: e.getClass().getSimpleName());
+									String s = e.getMessage();
+									if (s.length() > 50) {
+										s = s.substring(0, 50) + "...";
+									}
+									err.set(s);
+								}
 							}
-						}
-					})).start();
-				super.onClick(mouseX, mouseY);
-			}
-		});
-		addButton(loadName = new GuiButton(3, width / 2 - 180, height / 2 + 21, 180, 20,
-				I18n.format("gui.act.modifier.head.load.name")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
+						})).start();
+				}));
+		addButton(loadName = new Button(width / 2 - 180, height / 2 + 21, 180, 20,
+				I18n.format("gui.act.modifier.head.load.name"), b -> {
 				try {
 					err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
 					ItemUtils.getHead(stack, name.getText());
@@ -170,38 +163,23 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 					}
 					err.set(s);
 				}
-				super.onClick(mouseX, mouseY);
-			}
-		});
-		addButton(loadLink = new GuiButton(4, width / 2 + 1, height / 2 + 21, 179, 20,
-				I18n.format("gui.act.modifier.head.load.link")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
-				err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
-				ItemUtils.getHead(stack, uuid.getText(), link.getText(),
-						name.getText().isEmpty() ? null : name.getText());
-				loadHead();
-				super.onClick(mouseX, mouseY);
-			}
-		});
+		}));
+		addButton(loadLink = new Button(width / 2 + 1, height / 2 + 21, 179, 20,
+				I18n.format("gui.act.modifier.head.load.link"), b -> {
+					err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
+					ItemUtils.getHead(stack, uuid.getText(), link.getText(),
+							name.getText().isEmpty() ? null : name.getText());
+					loadHead();
+				}));
 		if (setter != null)
-			addButton(new GuiButton(1, width / 2 - 180, height / 2 + 42, 180, 20, I18n.format("gui.act.cancel")) {
-				@Override
-				public void onClick(double mouseX, double mouseY) {
-					mc.displayGuiScreen(parent);
-					super.onClick(mouseX, mouseY);
-				}
-			});
-		addButton(new GuiButton(0, width / 2 + 1, height / 2 + 42, 179, 20, I18n.format("gui.done")) {
-			@Override
-			public void onClick(double mouseX, double mouseY) {
-				set(stack);
-				mc.displayGuiScreen(parent);
-				super.onClick(mouseX, mouseY);
-			}
-		});
+			addButton(new Button(width / 2 - 180, height / 2 + 42, 180, 20, I18n.format("gui.act.cancel"),
+					b -> getMinecraft().displayGuiScreen(parent)));
+		addButton(new Button(width / 2 + 1, height / 2 + 42, 179, 20, I18n.format("gui.done"), b -> {
+			set(stack);
+			getMinecraft().displayGuiScreen(parent);
+		}));
 		loadHead();
-		super.initGui();
+		super.init();
 	}
 
 	@Override
@@ -217,20 +195,20 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 	}
 
 	private void loadHead() {
-		NBTTagCompound tag = stack.getOrCreateChildTag("SkullOwner");
+		CompoundNBT tag = stack.getOrCreateChildTag("SkullOwner");
 		if (tag.contains("Name", 8)) {
 			name.setText(tag.getString("Name"));
 		}
 		if (tag.contains("Id", 8)) {
 			uuid.setText(tag.getString("Id"));
 			if (tag.contains("Properties", 10) && tag.getCompound("Properties").contains("textures", 9)) {
-				NBTTagList list = tag.getCompound("Properties").getList("textures", 10);
+				ListNBT list = tag.getCompound("Properties").getList("textures", 10);
 				for (int i = 0; i < list.size(); i++) {
-					NBTTagCompound text = list.getCompound(i);
+					CompoundNBT text = list.getCompound(i);
 					if (text.contains("Value", 8)) {
 						try {
 							String s = new String(Base64.getDecoder().decode(text.getString("Value")));
-							NBTTagCompound texCompound = JsonToNBT.getTagFromJson(s);
+							CompoundNBT texCompound = JsonToNBT.getTagFromJson(s);
 							if (texCompound.contains("profileName", 8))
 								name.setText(texCompound.getString("profileName"));
 							if (texCompound.contains("textures", 10)
@@ -266,9 +244,9 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 		name.tick();
 		uuid.tick();
 		name.tick();
-		loadName.enabled = !name.getText().isEmpty();
-		loadLink.enabled = !uuid.getText().isEmpty() && !link.getText().isEmpty();
-		save.enabled = !link.getText().isEmpty();
+		loadName.active = !name.getText().isEmpty();
+		loadLink.active = !uuid.getText().isEmpty() && !link.getText().isEmpty();
+		save.active = !link.getText().isEmpty();
 		super.tick();
 	}
 
