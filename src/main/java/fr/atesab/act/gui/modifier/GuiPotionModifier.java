@@ -107,7 +107,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		@Override
 		public boolean keyPressed(int key, int scanCode, int modifiers) {
 			return amplifier.keyPressed(key, scanCode, modifiers) || duration.keyPressed(key, scanCode, modifiers)
-					|| keyPressed(key, scanCode, modifiers);
+					|| super.keyPressed(key, scanCode, modifiers);
 		}
 
 		@Override
