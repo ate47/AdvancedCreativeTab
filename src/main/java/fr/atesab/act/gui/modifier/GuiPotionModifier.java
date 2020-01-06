@@ -133,9 +133,9 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			duration.tick();
 			try {
 				durationTime = Integer.valueOf(duration.getText());
-				errAmp = false;
+				errDur = false;
 			} catch (Exception e) {
-				errAmp = true;
+				errDur = true;
 			}
 			try {
 				int i = Integer.valueOf(amplifier.getText());
