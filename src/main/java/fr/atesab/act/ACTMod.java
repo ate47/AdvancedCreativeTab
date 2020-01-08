@@ -102,12 +102,19 @@ public class ACTMod {
 			this.color = color;
 		}
 
-		public boolean isShow() {
-			return color != null;
-		}
-
+		/**
+		 * @return the color in the warning
+		 * @see #isShow()
+		 */
 		public TextFormatting getColor() {
 			return color;
+		}
+
+		/**
+		 * @return if a warning is showed in menus
+		 */
+		public boolean isShow() {
+			return color != null;
 		}
 	}
 
@@ -164,6 +171,13 @@ public class ACTMod {
 	}
 
 	/**
+	 * @return the {@link CommandDispatcher} of the act API
+	 */
+	public static CommandDispatcher<CommandSource> getDispatcher() {
+		return dispatcher;
+	}
+
+	/**
 	 * Get the map by categories of modifiers
 	 * 
 	 * @since 2.1
@@ -197,6 +211,18 @@ public class ACTMod {
 			display.getStyle().setColor(TextFormatting.AQUA);
 			return is.copy().setDisplayName(display);
 		});
+	}
+
+	/**
+	 * Quick version of {@link InputMappings#isKeyDown(long, int)} without the
+	 * window pointer argument
+	 * 
+	 * @param key
+	 *            the keycode
+	 * @return if this key is pressed
+	 */
+	public static boolean isKeyDown(int key) {
+		return InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), key);
 	}
 
 	/**
@@ -554,16 +580,16 @@ public class ACTMod {
 	}
 
 	@SubscribeEvent
-	public void onInitGui(InitGuiEvent.Post ev) {
-		injectSuggestions();
-	}
-
-	@SubscribeEvent
 	public void onDrawScreen(DrawScreenEvent.Post ev) {
 		if (ev.getGui() instanceof GuiACT && MOD_STATE.isShow()) {
 			Minecraft.getInstance().fontRenderer
 					.drawString("Warning! Currently in " + MOD_STATE.getColor() + MOD_STATE.name(), 5, 5, 0xffffffff);
 		}
+	}
+
+	@SubscribeEvent
+	public void onInitGui(InitGuiEvent.Post ev) {
+		injectSuggestions();
 	}
 
 	@SubscribeEvent
@@ -721,14 +747,6 @@ public class ACTMod {
 							.appendText(" " + I18n.format("gui.act.shift"))
 							.setStyle(new Style().setColor(TextFormatting.GOLD)));
 
-	}
-
-	public static boolean isKeyDown(int key) {
-		return InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), key);
-	}
-
-	public static CommandDispatcher<CommandSource> getDispatcher() {
-		return dispatcher;
 	}
 
 }
