@@ -1,12 +1,10 @@
 package fr.atesab.act.gui;
 
-import fr.atesab.act.ACTMod;
-import fr.atesab.act.command.ModdedCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class GuiACT extends Screen {
 	public static void playClick() {
@@ -16,12 +14,19 @@ public class GuiACT extends Screen {
 	protected Screen parent;
 	protected Minecraft mc;
 
-	public GuiACT(Screen parent) {
-		super(ModdedCommand.createText(ACTMod.MOD_NAME, TextFormatting.RED));
+	public GuiACT(Screen parent, String name) {
+		super(new TranslationTextComponent(name));
 		this.parent = parent;
 		mc = Minecraft.getInstance();
 	}
 
+	/**
+	 * @return the formatted title
+	 */
+	public String getStringTitle() {
+		return super.getTitle().getFormattedText();
+	}
+	
 	public Screen getParent() {
 		return parent;
 	}
@@ -33,6 +38,7 @@ public class GuiACT extends Screen {
 	public float getZLevel() {
 		return blitOffset;
 	}
+
 	@Override
 	public Minecraft getMinecraft() {
 		return mc;

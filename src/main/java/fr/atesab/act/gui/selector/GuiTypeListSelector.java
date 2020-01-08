@@ -54,21 +54,21 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public GuiTypeListSelector(Screen parent, Function<ItemStack, Screen> setter) {
-		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
+	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter) {
+		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		NonNullList<ItemStack> stacks = NonNullList.create();
 		Registry.ITEM.forEach(i -> // Item.REGISTRY
 		stacks.add(new ItemStack(i)));
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}
 
-	public GuiTypeListSelector(Screen parent, Function<ItemStack, Screen> setter, NonNullList<ItemStack> stacks) {
-		this(parent, setter, stacks.stream());
+	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter, NonNullList<ItemStack> stacks) {
+		this(parent, name, setter, stacks.stream());
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiTypeListSelector(Screen parent, Function<ItemStack, Screen> setter, Stream<ItemStack> stacks) {
-		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
+	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter, Stream<ItemStack> stacks) {
+		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}
 }

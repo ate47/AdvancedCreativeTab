@@ -54,7 +54,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 				}));
 		if (!isList(parent))
 			buttonList.add(new RunElementButton(sizeX + 1, 21, 79, 20, I18n.format("gui.act.config.name"),
-					() -> mc.displayGuiScreen(new GuiStringModifier(parent, getKey(), nk -> this.key = nk)), null));
+					() -> mc.displayGuiScreen(new GuiStringModifier(parent, "gui.act.config.name", getKey(), nk -> this.key = nk)), null));
 	}
 
 	@Override

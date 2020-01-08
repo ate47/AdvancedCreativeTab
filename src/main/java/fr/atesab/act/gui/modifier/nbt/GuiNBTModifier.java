@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.GuiStringModifier;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
@@ -28,10 +27,10 @@ import net.minecraft.nbt.ShortNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.text.TextFormatting;
 
-public class GuiNBTModifier extends GuiListModifier<CompoundNBT> implements GuiArrayModifierTitle {
+public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 
 	public static final BiConsumer<Integer, GuiListModifier<?>> ADD_ELEMENT = (i, lm) -> {
-		final GuiStringModifier modifier = new GuiStringModifier(lm, "", null);
+		final GuiStringModifier modifier = new GuiStringModifier(lm, "gui.act.modifier.name", "", null);
 		modifier.setSetter(key -> {
 			if (!key.isEmpty())
 				modifier.setParent(addElement(i == null ? lm.getElements().size() - 1 : i, lm, key));
@@ -40,7 +39,7 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> implements GuiA
 	};
 
 	public static GuiButtonListSelector<INBT> addElement(int i, GuiListModifier<?> lm, String key) {
-		return new GuiButtonListSelector<INBT>(lm, Arrays.asList(
+		return new GuiButtonListSelector<INBT>(lm, "gui.act.modifier.tag.editor", Arrays.asList(
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.tag"), new CompoundNBT()),
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.string"), new StringNBT()),
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.int"), new IntNBT(0)),
@@ -88,22 +87,19 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> implements GuiA
 		}
 	}
 
-	private String title = "";
-
 	public GuiNBTModifier(Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
 		this("/", parent, setter, tag);
 	}
 
 	@SuppressWarnings("unchecked")
 	public GuiNBTModifier(String title, Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
-		super(parent, new ArrayList<>(), setter, true, true, new Tuple[0]);
+		super(parent, title, new ArrayList<>(), setter, true, true, new Tuple[0]);
 		elements.add(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
 				() -> ADD_ELEMENT.accept(null, this), null));
 		tag.keySet().forEach(key -> addElement(key, tag.get(key)));
 		setPaddingLeft(5);
 		setPaddingTop(13 + Minecraft.getInstance().fontRenderer.FONT_HEIGHT);
 		setNoAdaptativeSize(true);
-		this.title = title;
 	}
 
 	private void addElement(int i, String key, INBT base) {
@@ -128,11 +124,6 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> implements GuiA
 			tag.put(elem.getKey(), elem.get());
 		});
 		return tag;
-	}
-
-	@Override
-	public String getListModifierTitle() {
-		return title;
 	}
 
 }

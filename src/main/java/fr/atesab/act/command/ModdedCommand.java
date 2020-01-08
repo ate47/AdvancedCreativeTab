@@ -23,7 +23,7 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 
-public abstract class ModdedCommand {
+public class ModdedCommand {
 
 	public static final int MAX_EXAMPLE = 6;
 

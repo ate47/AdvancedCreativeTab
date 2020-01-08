@@ -90,7 +90,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 	@SuppressWarnings("unchecked")
 	public GuiEnchModifier(Screen parent, List<Tuple<Enchantment, Integer>> ench,
 			Consumer<List<Tuple<Enchantment, Integer>>> setter) {
-		super(parent, new ArrayList<>(), setter, null);
+		super(parent, "gui.act.modifier.ench", new ArrayList<>(), setter, null);
 		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.modifier.ench.max"),
 				new Tuple<>(
 						() -> elements.stream().map(le -> (EnchListElement) le)

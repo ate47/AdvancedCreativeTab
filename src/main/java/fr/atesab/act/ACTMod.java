@@ -73,6 +73,8 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.world.GameType;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent;
@@ -88,6 +90,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 
+@OnlyIn(Dist.CLIENT)
 @Mod(ACTMod.MOD_ID)
 public class ACTMod {
 	public enum ACTState {
@@ -407,10 +410,11 @@ public class ACTMod {
 			}
 			List<Tuple<String, String>> btn = new ArrayList<>();
 			plr.forEach(pn -> btn.add(new Tuple<String, String>(pn, pn)));
-			sm.setNextScreen(new GuiButtonListSelector<String>(sm.getNextScreen(), btn, s -> {
-				sm.setString(s);
-				return null;
-			}));
+			sm.setNextScreen(
+					new GuiButtonListSelector<String>(sm.getNextScreen(), "gui.act.modifier.string.players", btn, s -> {
+						sm.setString(s);
+						return null;
+					}));
 		});
 
 		// base 64 (en/de)coder

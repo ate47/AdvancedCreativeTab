@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import fr.atesab.act.gui.modifier.nbtelement.NBTIntegerElement;
@@ -14,15 +13,13 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.nbt.IntArrayNBT;
 
 @GuiNBTList
-public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> implements GuiArrayModifierTitle {
+public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> {
 	private List<Integer> list;
-	private String title;
 
 	@SuppressWarnings("unchecked")
 	public GuiNBTIntArrayModifier(String title, Screen parent, Consumer<IntArrayNBT> setter,
 			IntArrayNBT array) {
-		super(parent, new ArrayList<>(), setter, new Tuple[0]);
-		this.title = title;
+		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = new ArrayList<>();
 		String k = "...";
 		for (int i : array.getIntArray()) {
@@ -42,8 +39,4 @@ public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> impleme
 		return new IntArrayNBT(list);
 	}
 
-	@Override
-	public String getListModifierTitle() {
-		return title;
-	}
 }

@@ -85,7 +85,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 	};
 
 	private Runnable ADD = () -> {
-		getMinecraft().displayGuiScreen(new GuiTypeListSelector(this, is -> {
+		getMinecraft().displayGuiScreen(new GuiTypeListSelector(this, "gui.act.modifier.attr.type", is -> {
 			GuiGiver giver = new GuiGiver(this, (ItemStack) null,
 					i -> ADD_STACK
 							.accept(ItemUtils.getFromGiveCode(i.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))),
@@ -99,12 +99,12 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	@SuppressWarnings("unchecked")
 	public GuiMenu(Screen parent) {
-		super(parent, new ArrayList<>(), o -> {
+		super(parent, "gui.act.menu", new ArrayList<>(), o -> {
 		}, true, false, new Tuple[0]);
 		Tuple<?, ?> btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("cmd.act.edit"), new Tuple<>(() -> {
 			final int slot = getMinecraft().player.inventory.currentItem;
-			getMinecraft().displayGuiScreen(new GuiItemStackModifier(this, getMinecraft().player.getHeldItemMainhand().copy(),
-					is -> ItemUtils.give(is, 36 + slot)));
+			getMinecraft().displayGuiScreen(new GuiItemStackModifier(this,
+					getMinecraft().player.getHeldItemMainhand().copy(), is -> ItemUtils.give(is, 36 + slot)));
 		}, () -> {
 		}));
 		Tuple<?, ?> btn2 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("key.act.giver"),

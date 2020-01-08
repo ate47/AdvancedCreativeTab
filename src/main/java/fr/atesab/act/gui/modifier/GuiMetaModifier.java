@@ -18,7 +18,7 @@ public class GuiMetaModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
 
 	public GuiMetaModifier(Screen parent, Consumer<ItemStack> setter, ItemStack stack) {
-		super(parent, setter);
+		super(parent, "gui.act.modifier.meta", setter);
 		this.stack = stack;
 	}
 

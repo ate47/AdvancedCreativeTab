@@ -30,7 +30,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 	private ItemStack currentItemStack;
 
 	public GuiItemStackModifier(Screen parent, ItemStack currentItemStack, Consumer<ItemStack> setter) {
-		super(parent, setter);
+		super(parent, "gui.act.give.editor", setter);
 		this.currentItemStack = currentItemStack != null ? currentItemStack : new ItemStack(Blocks.STONE);
 		if (this.currentItemStack.getTag() == null)
 			this.currentItemStack.setTag(new CompoundNBT());
@@ -53,7 +53,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 	public void init() {
 
 		addButton(new Button(width / 2 - 100, height / 2 - 42, 100, 20, I18n.format("gui.act.modifier.name"), b -> {
-			getMinecraft().displayGuiScreen(new GuiStringModifier(GuiItemStackModifier.this,
+			getMinecraft().displayGuiScreen(new GuiStringModifier(GuiItemStackModifier.this, "gui.act.modifier.name",
 					currentItemStack.getDisplayName().getFormattedText().replaceAll("" + ChatUtils.MODIFIER, "&"),
 					name -> {
 						currentItemStack.setDisplayName(name.isEmpty() ? null
@@ -63,7 +63,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 
 		addButton(new Button(width / 2 + 1, height / 2 - 42, 99, 20, I18n.format("gui.act.modifier.lore"), b -> {
 			getMinecraft().displayGuiScreen(new GuiStringArrayModifier(GuiItemStackModifier.this,
-					ItemUtils.getLore(currentItemStack), value -> {
+					"gui.act.modifier.lore", ItemUtils.getLore(currentItemStack), value -> {
 						for (int i = 0; i < value.length; i++)
 							value[i] = value[i].replaceAll("&", String.valueOf(ChatUtils.MODIFIER));
 						ItemUtils.setLore(currentItemStack, value);
@@ -80,13 +80,15 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 							list -> ItemUtils.setAttributes(list, currentItemStack)));
 		}));
 		addButton(new Button(width / 2 - 100, height / 2, 100, 20, I18n.format("gui.act.modifier.type"), b -> {
-			getMinecraft().displayGuiScreen(new GuiTypeListSelector(GuiItemStackModifier.this, is -> {
-				CompoundNBT tag = (currentItemStack.getTag() == null ? new CompoundNBT() : currentItemStack.getTag());
-				tag.merge(is.getTag() == null ? new CompoundNBT() : is.getTag());
-				is.setTag(tag);
-				currentItemStack = is;
-				return null;
-			}));
+			getMinecraft().displayGuiScreen(
+					new GuiTypeListSelector(GuiItemStackModifier.this, "gui.act.modifier.type", is -> {
+						CompoundNBT tag = (currentItemStack.getTag() == null ? new CompoundNBT()
+								: currentItemStack.getTag());
+						tag.merge(is.getTag() == null ? new CompoundNBT() : is.getTag());
+						is.setTag(tag);
+						currentItemStack = is;
+						return null;
+					}));
 		}));
 		addButton(new Button(width / 2 + 1, height / 2, 99, 20, I18n.format("gui.act.modifier.meta"), b -> {
 			getMinecraft().displayGuiScreen(
@@ -98,7 +100,8 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 			addButton(new Button(width / 2 - 100, height / 2 + 21, 200, 20,
 					I18n.format("gui.act.modifier.meta.setColor"), b -> {
 						getMinecraft().displayGuiScreen(new GuiColorModifier(GuiItemStackModifier.this,
-								color -> ItemUtils.setColor(currentItemStack, color), ItemUtils.getColor(currentItemStack)));
+								color -> ItemUtils.setColor(currentItemStack, color),
+								ItemUtils.getColor(currentItemStack)));
 					}));
 		else if (currentItemStack.getItem().equals(Items.ENCHANTED_BOOK))
 			addButton(new Button(width / 2 - 100, height / 2 + 21, 200, 20, I18n.format("gui.act.modifier.ench") + " ("
@@ -124,10 +127,11 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 						potionType.add(new ItemStack(Items.SPLASH_POTION));
 						potionType.add(new ItemStack(Items.LINGERING_POTION));
 						potionType.add(new ItemStack(Items.TIPPED_ARROW));
-						getMinecraft().displayGuiScreen(new GuiTypeListSelector(GuiItemStackModifier.this, is -> {
-							currentItemStack = ItemUtils.setItem(is.getItem(), currentItemStack);
-							return null;
-						}, potionType));
+						getMinecraft().displayGuiScreen(new GuiTypeListSelector(GuiItemStackModifier.this,
+								"gui.act.modifier.meta.potionType", is -> {
+									currentItemStack = ItemUtils.setItem(is.getItem(), currentItemStack);
+									return null;
+								}, potionType));
 					}));
 		} else if (currentItemStack.getItem().equals(Items.PLAYER_HEAD))
 			addButton(new Button(width / 2 - 100, height / 2 + 21, 200, 20,
@@ -150,8 +154,8 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 						List<Tuple<String, SpawnEggItem>> eggs = new ArrayList<>();
 						SpawnEggItem.getEggs().forEach(egg -> eggs
 								.add(new Tuple<String, SpawnEggItem>(egg.getName().getFormattedText(), egg)));
-						getMinecraft().displayGuiScreen(
-								new GuiButtonListSelector<SpawnEggItem>(GuiItemStackModifier.this, eggs, egg -> {
+						getMinecraft().displayGuiScreen(new GuiButtonListSelector<SpawnEggItem>(
+								GuiItemStackModifier.this, "gui.act.modifier.meta.setEntity", eggs, egg -> {
 									currentItemStack = ItemUtils.setItem(egg, currentItemStack);
 									return null;
 								}));

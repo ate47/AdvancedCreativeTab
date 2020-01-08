@@ -9,8 +9,8 @@ public class GuiModifier<T> extends GuiACT {
 
 	protected Consumer<T> setter;
 
-	public GuiModifier(Screen parent, Consumer<T> setter) {
-		super(parent);
+	public GuiModifier(Screen parent, String name, Consumer<T> setter) {
+		super(parent, name);
 		this.setter = setter;
 	}
 	

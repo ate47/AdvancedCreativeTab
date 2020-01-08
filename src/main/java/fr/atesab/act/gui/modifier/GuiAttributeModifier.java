@@ -49,7 +49,7 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 					String s = I18n.format("item.modifiers." + slot.getName());
 					slots.add(new Tuple<>(s.endsWith(":") ? s.substring(0, s.length() - 1) : s, slot));
 				}
-				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, slots, slot -> {
+				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, "gui.act.modifier.attr.slot", slots, slot -> {
 					AttributeListElement.this.slot = slot;
 					defineButtonText();
 					return null;
@@ -59,22 +59,24 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 				List<Tuple<String, IAttribute>> attributes = new ArrayList<>();
 				ACTMod.getAttributes().forEach(
 						atr -> attributes.add(new Tuple<>(I18n.format("attribute.name." + atr.getName()), atr)));
-				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, attributes, atr -> {
-					AttributeListElement.this.name = atr.getName();
-					defineButtonText();
-					return null;
-				}));
+				mc.displayGuiScreen(
+						new GuiButtonListSelector<>(parent, "gui.act.modifier.attr.type", attributes, atr -> {
+							AttributeListElement.this.name = atr.getName();
+							defineButtonText();
+							return null;
+						}));
 			}));
 			buttonList.add(operationButton = new Button(202, 21, 157, 20, "", b -> {
 				List<Tuple<String, Integer>> operations = new ArrayList<>();
 				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.0") + " (0)", 0));
 				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.1") + " (1)", 1));
 				operations.add(new Tuple<>(I18n.format("gui.act.modifier.attr.operation.2") + " (2)", 2));
-				mc.displayGuiScreen(new GuiButtonListSelector<>(parent, operations, i -> {
-					AttributeListElement.this.operationValue = i;
-					defineButtonText();
-					return null;
-				}));
+				mc.displayGuiScreen(
+						new GuiButtonListSelector<>(parent, "gui.act.modifier.attr.operation", operations, i -> {
+							AttributeListElement.this.operationValue = i;
+							defineButtonText();
+							return null;
+						}));
 			}));
 			buttonList.add(new RemoveElementButton(parent, 359, 0, 20, 20, this));
 			buttonList.add(new AddElementButton(parent, 381, 0, 20, 20, this, parent.supplier));
@@ -162,7 +164,7 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 	@SuppressWarnings("unchecked")
 	public GuiAttributeModifier(Screen parent, List<Tuple<EquipmentSlotType, AttributeModifier>> attr,
 			Consumer<List<Tuple<EquipmentSlotType, AttributeModifier>>> setter) {
-		super(parent, new ArrayList<>(), setter, new Tuple[0]);
+		super(parent, "gui.act.modifier.attr", new ArrayList<>(), setter, new Tuple[0]);
 		attr.forEach(tuple -> elements.add(new AttributeListElement(this, tuple)));
 		elements.add(new AddElementList(this, supplier));
 	}

@@ -29,28 +29,27 @@ public class NBTStringElement extends NBTElement {
 		fieldList.add(field = new TextFieldWidget(fontRenderer, 2, 2, 196, 16, ""));
 		buttonList.add(new Button(0, 21, 200, 20, I18n.format("gui.act.modifier.tag.editor.string.data"), b -> {
 			// Create a selector to select category or root modifier
-			GuiButtonListSelector<Supplier<Screen>> root = new GuiButtonListSelector<>(parent, null, sup -> sup.get());
+			GuiButtonListSelector<Supplier<Screen>> root = new GuiButtonListSelector<>(parent,
+					"gui.act.modifier.tag.editor.string.data", null, sup -> sup.get());
 			List<Tuple<String, Supplier<Screen>>> rootButtons = new ArrayList<>();
 			ACTMod.getStringModifier().keySet().stream().filter(k -> !k.isEmpty()).forEach(k -> {
 				Map<String, Consumer<StringModifier>> categoryModifiers = ACTMod.getStringModifier().get(k);
-				rootButtons
-						.add(new Tuple<String, Supplier<Screen>>(I18n.format("gui.act.modifier.string." + k), () -> {
-							// Create a selector to select between modifier in this category
-							GuiButtonListSelector<Supplier<Screen>> categorySelector = new GuiButtonListSelector<>(
-									root, null, sup -> sup.get());
-							List<Tuple<String, Supplier<Screen>>> categorySelectorButtons = new ArrayList<>();
-							categoryModifiers.keySet().forEach(modKey -> {
-								categorySelectorButtons
-										.add(new Tuple<String, Supplier<Screen>>(I18n.format(modKey), () -> {
-											StringModifier stringModifier = new StringModifier(field.getText(), parent,
-													s -> field.setText(NBTStringElement.this.value = s));
-											categoryModifiers.get(modKey).accept(stringModifier);
-											return stringModifier.getNextScreen();
-										}));
-							});
-							categorySelector.setElements(categorySelectorButtons);
-							return categorySelector;
+				rootButtons.add(new Tuple<String, Supplier<Screen>>(I18n.format("gui.act.modifier.string." + k), () -> {
+					// Create a selector to select between modifier in this category
+					GuiButtonListSelector<Supplier<Screen>> categorySelector = new GuiButtonListSelector<>(root,
+							"gui.act.modifier.string." + k, null, sup -> sup.get());
+					List<Tuple<String, Supplier<Screen>>> categorySelectorButtons = new ArrayList<>();
+					categoryModifiers.keySet().forEach(modKey -> {
+						categorySelectorButtons.add(new Tuple<String, Supplier<Screen>>(I18n.format(modKey), () -> {
+							StringModifier stringModifier = new StringModifier(field.getText(), parent,
+									s -> field.setText(NBTStringElement.this.value = s));
+							categoryModifiers.get(modKey).accept(stringModifier);
+							return stringModifier.getNextScreen();
 						}));
+					});
+					categorySelector.setElements(categorySelectorButtons);
+					return categorySelector;
+				}));
 			});
 			// empty -> modifier at root
 			if (ACTMod.getStringModifier().containsKey("")) {

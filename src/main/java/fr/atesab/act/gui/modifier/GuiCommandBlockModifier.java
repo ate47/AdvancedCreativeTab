@@ -28,7 +28,7 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	private boolean autoValue;
 
 	public GuiCommandBlockModifier(Screen parent, Consumer<ItemStack> setter, ItemStack stack) {
-		super(parent, setter);
+		super(parent, "gui.act.modifier.meta.command", setter);
 		this.stack = stack.copy();
 	}
 
@@ -68,10 +68,11 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 			potionType.add(new ItemStack(Blocks.REPEATING_COMMAND_BLOCK));
 			potionType.add(new ItemStack(Blocks.CHAIN_COMMAND_BLOCK));
 			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
-			getMinecraft().displayGuiScreen(new GuiTypeListSelector(GuiCommandBlockModifier.this, is -> {
-				stack = ItemUtils.setItem(is.getItem(), stack);
-				return null;
-			}, potionType));
+			getMinecraft().displayGuiScreen(
+					new GuiTypeListSelector(GuiCommandBlockModifier.this, "gui.act.modifier.type", is -> {
+						stack = ItemUtils.setItem(is.getItem(), stack);
+						return null;
+					}, potionType));
 		}));
 		addButton(new Button(width / 2 + 1, height / 2 + 42, 149, 20, I18n.format("gui.act.cancel"),
 				b -> getMinecraft().displayGuiScreen(parent)));

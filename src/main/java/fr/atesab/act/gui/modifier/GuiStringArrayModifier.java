@@ -23,8 +23,8 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	private int elms;
 	private int page = 0;
 
-	public GuiStringArrayModifier(Screen parent, String[] values, Consumer<String[]> setter) {
-		super(parent, setter);
+	public GuiStringArrayModifier(Screen parent, String name, String[] values, Consumer<String[]> setter) {
+		super(parent, name, setter);
 		this.values = new ArrayList<String>();
 		for (String v : values)
 			this.values.add(v.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
@@ -32,17 +32,17 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 
 	@SuppressWarnings("unchecked")
 	private void defineMenu() {
-		children.removeIf(g -> g instanceof Button);
+		children.clear();
 		buttons.clear();
 		addButton(new Button(width / 2 - 100, height - 21, 100, 20, I18n.format("gui.done"), b -> {
 			String[] result = new String[values.size()];
 			for (int i = 0; i < result.length; i++)
 				result[i] = values.get(i).replaceAll("&", String.valueOf(ChatUtils.MODIFIER));
 			set(result);
-			getMinecraft().displayGuiScreen(parent);
+			mc.displayGuiScreen(parent);
 		}));
 		addButton(new Button(width / 2 + 1, height - 21, 99, 20, I18n.format("gui.act.cancel"),
-				b -> getMinecraft().displayGuiScreen(parent)));
+				b -> mc.displayGuiScreen(parent)));
 		addButton(last = new Button(width / 2 - 121, height - 21, 20, 20, "<-", b -> {
 			page--;
 			b.active = page != 0;
@@ -73,6 +73,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 						values.add(b.getValue().intValue(), "");
 						defineMenu();
 					}));
+			children.add(tfs[i]);
 		}
 		addButton(btsAdd[i] = new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
 				TextFormatting.GREEN + "+", i, b -> {
@@ -102,35 +103,20 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	}
 
 	@Override
-	public boolean keyPressed(int key, int scanCode, int modifiers) {
-		for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++)
-			if (tfs[i].keyPressed(key, scanCode, modifiers))
-				return true;
-		return super.keyPressed(key, scanCode, modifiers);
-	}
-
-	@Override
-	public boolean charTyped(char key, int modifiers) {
-		for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++)
-			if (tfs[i].charTyped(key, modifiers))
-				return true;
-		return super.charTyped(key, modifiers);
-	}
-
-	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++) {
-			tfs[i].mouseClicked(mouseX, mouseY, mouseButton);
-			if (mouseButton == 1 && GuiUtils.isHover(tfs[i], (int) mouseX, (int) mouseY))
-				tfs[i].setText("");
-		}
+			for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++) {
+				tfs[i].setFocused2(false);
+				if (mouseButton == 1 && GuiUtils.isHover(tfs[i], (int) mouseX, (int) mouseY)) {
+					tfs[i].setText("");
+					return true;
+				}
+			}
 		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
 	@Override
 	public void tick() {
 		for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++) {
-			tfs[i].tick();
 			values.set(i, tfs[i].getText());
 		}
 		for (int i = 0; i < btsAdd.length; i++)

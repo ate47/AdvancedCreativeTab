@@ -298,9 +298,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this.paddingTop = paddingTop;
 	}
 
-	public GuiListModifier(Screen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
-			boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		super(parent, setter);
+	public GuiListModifier(Screen parent, String name, List<ListElement> elements, Consumer<T> setter,
+			boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
+		super(parent, name, setter);
 		this.elements = elements;
 		this.buttons = buttons;
 		this.doneButton = doneButton;
@@ -308,14 +308,14 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		search = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 0, 0, "");
 	}
 
-	public GuiListModifier(Screen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
-			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		this(parent, elements, setter, doneButton, true, buttons);
+	public GuiListModifier(Screen parent, String name, List<ListElement> elements, Consumer<T> setter,
+			boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
+		this(parent, name, elements, setter, doneButton, true, buttons);
 	}
 
-	public GuiListModifier(Screen parent, List<ListElement> elements, Consumer<T> setter,
+	public GuiListModifier(Screen parent, String name, List<ListElement> elements, Consumer<T> setter,
 			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		this(parent, elements, setter, true, buttons);
+		this(parent, name, elements, setter, true, buttons);
 	}
 
 	public void addListElement(ListElement elem) {
@@ -396,9 +396,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		super.render(mouseX, mouseY, partialTicks);
 		search.render(mouseX, mouseY, partialTicks);
-		if (this instanceof GuiArrayModifierTitle)
-			GuiUtils.drawCenterString(font, ((GuiArrayModifierTitle) this).getListModifierTitle(), width / 2, 22,
-					0xFFFFFFFF, 10);
+		GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
 		GuiUtils.drawRightString(font, I18n.format("gui.act.search") + " : ", search.x, search.y, Color.ORANGE.getRGB(),
 				search.getHeight());
 		if (getMinecraft().currentScreen.equals(this))
@@ -459,7 +457,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		int m = font.getStringWidth(I18n.format("gui.act.search") + " : ");
 		int n = Math.min(600, width - 20);
 		search.x = (width - n) / 2 + 6 + m;
-		search.y = this instanceof GuiArrayModifierTitle ? 2 : 18;
+		search.y = 18;
 		search.setWidth(n - 18 - m);
 		search.setHeight(18);
 		elements.forEach(ListElement::init);

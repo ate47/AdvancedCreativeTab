@@ -49,11 +49,12 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 				List<Tuple<String, Effect>> pots = new ArrayList<>();
 				// Potion.REGISTRY
 				Registry.EFFECTS.forEach(pot -> pots.add(new Tuple<>(I18n.format(pot.getName()), pot)));
-				mc.displayGuiScreen(new GuiButtonListSelector<Effect>(parent, pots, pot -> {
-					potion = pot;
-					setButtonText();
-					return null;
-				}));
+				mc.displayGuiScreen(
+						new GuiButtonListSelector<Effect>(parent, "gui.act.modifier.meta.potion.type", pots, pot -> {
+							potion = pot;
+							setButtonText();
+							return null;
+						}));
 			}));
 			buttonList.add(new GuiBooleanButton(153, 21, 100, 20, I18n.format("gui.act.modifier.meta.potion.ambient"),
 					b -> ambient = b, () -> ambient));
@@ -168,7 +169,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
 				// PotionType.REGISTRY
 				Registry.POTION.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
-				mc.displayGuiScreen(new GuiButtonListSelector<Potion>(parent, pots, pot -> {
+				mc.displayGuiScreen(new GuiButtonListSelector<Potion>(parent, "gui.act.modifier.meta.potion.type", pots, pot -> {
 					parent.main = pot;
 					defineButton();
 					return null;
@@ -193,7 +194,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
 	@SuppressWarnings("unchecked")
 	public GuiPotionModifier(Screen parent, Consumer<PotionInformation> setter, PotionInformation info) {
-		super(parent, new ArrayList<>(), setter, new Tuple[0]);
+		super(parent, "gui.act.modifier.meta.potion", new ArrayList<>(), setter, new Tuple[0]);
 		this.customColor = info.getCustomColor();
 		this.main = info.getMain();
 		elements.add(new MainPotionListElement(this));

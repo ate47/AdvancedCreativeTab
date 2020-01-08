@@ -28,8 +28,8 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiButtonListSelector(Screen parent, List<Tuple<String, T>> elements, Function<T, Screen> setter) {
-		super(parent, new ArrayList<>(), setter, false, new Tuple[0]);
+	public GuiButtonListSelector(Screen parent, String name, List<Tuple<String, T>> elements, Function<T, Screen> setter) {
+		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		if (elements != null)
 			setElements(elements);
 	}

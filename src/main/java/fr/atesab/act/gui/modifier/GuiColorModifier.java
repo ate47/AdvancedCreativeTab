@@ -36,7 +36,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	public GuiColorModifier(Screen parent, Consumer<Integer> setter, int color, int defaultColor) {
-		super(parent, setter);
+		super(parent, "gui.act.modifier.meta.setColor", setter);
 		this.color = color > 0xffffff ? color - 0xff000000 : color;
 		this.defaultColor = defaultColor;
 		try {

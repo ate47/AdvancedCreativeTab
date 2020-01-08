@@ -12,11 +12,11 @@ import net.minecraft.client.resources.I18n;
 
 public class GuiStringModifier extends GuiModifier<String> {
 	private TextFieldWidget field;
-	private String name;
+	private String value;
 
-	public GuiStringModifier(Screen parent, String name, Consumer<String> setter) {
-		super(parent, setter);
-		this.name = name;
+	public GuiStringModifier(Screen parent, String name, String value, Consumer<String> setter) {
+		super(parent, name, setter);
+		this.value = value;
 	}
 
 	@Override
@@ -32,11 +32,11 @@ public class GuiStringModifier extends GuiModifier<String> {
 	public void init() {
 		field = new TextFieldWidget(font, width / 2 - 99, height / 2 - 20, 198, 18, "");
 		field.setMaxStringLength(Integer.MAX_VALUE);
-		field.setText(name.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
+		field.setText(value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
 		field.setFocused2(true);
 		field.setCanLoseFocus(false);
 		addButton(new Button(width / 2 - 100, height / 2, 200, 20, I18n.format("gui.done"), b -> {
-			set(name = field.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+			set(value = field.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 			getMinecraft().displayGuiScreen(parent);
 		}));
 		addButton(new Button(width / 2 - 100, height / 2 + 21, 200, 20, I18n.format("gui.act.cancel"),
@@ -64,7 +64,7 @@ public class GuiStringModifier extends GuiModifier<String> {
 
 	@Override
 	public void tick() {
-		name = field.getText();
+		value = field.getText();
 		field.tick();
 		super.tick();
 	}

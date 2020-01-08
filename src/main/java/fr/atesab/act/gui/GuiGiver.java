@@ -25,7 +25,7 @@ public class GuiGiver extends GuiModifier<String> {
 	private boolean deleteButton;
 
 	public GuiGiver(Screen parent) {
-		super(parent, s -> {
+		super(parent, "gui.act.give", s -> {
 		});
 		if (mc.player != null) {
 			ItemStack mainHand = mc.player.getHeldItem(Hand.MAIN_HAND);
@@ -39,7 +39,7 @@ public class GuiGiver extends GuiModifier<String> {
 	}
 
 	public GuiGiver(Screen parent, ItemStack itemStack, Consumer<String> setter, boolean deleteButton) {
-		super(parent, s -> {
+		super(parent, "gui.act.give", s -> {
 		});
 		this.preText = itemStack != null ? ItemUtils.getGiveCode(itemStack) : "";
 		this.currentItemStack = itemStack;

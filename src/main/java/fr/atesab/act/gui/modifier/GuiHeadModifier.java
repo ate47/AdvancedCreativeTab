@@ -39,7 +39,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 	private AtomicReference<String> err = new AtomicReference<String>(null);
 
 	public GuiHeadModifier(Screen parent, Consumer<ItemStack> setter, ItemStack stack) {
-		super(parent, setter);
+		super(parent, "gui.act.modifier.head", setter);
 		this.stack = stack.copy();
 	}
 

@@ -3,7 +3,6 @@ package fr.atesab.act.gui.modifier.nbt;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
@@ -14,14 +13,12 @@ import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 
 @GuiNBTList
-public class GuiNBTListModifier extends GuiListModifier<ListNBT> implements GuiArrayModifierTitle {
+public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 	private ListNBT list;
-	private String title;
 
 	@SuppressWarnings("unchecked")
 	public GuiNBTListModifier(String title, Screen parent, Consumer<ListNBT> setter, ListNBT list) {
-		super(parent, new ArrayList<>(), setter, new Tuple[0]);
-		this.title = title;
+		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = list.copy();
 		String k = "...";
 		for (INBT base : list) {
@@ -53,11 +50,6 @@ public class GuiNBTListModifier extends GuiListModifier<ListNBT> implements GuiA
 		ListNBT list = new ListNBT();
 		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> list.add(((NBTElement) le).get()));
 		return list;
-	}
-
-	@Override
-	public String getListModifierTitle() {
-		return title;
 	}
 
 }

@@ -199,7 +199,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		private Button type;
 
 		public GuiExplosionModifier(Screen parent, Consumer<ExplosionInformation> setter, ExplosionInformation exp) {
-			super(parent, setter);
+			super(parent, "gui.act.modifier.meta.fireworks", setter);
 			this.exp = exp.clone();
 			colors = new ColorList(this, 0, 0, 6, exp.getColors(), I18n.format("gui.act.modifier.meta.explosion.color"),
 					24);
@@ -222,8 +222,8 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 				for (Shape s : Shape.values())
 					elements.add(new Tuple<>(I18n.format("item.minecraft.firework_star.shape." + s.func_196068_b()), // getShapeName
 							s));
-				getMinecraft()
-						.displayGuiScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this, elements, s -> {
+				mc.displayGuiScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this,
+						"gui.act.modifier.meta.explosion.shape", elements, s -> {
 							exp.type(s);
 							defineButton();
 							return null;
@@ -267,7 +267,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 
 	@SuppressWarnings("unchecked")
 	public GuiFireworksModifer(Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
-		super(parent, new ArrayList<>(), setter, new Tuple[0]);
+		super(parent, "gui.act.modifier.meta.fireworks", new ArrayList<>(), setter, new Tuple[0]);
 		elements.add(main = new FireworkMainListElement(tag.contains("Flight") ? tag.getInt("Flight") : 1));
 		tag.getList("Explosions", 10).forEach(base -> elements.add(new ExplosionListElement(this, (CompoundNBT) base)));
 		elements.add(new AddElementList(this, builder));

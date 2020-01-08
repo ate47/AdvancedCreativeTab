@@ -10,21 +10,21 @@ import net.minecraft.client.gui.screen.Screen;
 public class GuiListSelector<T> extends GuiListModifier<T> {
 	private Function<T, Screen> selector;
 
-	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
+	public GuiListSelector(Screen parent, String name, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
 			boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		super(parent, elements, t -> setter.apply(t), doneButton, cancelButton, buttons);
+		super(parent, name, elements, t -> setter.apply(t), doneButton, cancelButton, buttons);
 		this.selector = setter;
 	}
 
-	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
+	public GuiListSelector(Screen parent, String name, List<ListElement> elements, Function<T, Screen> setter, boolean doneButton,
 			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		super(parent, elements, t -> setter.apply(t), doneButton, buttons);
+		super(parent, name, elements, t -> setter.apply(t), doneButton, buttons);
 		this.selector = setter;
 	}
 
-	public GuiListSelector(Screen parent, List<ListElement> elements, Function<T, Screen> setter,
+	public GuiListSelector(Screen parent, String name, List<ListElement> elements, Function<T, Screen> setter,
 			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-		super(parent, elements, t -> setter.apply(t), buttons);
+		super(parent, name, elements, t -> setter.apply(t), buttons);
 		this.selector = setter;
 	}
 

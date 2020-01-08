@@ -1,6 +1,5 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
-import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import net.minecraft.client.gui.widget.button.Button;
@@ -15,7 +14,7 @@ public class NBTTagElement extends NBTElement {
 		super(parent, key, 200, 21);
 		this.value = value;
 		buttonList.add(new Button(0, 0, 200, 20, I18n.format("gui.act.modifier.tag.editor.tag"), b -> {
-			mc.displayGuiScreen(new GuiNBTModifier(((GuiArrayModifierTitle) parent).getListModifierTitle() + key + "/", parent,
+			mc.displayGuiScreen(new GuiNBTModifier(parent.getStringTitle() + key + "/", parent,
 					tag -> NBTTagElement.this.value = tag, value.copy()));
 		}));
 	}

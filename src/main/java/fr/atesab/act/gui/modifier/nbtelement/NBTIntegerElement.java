@@ -27,7 +27,7 @@ public class NBTIntegerElement extends NBTNumericElement<Integer> {
 				int id = Registry.ENCHANTMENT.getId(e);
 				list.add(new Tuple<>(I18n.format(e.getName()) + " (" + id + ")", id));
 			});
-			mc.displayGuiScreen(new GuiButtonListSelector<Integer>(parent, list, i -> {
+			mc.displayGuiScreen(new GuiButtonListSelector<Integer>(parent, "gui.act.modifier.ench", list, i -> {
 				updateValue(i);
 				return null;
 			}));
