@@ -595,6 +595,8 @@ public class ACTMod {
 
 	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent ev) {
+		if (Minecraft.getInstance().currentScreen != null)
+			return;
 		if (giver.isPressed())
 			GuiUtils.displayScreen(new GuiGiver(null));
 		else if (menu.isPressed())
@@ -719,26 +721,24 @@ public class ACTMod {
 			}
 		}
 		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
-				&& giver.getKey().getKeyCode() != 0 && InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-			if (InputMappings.isKeyDown(giver.getKey().getKeyCode()))
-				mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
-			ev.getToolTip()
-					.add(ModdedCommand.createText("[", TextFormatting.GOLD)
-							.appendSibling(ModdedCommand.createText(giver.getKey().getName(), TextFormatting.YELLOW))
-							.appendSibling(ModdedCommand.createText("] ", TextFormatting.GOLD)).appendSibling(
-									ModdedCommand.createText(I18n.format("cmd.act.opengiver"), TextFormatting.YELLOW)));
+				&& InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+			if (giver.getKey().getKeyCode() != 0) {
+				if (InputMappings.isKeyDown(giver.getKey().getKeyCode()))
+					mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
+				ev.getToolTip().add(ModdedCommand.createText("[", TextFormatting.GOLD)
+						.appendSibling(ModdedCommand.createText(giver.getKey().getName(), TextFormatting.YELLOW))
+						.appendSibling(ModdedCommand.createText("] ", TextFormatting.GOLD)).appendSibling(
+								ModdedCommand.createText(I18n.format("cmd.act.opengiver"), TextFormatting.YELLOW)));
+			}
 			if (menu.getKey().getKeyCode() != 0) {
-				if (menu.getKey().getKeyCode() != 0) {
-					if (InputMappings.isKeyDown(menu.getKey().getKeyCode())) {
-						getCustomItems().add(ItemUtils.getGiveCode(ev.getItemStack()));
-						mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
-					}
-					ev.getToolTip().add(new TextComponentString("[").setStyle(new Style().setColor(TextFormatting.GOLD))
-							.appendText(menu.getKey().getName()).setStyle(new Style().setColor(TextFormatting.YELLOW))
-							.appendText("] ").setStyle(new Style().setColor(TextFormatting.GOLD))
-							.appendText(I18n.format("gui.act.save"))
-							.setStyle(new Style().setColor(TextFormatting.YELLOW)));
+				if (InputMappings.isKeyDown(menu.getKey().getKeyCode())) {
+					getCustomItems().add(ItemUtils.getGiveCode(ev.getItemStack()));
+					mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
 				}
+				ev.getToolTip().add(new TextComponentString("[").setStyle(new Style().setColor(TextFormatting.GOLD))
+						.appendText(menu.getKey().getName()).setStyle(new Style().setColor(TextFormatting.YELLOW))
+						.appendText("] ").setStyle(new Style().setColor(TextFormatting.GOLD))
+						.appendText(I18n.format("gui.act.save")).setStyle(new Style().setColor(TextFormatting.YELLOW)));
 			}
 		}
 		if (!InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
