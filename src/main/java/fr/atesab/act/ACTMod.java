@@ -119,7 +119,7 @@ public class ACTMod {
 		}
 	}
 
-	public static final ACTState MOD_STATE = ACTState.BETA;
+	public static final ACTState MOD_STATE = ACTState.RELEASE;
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
 	public static final String MOD_VERSION = "2.2";
