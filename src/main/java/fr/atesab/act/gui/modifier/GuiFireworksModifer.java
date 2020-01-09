@@ -36,8 +36,8 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 			if (title.endsWith(":"))
 				title = title.substring(0, title.length() - 1);
 			title += " : ";
-			int l = fontRenderer.getStringWidth(title + " : ") + 5;
-			this.flight = new TextFieldWidget(fontRenderer, l, 2, 196 - l, 16, "");
+			int l = font.getStringWidth(title + " : ") + 5;
+			this.flight = new TextFieldWidget(font, l, 2, 196 - l, 16, "");
 			this.flight.setMaxStringLength(6);
 			this.flight.setText("" + flight);
 
@@ -57,7 +57,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(flight, offsetX, offsetY, mouseY, mouseY, partialTicks);
-			GuiUtils.drawString(fontRenderer, title, offsetX, offsetY, (err ? Color.RED : Color.WHITE).getRGB(),
+			GuiUtils.drawString(font, title, offsetX, offsetY, (err ? Color.RED : Color.WHITE).getRGB(),
 					flight.getHeight());
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
@@ -133,26 +133,26 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 				String color = I18n.format("gui.act.modifier.meta.explosion.color") + " : ";
 				String fadeColor = I18n.format("gui.act.modifier.meta.explosion.fadeColor") + " : ";
 				data.add(type);
-				int width = fontRenderer.getStringWidth(type);
+				int width = font.getStringWidth(type);
 				if (exp.isTrail()) {
 					data.add(trail);
-					width = Math.max(width, fontRenderer.getStringWidth(trail));
+					width = Math.max(width, font.getStringWidth(trail));
 				}
 				if (exp.isFlicker()) {
 					data.add(flicker);
-					width = Math.max(width, fontRenderer.getStringWidth(flicker));
+					width = Math.max(width, font.getStringWidth(flicker));
 				}
 				if (exp.getColors().length != 0) {
 					data.add(color);
-					width = Math.max(width, (fontRenderer.FONT_HEIGHT + 1) * exp.getColors().length
-							+ fontRenderer.getStringWidth(color));
+					width = Math.max(width,
+							(font.FONT_HEIGHT + 1) * exp.getColors().length + font.getStringWidth(color));
 				}
 				if (exp.getFadeColors().length != 0) {
 					data.add(fadeColor);
-					width = Math.max(width, (fontRenderer.FONT_HEIGHT + 1) * exp.getFadeColors().length
-							+ fontRenderer.getStringWidth(fadeColor));
+					width = Math.max(width,
+							(font.FONT_HEIGHT + 1) * exp.getFadeColors().length + font.getStringWidth(fadeColor));
 				}
-				int height = data.size() * (1 + fontRenderer.FONT_HEIGHT) + 2;
+				int height = data.size() * (1 + font.FONT_HEIGHT) + 2;
 				width += 2;
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX + offsetX, mouseY + offsetY, width,
 						height, parent.width, parent.height);
@@ -165,26 +165,26 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 				pos.b += 2;
 				int i;
 				for (i = 0; i < data.size(); i++)
-					fontRenderer.drawString(data.get(i), pos.a, pos.b + i * (fontRenderer.FONT_HEIGHT + 1), 0xffffffff);
+					font.drawString(data.get(i), pos.a, pos.b + i * (font.FONT_HEIGHT + 1), 0xffffffff);
 				if (exp.getFadeColors().length != 0) {
 					i -= 1;
-					int x = pos.a + fontRenderer.getStringWidth(fadeColor);
-					int y = pos.b + i * (fontRenderer.FONT_HEIGHT + 1);
+					int x = pos.a + font.getStringWidth(fadeColor);
+					int y = pos.b + i * (font.FONT_HEIGHT + 1);
 					for (int j = 0; j < exp.getFadeColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + fontRenderer.FONT_HEIGHT, y + fontRenderer.FONT_HEIGHT,
+						GuiUtils.drawGradientRect(x, y, x + font.FONT_HEIGHT, y + font.FONT_HEIGHT,
 								0xff000000 | exp.getFadeColors()[j], 0xff000000 | exp.getFadeColors()[j],
 								parent.getZLevel());
-						x += fontRenderer.FONT_HEIGHT + 1;
+						x += font.FONT_HEIGHT + 1;
 					}
 				}
 				if (exp.getColors().length != 0) {
 					i -= 1;
-					int x = pos.a + fontRenderer.getStringWidth(color);
-					int y = pos.b + i * (fontRenderer.FONT_HEIGHT + 1);
+					int x = pos.a + font.getStringWidth(color);
+					int y = pos.b + i * (font.FONT_HEIGHT + 1);
 					for (int j = 0; j < exp.getColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + fontRenderer.FONT_HEIGHT, y + fontRenderer.FONT_HEIGHT,
+						GuiUtils.drawGradientRect(x, y, x + font.FONT_HEIGHT, y + font.FONT_HEIGHT,
 								0xff000000 | exp.getColors()[j], 0xff000000 | exp.getColors()[j], parent.getZLevel());
-						x += fontRenderer.FONT_HEIGHT + 1;
+						x += font.FONT_HEIGHT + 1;
 					}
 				}
 
@@ -268,9 +268,10 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 	@SuppressWarnings("unchecked")
 	public GuiFireworksModifer(Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
 		super(parent, "gui.act.modifier.meta.fireworks", new ArrayList<>(), setter, new Tuple[0]);
-		elements.add(main = new FireworkMainListElement(tag.contains("Flight") ? tag.getInt("Flight") : 1));
-		tag.getList("Explosions", 10).forEach(base -> elements.add(new ExplosionListElement(this, (CompoundNBT) base)));
-		elements.add(new AddElementList(this, builder));
+		addListElement(main = new FireworkMainListElement(tag.contains("Flight") ? tag.getInt("Flight") : 1));
+		tag.getList("Explosions", 10)
+				.forEach(base -> addListElement(new ExplosionListElement(this, (CompoundNBT) base)));
+		addListElement(new AddElementList(this, builder));
 	}
 
 	@Override
@@ -278,7 +279,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		CompoundNBT newTag = new CompoundNBT();
 		newTag.putInt("Flight", main.value);
 		ListNBT explosions = new ListNBT();
-		elements.stream().filter(le -> le instanceof ExplosionListElement)
+		getElements().stream().filter(le -> le instanceof ExplosionListElement)
 				.forEach(le -> explosions.add(((ExplosionListElement) le).exp.getTag()));
 		newTag.put(ItemUtils.NBT_CHILD_EXPLOSIONS, explosions);
 		return newTag;

@@ -37,8 +37,8 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 			super(400, 50);
 			slot = tuple.a;
 			name = tuple.b.getName();
-			int l = 5 + fontRenderer.getStringWidth(I18n.format("gui.act.modifier.attr.amount") + " : ");
-			amount = new TextFieldWidget(fontRenderer, 202 + l, 1, 154 - l, 18, "");
+			int l = 5 + font.getStringWidth(I18n.format("gui.act.modifier.attr.amount") + " : ");
+			amount = new TextFieldWidget(font, 202 + l, 1, 154 - l, 18, "");
 			amount.setMaxStringLength(8);
 			amount.setText(String.valueOf(amountValue = tuple.b.getAmount()));
 			operationValue = tuple.b.getOperation().getId();
@@ -98,7 +98,7 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(amount, offsetX, offsetY, mouseX, mouseY, partialTicks);
-			GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.modifier.attr.amount") + " : ", amount,
+			GuiUtils.drawRightString(font, I18n.format("gui.act.modifier.attr.amount") + " : ", amount,
 					(errAmount ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
@@ -165,14 +165,14 @@ public class GuiAttributeModifier extends GuiListModifier<List<Tuple<EquipmentSl
 	public GuiAttributeModifier(Screen parent, List<Tuple<EquipmentSlotType, AttributeModifier>> attr,
 			Consumer<List<Tuple<EquipmentSlotType, AttributeModifier>>> setter) {
 		super(parent, "gui.act.modifier.attr", new ArrayList<>(), setter, new Tuple[0]);
-		attr.forEach(tuple -> elements.add(new AttributeListElement(this, tuple)));
-		elements.add(new AddElementList(this, supplier));
+		attr.forEach(tuple -> addListElement(new AttributeListElement(this, tuple)));
+		addListElement(new AddElementList(this, supplier));
 	}
 
 	@Override
 	protected List<Tuple<EquipmentSlotType, AttributeModifier>> get() {
 		List<Tuple<EquipmentSlotType, AttributeModifier>> result = new ArrayList<>();
-		elements.stream().filter(le -> le instanceof AttributeListElement).map(le -> (AttributeListElement) le)
+		getElements().stream().filter(le -> le instanceof AttributeListElement).map(le -> (AttributeListElement) le)
 				.forEach(ale -> result.add(new Tuple<>(ale.slot, ale.getModifier())));
 		return result;
 	}

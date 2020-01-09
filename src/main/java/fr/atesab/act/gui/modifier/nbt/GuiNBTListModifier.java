@@ -22,15 +22,15 @@ public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 		this.list = list.copy();
 		String k = "...";
 		for (INBT base : list) {
-			elements.add(NBTElement.getElementByBase(this, k, base));
+			addListElement(NBTElement.getElementByBase(this, k, base));
 		}
-		elements.add(new AddElementList(this, () -> {
+		addListElement(new AddElementList(this, () -> {
 			if (this.list.getTagType() != 0) {
 				INBT base = GuiNBTModifier.getDefaultElement(this.list.getTagType());
 				if (base != null)
-					addListElement(elements.size() - 1, NBTElement.getElementByBase(this, k, base));
+					addListElement(getElements().size() - 1, NBTElement.getElementByBase(this, k, base));
 			} else
-				getMinecraft().displayGuiScreen(GuiNBTModifier.addElement(elements.size() - 1, this, k));
+				getMinecraft().displayGuiScreen(GuiNBTModifier.addElement(getElements().size() - 1, this, k));
 			return null;
 		}));
 		setPaddingLeft(5);
@@ -48,7 +48,7 @@ public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 	@Override
 	protected ListNBT get() {
 		ListNBT list = new ListNBT();
-		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> list.add(((NBTElement) le).get()));
+		getElements().stream().filter(le -> le instanceof NBTElement).forEach(le -> list.add(((NBTElement) le).get()));
 		return list;
 	}
 

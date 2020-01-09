@@ -17,16 +17,15 @@ public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> {
 	private List<Integer> list;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTIntArrayModifier(String title, Screen parent, Consumer<IntArrayNBT> setter,
-			IntArrayNBT array) {
+	public GuiNBTIntArrayModifier(String title, Screen parent, Consumer<IntArrayNBT> setter, IntArrayNBT array) {
 		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = new ArrayList<>();
 		String k = "...";
 		for (int i : array.getIntArray()) {
-			elements.add(new NBTIntegerElement(this, k, i));
+			addListElement(new NBTIntegerElement(this, k, i));
 			list.add(i);
 		}
-		elements.add(new AddElementList(this, () -> {
+		addListElement(new AddElementList(this, () -> {
 			return new NBTIntegerElement(this, k, 0);
 		}));
 		setPaddingLeft(5);

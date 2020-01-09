@@ -47,12 +47,22 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			page--;
 			b.active = page != 0;
 			next.active = page + 1 <= values.size() / elms;
-		}));
+		}) {
+			@Override
+			public String getNarrationMessage() {
+				return I18n.format("gui.narrate.button", I18n.format("gui.act.leftArrow"));
+			}
+		});
 		addButton(next = new Button(width / 2 + 101, height - 21, 20, 20, "->", b -> {
 			page++;
 			last.active = page != 0;
 			b.active = page + 1 <= values.size() / elms;
-		}));
+		}) {
+			@Override
+			public String getNarrationMessage() {
+				return I18n.format("gui.narrate.button", I18n.format("gui.act.rightArrow"));
+			}
+		});
 		last.active = page != 0;
 		next.active = page + 1 <= values.size() / elms;
 		tfs = new TextFieldWidget[values.size()];
@@ -63,23 +73,44 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			tfs[i] = new TextFieldWidget(font, width / 2 - 178, 21 + 21 * i % (elms * 21) + 2, 340, 16, "");
 			tfs[i].setMaxStringLength(Integer.MAX_VALUE);
 			tfs[i].setText(values.get(i));
-			addButton(btsDel[i] = new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20,
-					TextFormatting.RED + "-", i, b -> {
+			addButton(btsDel[i] = new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20, "-",
+					i, b -> {
 						values.remove(b.getValue().intValue());
 						defineMenu();
-					}));
-			addButton(btsAdd[i] = new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20, 20,
-					TextFormatting.GREEN + "+", i, b -> {
+					}) {
+
+				@Override
+				protected String getNarrationMessage() {
+					return I18n.format("gui.narrate.button", I18n.format("gui.act.delete"));
+				}
+			});
+			btsDel[i].setFGColor(TextFormatting.RED.getColor());
+			addButton(btsAdd[i] = new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20, 20, "+",
+					i, b -> {
 						values.add(b.getValue().intValue(), "");
 						defineMenu();
-					}));
+					}) {
+
+				@Override
+				protected String getNarrationMessage() {
+					return I18n.format("gui.narrate.button", I18n.format("gui.act.new"));
+				}
+			});
+			btsAdd[i].setFGColor(TextFormatting.GREEN.getColor());
 			children.add(tfs[i]);
 		}
-		addButton(btsAdd[i] = new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
-				TextFormatting.GREEN + "+", i, b -> {
+		addButton(btsAdd[i] = new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20, "+", i,
+				b -> {
 					values.add(b.getValue().intValue(), "");
 					defineMenu();
-				}));
+				}) {
+
+			@Override
+			protected String getNarrationMessage() {
+				return I18n.format("gui.narrate.button", I18n.format("gui.act.new"));
+			}
+		});
+		btsAdd[i].setFGColor(TextFormatting.GREEN.getColor());
 
 	}
 
@@ -104,13 +135,13 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-			for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++) {
-				tfs[i].setFocused2(false);
-				if (mouseButton == 1 && GuiUtils.isHover(tfs[i], (int) mouseX, (int) mouseY)) {
-					tfs[i].setText("");
-					return true;
-				}
+		for (int i = page * elms; i < (page + 1) * elms && i < values.size(); i++) {
+			tfs[i].setFocused2(false);
+			if (mouseButton == 1 && GuiUtils.isHover(tfs[i], (int) mouseX, (int) mouseY)) {
+				tfs[i].setText("");
+				return true;
 			}
+		}
 		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 

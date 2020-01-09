@@ -2,6 +2,7 @@ package fr.atesab.act.gui.modifier;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
@@ -23,46 +25,12 @@ import net.minecraft.util.text.TextFormatting;
 
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	/**
-	 * a button that run left and right mouse button action
-	 */
-	public static class RunElementButton extends Button {
-		private Runnable left;
-		private Runnable right;
-
-		public RunElementButton(int x, int y, int widthIn, int heightIn, String text, Runnable left, Runnable right) {
-			super(x, y, widthIn, heightIn, text, b -> {
-			});
-			this.left = left;
-			this.right = right;
-		}
-
-		/**
-		 * @return the left mouse {@link Runnable}
-		 */
-		public Runnable getLeft() {
-			return left;
-		}
-
-		/**
-		 * @return the right mouse {@link Runnable}
-		 */
-		public Runnable getRight() {
-			return right;
-		}
-	}
-
-	/**
 	 * a button to add an element to the list
 	 */
 	public static class AddElementButton extends RunElementButton {
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
 				Supplier<ListElement> builder) {
-			this(parent, x, y, widthIn, heightIn, TextFormatting.GREEN + "+", element, builder);
-		}
-
-		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
-				ListElement element, Supplier<ListElement> builder) {
-			this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
+			this(parent, x, y, widthIn, heightIn, "+", element, builder);
 		}
 
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
@@ -76,6 +44,17 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 						break;
 					}
 			}, null);
+			setFGColor(TextFormatting.GREEN.getColor());
+		}
+
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
+				ListElement element, Supplier<ListElement> builder) {
+			this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
+		}
+
+		@Override
+		protected String getNarrationMessage() {
+			return I18n.format("gui.narrate.button", I18n.format("gui.act.new"));
 		}
 
 	}
@@ -113,7 +92,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		@Override
-		protected void otherActionPerformed(Button button, int mouseButton) {
+		protected void otherActionPerformed(Widget button, int mouseButton) {
 			if (mouseButton == 1 && right != null)
 				right.run();
 			super.otherActionPerformed(button, mouseButton);
@@ -125,9 +104,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	 * a element of the list
 	 */
 	public static abstract class ListElement {
-		protected FontRenderer fontRenderer;
+		protected FontRenderer font;
 		protected Minecraft mc;
-		protected List<Button> buttonList = new ArrayList<>();
+		protected List<Widget> buttonList = new ArrayList<>();
 		protected List<TextFieldWidget> fieldList = new ArrayList<>();
 		private int sizeX;
 		private int sizeY;
@@ -135,16 +114,25 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		public ListElement(int sizeX, int sizeY) {
 			this.sizeX = sizeX;
 			this.sizeY = sizeY;
-			fontRenderer = (mc = Minecraft.getInstance()).fontRenderer;
+			font = (mc = Minecraft.getInstance()).fontRenderer;
+		}
+
+		public boolean charTyped(char key, int modifiers) {
+			for (TextFieldWidget field : fieldList)
+				if (field.getVisible() && field.charTyped(key, modifiers))
+					return true;
+			return false;
 		}
 
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			buttonList.forEach(b -> GuiUtils.drawRelative(mc, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
+			buttonList.forEach(b -> GuiUtils.drawRelative(b, offsetX, offsetY, mouseX, mouseY, partialTicks));
 			fieldList.stream().filter(TextFieldWidget::getVisible)
 					.forEach(tf -> GuiUtils.drawRelative(tf, offsetX, offsetY, mouseX, mouseY, partialTicks));
 		}
 
 		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+			buttonList.stream().filter(Widget::isHovered)
+					.forEach(b -> GuiUtils.drawRelativeToolTip(b, offsetX, offsetY, mouseX, mouseY, partialTicks));
 		}
 
 		public int getSizeX() {
@@ -153,14 +141,6 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		public int getSizeY() {
 			return sizeY;
-		}
-
-		public void setSizeX(int sizeX) {
-			this.sizeX = sizeX;
-		}
-
-		public void setSizeY(int sizeY) {
-			this.sizeY = sizeY;
 		}
 
 		public void init() {
@@ -175,13 +155,6 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		public boolean isFocused() {
 			for (TextFieldWidget field : fieldList)
 				if (field.isFocused())
-					return true;
-			return false;
-		}
-
-		public boolean charTyped(char key, int modifiers) {
-			for (TextFieldWidget field : fieldList)
-				if (field.getVisible() && field.charTyped(key, modifiers))
 					return true;
 			return false;
 		}
@@ -231,7 +204,15 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			});
 		}
 
-		protected void otherActionPerformed(Button button, int mouseButton) {
+		protected void otherActionPerformed(Widget button, int mouseButton) {
+		}
+
+		public void setSizeX(int sizeX) {
+			this.sizeX = sizeX;
+		}
+
+		public void setSizeY(int sizeY) {
+			this.sizeY = sizeY;
 		}
 
 		public void update() {
@@ -245,21 +226,55 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RemoveElementButton extends RunElementButton {
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
 				ListElement element) {
-			super(x, y, widthIn, heightIn, TextFormatting.RED + "-", () -> {
+			super(x, y, widthIn, heightIn, "-", () -> {
 				parent.elements.remove(element);
 				parent.needRedefine = true;
 			}, null);
+			setFGColor(TextFormatting.RED.getColor());
 		}
 
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, ListElement element) {
 			this(parent, x, y, 200, 20, element);
 		}
 
+		@Override
+		protected String getNarrationMessage() {
+			return I18n.format("gui.narrate.button", I18n.format("gui.act.delete"));
+		}
 	}
 
-	protected List<ListElement> elements;
-	protected List<ListElement> searchedElements = new ArrayList<>();
-	protected List<ListElement>[] visibleElements;
+	/**
+	 * a button that run left and right mouse button action
+	 */
+	public static class RunElementButton extends Button {
+		private Runnable left;
+		private Runnable right;
+
+		public RunElementButton(int x, int y, int widthIn, int heightIn, String text, Runnable left, Runnable right) {
+			super(x, y, widthIn, heightIn, text, b -> {
+			});
+			this.left = left;
+			this.right = right;
+		}
+
+		/**
+		 * @return the left mouse {@link Runnable}
+		 */
+		public Runnable getLeft() {
+			return left;
+		}
+
+		/**
+		 * @return the right mouse {@link Runnable}
+		 */
+		public Runnable getRight() {
+			return right;
+		}
+	}
+
+	private List<ListElement> elements;
+	private List<ListElement> searchedElements = new ArrayList<>();
+	private List<ListElement>[] visibleElements;
 	private boolean doneButton, cancelButton;
 	private int page, maxPage, sizeX;
 
@@ -274,29 +289,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	private int dSize = 42, paddingLeft = 0, paddingTop = 0;
 	private boolean noAdaptativeSize = false;
 
-	public void setNoAdaptativeSize(boolean noAdaptativeSize) {
-		this.noAdaptativeSize = noAdaptativeSize;
-	}
-
-	public boolean isNoAdaptativeSize() {
-		return noAdaptativeSize;
-	}
-
-	public int getPaddingLeft() {
-		return paddingLeft;
-	}
-
-	public void setPaddingLeft(int paddingLeft) {
-		this.paddingLeft = paddingLeft;
-	}
-
-	public int getPaddingTop() {
-		return paddingTop;
-	}
-
-	public void setPaddingTop(int paddingTop) {
-		this.paddingTop = paddingTop;
-	}
+	private boolean justStart = true;
 
 	public GuiListModifier(Screen parent, String name, List<ListElement> elements, Consumer<T> setter,
 			boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
@@ -305,6 +298,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this.buttons = buttons;
 		this.doneButton = doneButton;
 		this.cancelButton = cancelButton;
+		this.setter = setter;
+		this.parent = parent;
 		search = new TextFieldWidget(Minecraft.getInstance().fontRenderer, 0, 0, 0, 0, "");
 	}
 
@@ -318,14 +313,38 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this(parent, name, elements, setter, true, buttons);
 	}
 
+	public void addListElement(int i, ListElement elem) {
+		elements.add(i, elem);
+		needRedefine = true;
+	}
+
 	public void addListElement(ListElement elem) {
 		elements.add(elem);
 		needRedefine = true;
 	}
 
-	public void addListElement(int i, ListElement elem) {
-		elements.add(i, elem);
-		needRedefine = true;
+	@Override
+	public boolean charTyped(char key, int modifiers) {
+		boolean flag = false;
+		for (List<ListElement> lel : visibleElements)
+			for (ListElement le : lel)
+				if (le.isFocused()) {
+					flag = true;
+					break;
+				}
+		for (List<ListElement> lel : visibleElements)
+			lel.forEach(le -> le.charTyped(key, modifiers));
+		if (!flag && !justStart)
+			search.setFocused2(true);
+		else
+			justStart = false;
+		if (search.isFocused()) {
+			search.charTyped(key, modifiers);
+			page = 0;
+			define();
+		}
+		return super.charTyped(key, modifiers);
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -380,38 +399,11 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		nextPage.active = page + 1 < maxPage;
 	}
 
-	@Override
-	public void render(int mouseX, int mouseY, float partialTicks) {
-		RenderHelper.disableStandardItemLighting();
-		renderBackground();
-		for (int i = 0; i < visibleElements.length; i++) {
-			int currentSize = dSize;
-			for (ListElement le : visibleElements[i]) {
-				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
-				le.draw(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
-				currentSize += le.getSizeY() + paddingTop;
-			}
-		}
-		GlStateManager.color3f(0, 1, 1);
-
-		super.render(mouseX, mouseY, partialTicks);
-		search.render(mouseX, mouseY, partialTicks);
-		GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
-		GuiUtils.drawRightString(font, I18n.format("gui.act.search") + " : ", search.x, search.y, Color.ORANGE.getRGB(),
-				search.getHeight());
-		if (getMinecraft().currentScreen.equals(this))
-			for (int i = 0; i < visibleElements.length; i++) {
-				int currentSize = dSize;
-				for (ListElement le : visibleElements[i]) {
-					int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
-					le.drawNext(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
-					currentSize += le.getSizeY() + paddingTop;
-				}
-			}
-		GlStateManager.color3f(1, 1, 1);
-	}
-
 	protected abstract T get();
+
+	public List<ListElement> getElements() {
+		return Collections.unmodifiableList(elements);
+	}
 
 	private int getOffsetX() {
 		int i;
@@ -423,6 +415,14 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		else
 			i = visibleElements.length;
 		return (width - sizeX * (i - 1) + paddingLeft) / 2;
+	}
+
+	public int getPaddingLeft() {
+		return paddingLeft;
+	}
+
+	public int getPaddingTop() {
+		return paddingTop;
 	}
 
 	@Override
@@ -449,11 +449,21 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		addButton(lastPage = new Button(dl - 21, height - 21, 20, 20, "<-", b -> {
 			page--;
 			define();
-		}));
+		}) {
+			@Override
+			public String getNarrationMessage() {
+				return I18n.format("gui.narrate.button", I18n.format("gui.act.leftArrow"));
+			}
+		});
 		addButton(nextPage = new Button(dr, height - 21, 20, 20, "->", b -> {
 			page++;
 			define();
-		}));
+		}) {
+			@Override
+			public String getNarrationMessage() {
+				return I18n.format("gui.narrate.button", I18n.format("gui.act.rightArrow"));
+			}
+		});
 		int m = font.getStringWidth(I18n.format("gui.act.search") + " : ");
 		int n = Math.min(600, width - 20);
 		search.x = (width - n) / 2 + 6 + m;
@@ -465,30 +475,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		super.init();
 	}
 
-	private boolean justStart = true;
-
-	@Override
-	public boolean charTyped(char key, int modifiers) {
-		boolean flag = false;
-		for (List<ListElement> lel : visibleElements)
-			for (ListElement le : lel)
-				if (le.isFocused()) {
-					flag = true;
-					break;
-				}
-		for (List<ListElement> lel : visibleElements)
-			lel.forEach(le -> le.charTyped(key, modifiers));
-		if (!flag && !justStart)
-			search.setFocused2(true);
-		else
-			justStart = false;
-		if (search.isFocused()) {
-			search.charTyped(key, modifiers);
-			page = 0;
-			define();
-		}
-		return super.charTyped(key, modifiers);
-
+	public boolean isNoAdaptativeSize() {
+		return noAdaptativeSize;
 	}
 
 	@Override
@@ -549,14 +537,53 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	}
 
 	@Override
+	public void render(int mouseX, int mouseY, float partialTicks) {
+		RenderHelper.disableStandardItemLighting();
+		renderBackground();
+		for (int i = 0; i < visibleElements.length; i++) {
+			int currentSize = dSize;
+			for (ListElement le : visibleElements[i]) {
+				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
+				le.draw(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
+				currentSize += le.getSizeY() + paddingTop;
+			}
+		}
+		GlStateManager.color3f(0, 1, 1);
+
+		super.render(mouseX, mouseY, partialTicks);
+		search.render(mouseX, mouseY, partialTicks);
+		GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
+		GuiUtils.drawRightString(font, I18n.format("gui.act.search") + " : ", search.x, search.y, Color.ORANGE.getRGB(),
+				search.getHeight());
+		if (getMinecraft().currentScreen.equals(this))
+			for (int i = 0; i < visibleElements.length; i++) {
+				int currentSize = dSize;
+				for (ListElement le : visibleElements[i]) {
+					int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
+					le.drawNext(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
+					currentSize += le.getSizeY() + paddingTop;
+				}
+			}
+		GlStateManager.color3f(1, 1, 1);
+	}
+
+	public void setNoAdaptativeSize(boolean noAdaptativeSize) {
+		this.noAdaptativeSize = noAdaptativeSize;
+	}
+
+	public void setPaddingLeft(int paddingLeft) {
+		this.paddingLeft = paddingLeft;
+	}
+
+	public void setPaddingTop(int paddingTop) {
+		this.paddingTop = paddingTop;
+	}
+
+	@Override
 	public void tick() {
 		search.tick();
 		for (List<ListElement> lel : visibleElements)
 			lel.forEach(ListElement::update);
 		super.tick();
-	}
-
-	public List<ListElement> getElements() {
-		return elements;
 	}
 }

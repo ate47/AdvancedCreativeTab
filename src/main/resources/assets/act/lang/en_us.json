@@ -28,6 +28,9 @@
     "gui.act.link": "Link",
     "gui.act.yes": "Yes",
     "gui.act.no": "No",
+    "gui.act.leftArrow": "Left arrow",
+    "gui.act.rightArrow": "Right arrow",
+    "gui.act.new": "New",
     
 
     "gui.act.menu.template": "Templates",

@@ -59,7 +59,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 				playClick();
 				if (mouseButton == 0) {
 					if (ACTMod.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-						int i = parent.elements.indexOf(this);
+						int i = parent.getElements().indexOf(this);
 						parent.addListElement(i, new MenuListElement(parent, stack.copy()));
 					} else
 						mc.displayGuiScreen(new GuiGiver(parent, stack, s -> {
@@ -81,7 +81,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	private Consumer<ItemStack> ADD_STACK = is -> {
 		if (is != null)
-			addListElement(elements.size() - 1, new MenuListElement(this, is));
+			addListElement(getElements().size() - 1, new MenuListElement(this, is));
 	};
 
 	private Runnable ADD = () -> {
@@ -111,7 +111,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 				new Tuple<>(() -> Minecraft.getInstance().displayGuiScreen(new GuiGiver(this)), () -> {
 				}));
 		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2 } : new Tuple[] { btn1, btn2 };
-		elements.add(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
+		addListElement(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
 		ACTMod.getCustomItems().forEach(data -> ADD_STACK
 				.accept(ItemUtils.getFromGiveCode(data.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))));
 	}
@@ -119,7 +119,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 	@Override
 	protected Object get() {
 		ACTMod.getCustomItems().clear();
-		elements.stream().filter(le -> le instanceof MenuListElement)
+		getElements().stream().filter(le -> le instanceof MenuListElement)
 				.forEach(m -> ACTMod.getCustomItems().add(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
 		ACTMod.saveConfigs();
 		return null;

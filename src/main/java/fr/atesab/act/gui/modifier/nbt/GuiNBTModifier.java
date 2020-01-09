@@ -94,7 +94,7 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 	@SuppressWarnings("unchecked")
 	public GuiNBTModifier(String title, Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
 		super(parent, title, new ArrayList<>(), setter, true, true, new Tuple[0]);
-		elements.add(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
+		addListElement(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
 				() -> ADD_ELEMENT.accept(null, this), null));
 		tag.keySet().forEach(key -> addElement(key, tag.get(key)));
 		setPaddingLeft(5);
@@ -103,7 +103,7 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 	}
 
 	private void addElement(int i, String key, INBT base) {
-		if (elements.stream().filter(le -> le instanceof NBTElement && ((NBTElement) le).getKey().equals(key))
+		if (getElements().stream().filter(le -> le instanceof NBTElement && ((NBTElement) le).getKey().equals(key))
 				.findFirst().isPresent()) {
 			addElement(key + "_", base);
 			return;
@@ -113,13 +113,13 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 	}
 
 	private void addElement(String key, INBT base) {
-		addElement(elements.size() - 1, key, base);
+		addElement(getElements().size() - 1, key, base);
 	}
 
 	@Override
 	protected CompoundNBT get() {
 		CompoundNBT tag = new CompoundNBT();
-		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> {
+		getElements().stream().filter(le -> le instanceof NBTElement).forEach(le -> {
 			NBTElement elem = ((NBTElement) le);
 			tag.put(elem.getKey(), elem.get());
 		});

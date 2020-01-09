@@ -25,7 +25,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 			super(200, 21);
 			this.enchantment = enchantment;
 			this.level = level;
-			this.textField = new TextFieldWidget(fontRenderer, 112, 1, 46, 18, "");
+			this.textField = new TextFieldWidget(font, 112, 1, 46, 18, "");
 			textField.setMaxStringLength(6);
 			textField.setText(String.valueOf(level == 0 ? "" : level));
 			buttonList.add(new Button(160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max"), b -> {
@@ -36,7 +36,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		@Override
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(textField, offsetX, offsetY, mouseY, mouseY, partialTicks);
-			GuiUtils.drawRightString(fontRenderer, I18n.format(enchantment.getName()) + " : ", offsetX + textField.x,
+			GuiUtils.drawRightString(font, I18n.format(enchantment.getName()) + " : ", offsetX + textField.x,
 					offsetY + textField.y, (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
 					textField.getHeight());
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
@@ -93,21 +93,21 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		super(parent, "gui.act.modifier.ench", new ArrayList<>(), setter, null);
 		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.modifier.ench.max"),
 				new Tuple<>(
-						() -> elements.stream().map(le -> (EnchListElement) le)
+						() -> getElements().stream().map(le -> (EnchListElement) le)
 								.forEach(ele -> ele.textField
 										.setText(String.valueOf(ele.level = ele.enchantment.getMaxLevel()))),
-						() -> elements.stream().map(le -> (EnchListElement) le).forEach(ele -> {
+						() -> getElements().stream().map(le -> (EnchListElement) le).forEach(ele -> {
 							ele.textField.setText("");
 							ele.level = 0;
 						}))) };
-		ench.forEach(e -> elements.add(new EnchListElement(e.a, e.b)));
+		ench.forEach(e -> addListElement(new EnchListElement(e.a, e.b)));
 
 	}
 
 	@Override
 	protected List<Tuple<Enchantment, Integer>> get() {
 		List<Tuple<Enchantment, Integer>> list = new ArrayList<>();
-		elements.forEach(le -> {
+		getElements().forEach(le -> {
 			EnchListElement ele = ((EnchListElement) le);
 			list.add(new Tuple<>(ele.enchantment, ele.level));
 		});

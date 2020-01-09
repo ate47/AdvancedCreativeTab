@@ -14,7 +14,7 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 		super(parent, key, Math.max(sizeX, 200), Math.max(sizeY, 21));
 		this.value = value;
 		this.type = type;
-		fieldList.add(field = new TextFieldWidget(fontRenderer, 2, 2, 196, 16, ""));
+		fieldList.add(field = new TextFieldWidget(font, 2, 2, 196, 16, ""));
 		field.setText(String.valueOf(value));
 	}
 

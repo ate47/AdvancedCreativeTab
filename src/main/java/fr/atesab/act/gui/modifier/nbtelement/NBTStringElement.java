@@ -26,7 +26,7 @@ public class NBTStringElement extends NBTElement {
 	public NBTStringElement(GuiListModifier<?> parent, String key, String value) {
 		super(parent, key, 200, 42);
 		this.value = value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&");
-		fieldList.add(field = new TextFieldWidget(fontRenderer, 2, 2, 196, 16, ""));
+		fieldList.add(field = new TextFieldWidget(font, 2, 2, 196, 16, ""));
 		buttonList.add(new Button(0, 21, 200, 20, I18n.format("gui.act.modifier.tag.editor.string.data"), b -> {
 			// Create a selector to select category or root modifier
 			GuiButtonListSelector<Supplier<Screen>> root = new GuiButtonListSelector<>(parent,

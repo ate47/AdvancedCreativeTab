@@ -28,6 +28,9 @@
     "gui.act.link": "Lien",
     "gui.act.yes": "Oui",
     "gui.act.no": "Non",
+    "gui.act.leftArrow": "Fleche gauche",
+    "gui.act.rightArrow": "Fleche droite",
+    "gui.act.new": "Nouveau",
 
     "gui.act.menu.template": "Modèles",
     "gui.act.menu.template.empty": "Vide",

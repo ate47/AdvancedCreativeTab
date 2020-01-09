@@ -62,15 +62,15 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 
 	@Override
 	public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-		GuiUtils.drawGradientRect(offsetX - 2, offsetY - (6 + fontRenderer.FONT_HEIGHT), offsetX + getSizeX() - 1,
+		GuiUtils.drawGradientRect(offsetX - 2, offsetY - (6 + font.FONT_HEIGHT), offsetX + getSizeX() - 1,
 				offsetY - 2, 0x88dddddd, 0x88aaaaaa, parent.getZLevel());
 		GuiUtils.drawGradientRect(offsetX - 2, offsetY - 2, offsetX + getSizeX() - 1, offsetY + getSizeY() + 2,
 				0x88000000, 0x88000000, parent.getZLevel());
 		String s = getType();
 		if (!isList(parent))
 			s = key + " (" + s + ")";
-		GuiUtils.drawString(fontRenderer, s, offsetX + 2, offsetY - fontRenderer.FONT_HEIGHT - 4, 0xffffffff,
-				fontRenderer.FONT_HEIGHT + 2);
+		GuiUtils.drawString(font, s, offsetX + 2, offsetY - font.FONT_HEIGHT - 4, 0xffffffff,
+				font.FONT_HEIGHT + 2);
 		super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 	}
 

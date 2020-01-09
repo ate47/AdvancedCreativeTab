@@ -14,7 +14,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button.IPressable;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.ItemRenderer;
@@ -236,14 +236,29 @@ public class GuiUtils {
 	/**
 	 * Draw an {@link ItemStack} on a {@link Screen}
 	 * 
-	 * @since 2.0
+	 * @since 2.1.1
 	 */
-	public static void drawItemStack(ItemRenderer itemRender, Screen gui, ItemStack itemstack, int x, int y) {
+	public static void drawItemStack(ItemRenderer itemRender, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
 		GlStateManager.enableDepthTest();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
-		itemRender.renderItemOverlayIntoGUI(gui.getMinecraft().fontRenderer, itemstack, x, y, null);
+		itemRender.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, itemstack, x, y, null);
+		GlStateManager.disableBlend();
+		GlStateManager.disableLighting();
+	}
+
+	/**
+	 * Draw an {@link ItemStack} on a {@link Screen}
+	 * 
+	 * @since 2.0
+	 */
+	public static void drawItemStack(ItemRenderer itemRender, Screen screen, ItemStack itemstack, int x, int y) {
+		if (itemstack == null || itemstack.isEmpty())
+			return;
+		GlStateManager.enableDepthTest();
+		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
+		itemRender.renderItemOverlayIntoGUI(screen.getMinecraft().fontRenderer, itemstack, x, y, null);
 		GlStateManager.disableBlend();
 		GlStateManager.disableLighting();
 	}
@@ -256,33 +271,33 @@ public class GuiUtils {
 	}
 
 	/**
-	 * Draw relatively a {@link GuiButton}
-	 * 
-	 * @see #drawRelative(GuiTextField, int, int)
-	 * @since 2.0
-	 */
-	public static void drawRelative(Minecraft mc, Button button, int offsetX, int offsetY, int mouseX, int mouseY,
-			float partialTicks) {
-		button.x += offsetX;
-		button.y += offsetY;
-		button.render(mouseX + offsetX, mouseY + offsetY, partialTicks);
-		button.x -= offsetX;
-		button.y -= offsetY;
-	}
-
-	/**
 	 * Draw relatively a {@link GuiTextField}
 	 * 
 	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
 	 * @since 2.0
 	 */
-	public static void drawRelative(TextFieldWidget field, int offsetX, int offsetY, int mouseX, int mouseY,
+	public static void drawRelative(Widget field, int offsetX, int offsetY, int mouseX, int mouseY,
 			float partialTicks) {
 		field.x += offsetX;
 		field.y += offsetY;
-		field.render(mouseX, mouseY, partialTicks);
+		field.render(mouseX + offsetX, mouseY + offsetY, partialTicks);
 		field.x -= offsetX;
 		field.y -= offsetY;
+	}
+
+	/**
+	 * Draw relatively a {@link Widget}
+	 * 
+	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
+	 * @since 2.0
+	 */
+	public static void drawRelativeToolTip(Widget widget, int offsetX, int offsetY, int mouseX, int mouseY,
+			float partialTicks) {
+		widget.x += offsetX;
+		widget.y += offsetY;
+		widget.renderToolTip(mouseX + offsetX, mouseY + offsetY);
+		widget.x -= offsetX;
+		widget.y -= offsetY;
 	}
 
 	/**
@@ -419,7 +434,7 @@ public class GuiUtils {
 	 * @see #isHover(int, int, int, int, int, int)
 	 * @since 2.0
 	 */
-	public static boolean isHover(Button button, int mouseX, int mouseY) {
+	public static boolean isHover(Widget button, int mouseX, int mouseY) {
 		return isHover(button.x, button.y, button.getWidth(), button.getHeight(), mouseX, mouseY);
 	}
 

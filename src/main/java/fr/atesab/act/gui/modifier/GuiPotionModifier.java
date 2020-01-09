@@ -31,9 +31,8 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		@SuppressWarnings("deprecation")
 		public CustomPotionListElement(GuiPotionModifier parent, EffectInstance potionEffect) {
 			super(400, 50);
-			int l = 5 + Math.max(
-					fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.potion.duration") + " : "),
-					fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.potion.amplifier") + " : "));
+			int l = 5 + Math.max(font.getStringWidth(I18n.format("gui.act.modifier.meta.potion.duration") + " : "),
+					font.getStringWidth(I18n.format("gui.act.modifier.meta.potion.amplifier") + " : "));
 			potion = potionEffect.getPotion();
 			durationTime = potionEffect.getDuration();
 			amplifierValue = potionEffect.getAmplifier();
@@ -41,9 +40,9 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			showParticles = potionEffect.doesShowParticles();
 			showIcon = potionEffect.isShowIcon();
 
-			duration = new TextFieldWidget(fontRenderer, l, 1, 150 - l, 18, "");
+			duration = new TextFieldWidget(font, l, 1, 150 - l, 18, "");
 			duration.setText(String.valueOf(durationTime));
-			amplifier = new TextFieldWidget(fontRenderer, l, 22, 150 - l, 18, "");
+			amplifier = new TextFieldWidget(font, l, 22, 150 - l, 18, "");
 			amplifier.setText(String.valueOf(amplifierValue));
 			buttonList.add(type = new Button(153, 0, 200, 20, I18n.format("gui.act.modifier.meta.potion.type"), b -> {
 				List<Tuple<String, Effect>> pots = new ArrayList<>();
@@ -72,10 +71,10 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(amplifier, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawRelative(duration, offsetX, offsetY, mouseY, mouseY, partialTicks);
-			GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.modifier.meta.potion.duration") + " : ",
-					duration, (errDur ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
-			GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.modifier.meta.potion.amplifier") + " : ",
-					amplifier, (errAmp ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
+			GuiUtils.drawRightString(font, I18n.format("gui.act.modifier.meta.potion.duration") + " : ", duration,
+					(errDur ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
+			GuiUtils.drawRightString(font, I18n.format("gui.act.modifier.meta.potion.amplifier") + " : ", amplifier,
+					(errAmp ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
@@ -169,11 +168,12 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
 				// PotionType.REGISTRY
 				Registry.POTION.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
-				mc.displayGuiScreen(new GuiButtonListSelector<Potion>(parent, "gui.act.modifier.meta.potion.type", pots, pot -> {
-					parent.main = pot;
-					defineButton();
-					return null;
-				}));
+				mc.displayGuiScreen(
+						new GuiButtonListSelector<Potion>(parent, "gui.act.modifier.meta.potion.type", pots, pot -> {
+							parent.main = pot;
+							defineButton();
+							return null;
+						}));
 			}));
 			defineButton();
 		}
@@ -197,16 +197,16 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		super(parent, "gui.act.modifier.meta.potion", new ArrayList<>(), setter, new Tuple[0]);
 		this.customColor = info.getCustomColor();
 		this.main = info.getMain();
-		elements.add(new MainPotionListElement(this));
-		info.getCustomEffects().forEach(t -> elements.add(new CustomPotionListElement(this, t)));
-		elements.add(new AddElementList(this, supplier));
+		addListElement(new MainPotionListElement(this));
+		info.getCustomEffects().forEach(t -> getElements().add(new CustomPotionListElement(this, t)));
+		addListElement(new AddElementList(this, supplier));
 	}
 
 	@Override
 	protected PotionInformation get() {
 		List<EffectInstance> customEffects = new ArrayList<>();
-		elements.stream().filter(le -> le instanceof CustomPotionListElement).map(le -> (CustomPotionListElement) le)
-				.forEach(cpl -> customEffects.add(cpl.getEffect()));
+		getElements().stream().filter(le -> le instanceof CustomPotionListElement)
+				.map(le -> (CustomPotionListElement) le).forEach(cpl -> customEffects.add(cpl.getEffect()));
 		return new PotionInformation(customColor, main, customEffects);
 	}
 

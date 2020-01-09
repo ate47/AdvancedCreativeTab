@@ -35,6 +35,6 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 	}
 
 	public void setElements(List<Tuple<String, T>> elements) {
-		elements.forEach(tuple -> this.elements.add(new SelectorListElement<T>(this, tuple)));
+		elements.forEach(tuple -> addListElement(new SelectorListElement<T>(this, tuple)));
 	}
 }
