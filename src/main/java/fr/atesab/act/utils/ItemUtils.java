@@ -455,7 +455,7 @@ public class ItemUtils {
 		boolean noTag = itemStack.getTag() != null && !itemStack.getTag().isEmpty();
 		return itemStack == null ? ""
 				: Registry.ITEM.getKey(itemStack.getItem()).toString() + (noTag ? itemStack.getTag().toString() : "")
-						+ (itemStack.getCount() == 1 && showCount ? "" : " " + String.valueOf(itemStack.getCount()));
+						+ (itemStack.getCount() == 1 && showCount ? "" : " " + itemStack.getCount());
 	}
 
 	/**

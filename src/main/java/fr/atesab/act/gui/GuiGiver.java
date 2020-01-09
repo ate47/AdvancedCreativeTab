@@ -108,7 +108,7 @@ public class GuiGiver extends GuiModifier<String> {
 					b -> {
 						if (parent instanceof GuiMenu)
 							((GuiMenu) parent).get();
-						ACTMod.getCustomItems().add(code.getText());
+						ACTMod.saveItem(code.getText());
 						getMinecraft().displayGuiScreen(new GuiMenu(parent));
 					}));
 		if (deleteButton)

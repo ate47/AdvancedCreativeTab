@@ -79,17 +79,17 @@ public class GuiMenu extends GuiListModifier<Object> {
 		}
 	}
 
-	private Consumer<ItemStack> ADD_STACK = is -> {
+	private Consumer<String> ADD_STACK = i -> {
+		ItemStack is = ItemUtils.getFromGiveCode(i.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 		if (is != null)
 			addListElement(getElements().size() - 1, new MenuListElement(this, is));
+		else
+			ACTMod.LOGGER.warn("Menu - Can't parse : " + i);
 	};
 
 	private Runnable ADD = () -> {
 		getMinecraft().displayGuiScreen(new GuiTypeListSelector(this, "gui.act.modifier.attr.type", is -> {
-			GuiGiver giver = new GuiGiver(this, (ItemStack) null,
-					i -> ADD_STACK
-							.accept(ItemUtils.getFromGiveCode(i.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))),
-					false);
+			GuiGiver giver = new GuiGiver(this, (ItemStack) null, i -> ADD_STACK.accept(i), false);
 			if (getMinecraft().currentScreen instanceof GuiTypeListSelector)
 				((GuiTypeListSelector) getMinecraft().currentScreen).setParent(giver);
 			giver.setPreText(ItemUtils.getCustomTag(is, ACTMod.TEMPLATE_TAG_NAME, ""));
@@ -112,22 +112,22 @@ public class GuiMenu extends GuiListModifier<Object> {
 				}));
 		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2 } : new Tuple[] { btn1, btn2 };
 		addListElement(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
-		ACTMod.getCustomItems().forEach(data -> ADD_STACK
-				.accept(ItemUtils.getFromGiveCode(data.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))));
+		ACTMod.getCustomItems().forEach(ADD_STACK::accept);
 	}
 
 	@Override
 	protected Object get() {
 		ACTMod.getCustomItems().clear();
 		getElements().stream().filter(le -> le instanceof MenuListElement)
-				.forEach(m -> ACTMod.getCustomItems().add(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
+				.forEach(m -> ACTMod.saveItem(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
 		ACTMod.saveConfigs();
 		return null;
 	}
-
+	
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		return super.mouseClicked(mouseX, mouseY, mouseButton);
+	public void onClose() {
+		get();
+		super.onClose();
 	}
 
 }

@@ -39,6 +39,7 @@ import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
+import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.CommandUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
@@ -168,6 +169,17 @@ public class ACTMod {
 	 */
 	public static List<String> getCustomItems() {
 		return config.getCustomitems();
+	}
+
+	/**
+	 * Save an item from the code
+	 * 
+	 * @param code
+	 *            the code
+	 */
+	public static void saveItem(String code) {
+		LOGGER.info("Adding : " + code);
+		config.getCustomitems().add(0, code);
 	}
 
 	/**
@@ -594,11 +606,13 @@ public class ACTMod {
 
 	@SubscribeEvent
 	public void onKeyInput(KeyInputEvent ev) {
-		if (giver.isPressed())
+		if (Minecraft.getInstance().currentScreen != null)
+			return;
+		if (giver.isPressed()) {
 			GuiUtils.displayScreen(new GuiGiver(null));
-		else if (menu.isPressed())
+		} else if (menu.isPressed()) {
 			GuiUtils.displayScreen(new GuiMenu(null));
-		else if (edit.isPressed()) {
+		} else if (edit.isPressed()) {
 			openGiver();
 		}
 	}
@@ -716,29 +730,23 @@ public class ACTMod {
 				ev.getToolTip().add(tags);
 			}
 		}
-		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)
-				&& giver.getKey().getKeyCode() != 0 && isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-			if (isKeyDown(giver.getKey().getKeyCode()))
-				mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
-			ev.getToolTip()
-					.add(ModdedCommand
-							.createTranslatedPrefix(giver.getKey().getTranslationKey(), TextFormatting.YELLOW,
-									TextFormatting.GOLD)
-							.appendSibling(
-									ModdedCommand.createTranslatedText("cmd.act.opengiver", TextFormatting.YELLOW)));
+		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)) {
+			if (giver.getKey().getKeyCode() != 0 && isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+				if (isKeyDown(giver.getKey().getKeyCode()))
+					mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
+				ev.getToolTip().add(ModdedCommand
+						.createPrefix(giver.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
+						.appendSibling(ModdedCommand.createTranslatedText("cmd.act.opengiver", TextFormatting.YELLOW)));
+			}
 			if (menu.getKey().getKeyCode() != 0) {
-				if (menu.getKey().getKeyCode() != 0) {
-					if (isKeyDown(menu.getKey().getKeyCode())) {
-						getCustomItems().add(ItemUtils.getGiveCode(ev.getItemStack()));
-						mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
-					}
-					ev.getToolTip()
-							.add(ModdedCommand
-									.createTranslatedPrefix(menu.getKey().getTranslationKey(), TextFormatting.YELLOW,
-											TextFormatting.GOLD)
-									.appendSibling(
-											ModdedCommand.createTranslatedText("gui.act.save", TextFormatting.YELLOW)));
+				if (isKeyDown(menu.getKey().getKeyCode())) {
+					String code = ItemUtils.getGiveCode(ev.getItemStack()).replace(ChatUtils.MODIFIER, '&');
+					ACTMod.saveItem(code);
+					mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
 				}
+				ev.getToolTip().add(ModdedCommand
+						.createPrefix(menu.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
+						.appendSibling(ModdedCommand.createTranslatedText("gui.act.save", TextFormatting.YELLOW)));
 			}
 		}
 		if (!isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
