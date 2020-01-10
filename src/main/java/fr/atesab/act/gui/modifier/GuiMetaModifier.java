@@ -2,7 +2,7 @@ package fr.atesab.act.gui.modifier;
 
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.utils.ChatUtils;
@@ -27,7 +27,7 @@ public class GuiMetaModifier extends GuiModifier<ItemStack> {
 		renderBackground();
 		GuiUtils.drawItemStack(itemRenderer, this, stack, width / 2 - 10, height / 2 - 21);
 		super.render(mouseX, mouseY, partialTicks);
-		GlStateManager.color3f(1, 1, 1);
+		RenderSystem.color3f(1, 1, 1);
 		if (GuiUtils.isHover(width / 2 - 10, height / 2 - 21, 20, 20, mouseX, mouseY))
 			renderTooltip(stack, mouseX, mouseY);
 	}

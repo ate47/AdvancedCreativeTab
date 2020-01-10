@@ -996,7 +996,7 @@ public class ItemUtils {
 	public static ItemStack setLore(ItemStack stack, String[] lore) {
 		ListNBT nbtTagList = new ListNBT();
 		for (String l : lore)
-			nbtTagList.add(new StringNBT('"' + l + '"'));
+			nbtTagList.add(StringNBT.func_229705_a_('"' + l + '"'));
 		stack.getOrCreateChildTag(NBT_CHILD_DISPLAY).put("Lore", nbtTagList);
 		return stack;
 	}

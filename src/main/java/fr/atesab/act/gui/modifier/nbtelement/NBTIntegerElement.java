@@ -37,7 +37,7 @@ public class NBTIntegerElement extends NBTNumericElement<Integer> {
 
 	@Override
 	public INBT get(Integer value) {
-		return new IntNBT(value);
+		return IntNBT.func_229692_a_(value);
 	}
 
 	@Override

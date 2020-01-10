@@ -77,7 +77,7 @@ public class NBTStringElement extends NBTElement {
 
 	@Override
 	public INBT get() {
-		return new StringNBT(value.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+		return StringNBT.func_229705_a_(value.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 	}
 
 	@Override

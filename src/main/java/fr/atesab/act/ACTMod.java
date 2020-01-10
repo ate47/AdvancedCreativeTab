@@ -234,7 +234,7 @@ public class ACTMod {
 	 * @return if this key is pressed
 	 */
 	public static boolean isKeyDown(int key) {
-		return InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), key);
+		return InputMappings.isKeyDown(Minecraft.getInstance().func_228018_at_().getHandle(), key); // getMainWindow()
 	}
 
 	/**
@@ -384,7 +384,9 @@ public class ACTMod {
 			else {
 				NonNullList<ItemStack> sub = NonNullList.create();
 				i.fillItemGroup(ItemGroup.SEARCH, sub);
-				if (!sub.stream().filter(is -> is.getItem().equals(i) && (is.getTag() == null || is.getTag().isEmpty()))
+				if (!sub.stream()
+						.filter(is -> is.getItem().equals(i) && (is.getTag() == null || is.getTag().isEmpty()
+								|| !(is.getTag().size() == 1 && is.getTag().contains("damage"))))
 						.findFirst().isPresent())
 					ADVANCED_CREATIVE_TAB.addSubitem(i);
 			}

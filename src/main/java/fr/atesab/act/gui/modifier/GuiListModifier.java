@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.GuiUtils;
@@ -548,7 +548,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 				currentSize += le.getSizeY() + paddingTop;
 			}
 		}
-		GlStateManager.color3f(0, 1, 1);
+		RenderSystem.color3f(0, 1, 1);
 
 		super.render(mouseX, mouseY, partialTicks);
 		search.render(mouseX, mouseY, partialTicks);
@@ -564,7 +564,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 					currentSize += le.getSizeY() + paddingTop;
 				}
 			}
-		GlStateManager.color3f(1, 1, 1);
+		RenderSystem.color3f(1, 1, 1);
 	}
 
 	public void setNoAdaptativeSize(boolean noAdaptativeSize) {

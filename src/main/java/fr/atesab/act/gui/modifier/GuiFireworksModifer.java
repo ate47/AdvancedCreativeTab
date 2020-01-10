@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.ColorList;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
@@ -156,10 +156,10 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 				width += 2;
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX + offsetX, mouseY + offsetY, width,
 						height, parent.width, parent.height);
-				GlStateManager.disableLighting();
-				GlStateManager.disableAlphaTest();
-				GlStateManager.disableDepthTest();
-				GlStateManager.disableFog();
+				RenderSystem.disableLighting();
+				RenderSystem.disableAlphaTest();
+				RenderSystem.disableDepthTest();
+				RenderSystem.disableFog();
 				GuiUtils.drawBox(pos.a, pos.b, width, height, parent.getZLevel());
 				pos.a++;
 				pos.b += 2;

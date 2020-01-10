@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.ChatUtils;
@@ -118,7 +118,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	public void render(int mouseX, int mouseY, float partialTicks) {
 		renderBackground();
 		super.render(mouseX, mouseY, partialTicks);
-		GlStateManager.color3f(1.0F, 1.0F, 1.0F);
+		RenderSystem.color3f(1.0F, 1.0F, 1.0F);
 		for (int i = page * elms; i < (page + 1) * elms && i < tfs.length; i++) {
 			TextFieldWidget tf = tfs[i];
 			GuiUtils.drawRightString(font, i + " : ", tf.x, tf.y, Color.WHITE.getRGB(), tf.getHeight());

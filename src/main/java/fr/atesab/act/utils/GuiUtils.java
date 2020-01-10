@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
@@ -103,10 +104,10 @@ public class GuiUtils {
 	 */
 	public static void drawBox(int x, int y, int width, int height, float zLevel) {
 		zLevel -= 50F;
-		GlStateManager.disableRescaleNormal();
+		RenderSystem.disableRescaleNormal();
 		RenderHelper.disableStandardItemLighting();
-		GlStateManager.disableLighting();
-		GlStateManager.disableDepthTest();
+		RenderSystem.disableLighting();
+		RenderSystem.disableDepthTest();
 		drawGradientRect(x - 3, y - 4, x + width + 3, y - 3, -267386864, -267386864, zLevel);
 		drawGradientRect(x - 3, y + height + 3, x + width + 3, y + height + 4, -267386864, -267386864, zLevel);
 		drawGradientRect(x - 3, y - 3, x + width + 3, y + height + 3, -267386864, -267386864, zLevel);
@@ -116,10 +117,24 @@ public class GuiUtils {
 		drawGradientRect(x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, 1347420415, 1344798847, zLevel);
 		drawGradientRect(x - 3, y - 3, x + width + 3, y - 3 + 1, 1347420415, 1347420415, zLevel);
 		drawGradientRect(x - 3, y + height + 2, x + width + 3, y + height + 3, 1344798847, 1344798847, zLevel);
-		GlStateManager.enableLighting();
-		GlStateManager.enableDepthTest();
-		RenderHelper.enableStandardItemLighting();
-		GlStateManager.enableRescaleNormal();
+		RenderSystem.enableLighting();
+		RenderSystem.enableDepthTest();
+		RenderHelper.func_227780_a_(); // enableStandardItemLighting
+		RenderSystem.enableRescaleNormal();
+	}
+
+	/**
+	 * set the current color
+	 * 
+	 * @param r
+	 *            red
+	 * @param g
+	 *            green
+	 * @param b
+	 *            blue
+	 */
+	public static void color3f(float r, float g, float b) {
+
 	}
 
 	/**
@@ -167,25 +182,30 @@ public class GuiUtils {
 		float f5 = (float) (endColor >> 16 & 255) / 255.0F;
 		float f6 = (float) (endColor >> 8 & 255) / 255.0F;
 		float f7 = (float) (endColor & 255) / 255.0F;
-		GlStateManager.disableTexture();
-		GlStateManager.enableBlend();
-		GlStateManager.disableAlphaTest();
-		GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+		RenderSystem.disableTexture();
+		RenderSystem.enableBlend();
+		RenderSystem.disableAlphaTest();
+		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
 				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
 				GlStateManager.DestFactor.ZERO);
-		GlStateManager.shadeModel(7425);
+		RenderSystem.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuffer();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
-		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
-		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
-		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
-		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		// func_225582_a_ = pos func_227885_a_ = color
+		bufferbuilder.func_225582_a_((double) right, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) left, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) left, (double) bottom, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) right, (double) bottom, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
+				.endVertex();
 		tessellator.draw();
-		GlStateManager.shadeModel(7424);
-		GlStateManager.disableBlend();
-		GlStateManager.enableAlphaTest();
-		GlStateManager.enableTexture();
+		RenderSystem.shadeModel(7424);
+		RenderSystem.disableBlend();
+		RenderSystem.enableAlphaTest();
+		RenderSystem.enableTexture();
 	}
 
 	/**
@@ -212,25 +232,29 @@ public class GuiUtils {
 		float f13 = (float) (bottomColor >> 16 & 255) / 255.0F;
 		float f14 = (float) (bottomColor >> 8 & 255) / 255.0F;
 		float f15 = (float) (bottomColor & 255) / 255.0F;
-		GlStateManager.disableTexture();
-		GlStateManager.enableBlend();
-		GlStateManager.disableAlphaTest();
-		GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+		RenderSystem.disableTexture();
+		RenderSystem.enableBlend();
+		RenderSystem.disableAlphaTest();
+		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
 				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
 				GlStateManager.DestFactor.ZERO);
-		GlStateManager.shadeModel(7425);
+		RenderSystem.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuffer();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
-		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
-		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f5, f6, f7, f4).endVertex();
-		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f9, f10, f11, f8).endVertex();
-		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f13, f14, f15, f12).endVertex();
+		bufferbuilder.func_225582_a_((double) right, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) left, (double) top, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) left, (double) bottom, (double) zLevel).func_227885_a_(f9, f10, f11, f8)
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) right, (double) bottom, (double) zLevel)
+				.func_227885_a_(f13, f14, f15, f12).endVertex();
 		tessellator.draw();
-		GlStateManager.shadeModel(7424);
-		GlStateManager.disableBlend();
-		GlStateManager.enableAlphaTest();
-		GlStateManager.enableTexture();
+		RenderSystem.shadeModel(7424);
+		RenderSystem.disableBlend();
+		RenderSystem.enableAlphaTest();
+		RenderSystem.enableTexture();
 	}
 
 	/**
@@ -241,11 +265,11 @@ public class GuiUtils {
 	public static void drawItemStack(ItemRenderer itemRender, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
-		GlStateManager.enableDepthTest();
+		RenderSystem.enableDepthTest();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
 		itemRender.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, itemstack, x, y, null);
-		GlStateManager.disableBlend();
-		GlStateManager.disableLighting();
+		RenderSystem.disableBlend();
+		RenderSystem.disableLighting();
 	}
 
 	/**
@@ -256,11 +280,11 @@ public class GuiUtils {
 	public static void drawItemStack(ItemRenderer itemRender, Screen screen, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
-		GlStateManager.enableDepthTest();
+		RenderSystem.enableDepthTest();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
 		itemRender.renderItemOverlayIntoGUI(screen.getMinecraft().fontRenderer, itemstack, x, y, null);
-		GlStateManager.disableBlend();
-		GlStateManager.disableLighting();
+		RenderSystem.disableBlend();
+		RenderSystem.disableLighting();
 	}
 
 	/**
@@ -355,13 +379,16 @@ public class GuiUtils {
 		Tessellator tessellator = Tessellator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuffer();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-		bufferbuilder.pos((double) x, (double) (y + height), 0.0D)
-				.tex((double) (u * scaleX), (double) ((v + (float) vHeight) * scaleY)).endVertex();
-		bufferbuilder.pos((double) (x + width), (double) (y + height), 0.0D)
-				.tex((double) ((u + (float) uWidth) * scaleX), (double) ((v + (float) vHeight) * scaleY)).endVertex();
-		bufferbuilder.pos((double) (x + width), (double) y, 0.0D)
-				.tex((double) ((u + (float) uWidth) * scaleX), (double) (v * scaleY)).endVertex();
-		bufferbuilder.pos((double) x, (double) y, 0.0D).tex((double) (u * scaleX), (double) (v * scaleY)).endVertex();
+		// func_225583_a_ = tex
+		bufferbuilder.func_225582_a_((double) x, (double) (y + height), 0.0D)
+				.func_225583_a_((float) (u * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
+		bufferbuilder.func_225582_a_((double) (x + width), (double) (y + height), 0.0D)
+				.func_225583_a_((float) ((u + (float) uWidth) * scaleX), (float) ((v + (float) vHeight) * scaleY))
+				.endVertex();
+		bufferbuilder.func_225582_a_((double) (x + width), (double) y, 0.0D)
+				.func_225583_a_((float) ((u + (float) uWidth) * scaleX), (float) (v * scaleY)).endVertex();
+		bufferbuilder.func_225582_a_((double) x, (double) y, 0.0D)
+				.func_225583_a_((float) (u * scaleX), (float) (v * scaleY)).endVertex();
 		tessellator.draw();
 	}
 

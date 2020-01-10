@@ -41,17 +41,17 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 	public static GuiButtonListSelector<INBT> addElement(int i, GuiListModifier<?> lm, String key) {
 		return new GuiButtonListSelector<INBT>(lm, "gui.act.modifier.tag.editor", Arrays.asList(
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.tag"), new CompoundNBT()),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.string"), new StringNBT()),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.int"), new IntNBT(0)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.long"), new LongNBT(0L)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.float"), new FloatNBT(0F)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.double"), new DoubleNBT(0D)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.short"), new ShortNBT((short) 0)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.string"), StringNBT.func_229705_a_("")),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.int"), IntNBT.func_229692_a_(0)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.long"), LongNBT.func_229698_a_(0L)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.float"), FloatNBT.func_229689_a_(0F)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.double"), DoubleNBT.func_229684_a_(0D)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.short"), ShortNBT.func_229701_a_((short) 0)),
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.intArray"),
 						new IntArrayNBT(new int[0])),
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.longArray"),
 						new LongArrayNBT(new long[0])),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.byte"), new ByteNBT((byte) 0)),
+				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.byte"), ByteNBT.func_229671_a_((byte) 0)),
 				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.list"), new ListNBT())), base -> {
 					lm.addListElement(i, NBTElement.getElementByBase(lm, key, base));
 					return null;
@@ -61,19 +61,19 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 	public static INBT getDefaultElement(int id) {
 		switch (id) {
 		case 1:
-			new ByteNBT((byte) 0);
+			return ByteNBT.func_229671_a_((byte) 0);
 		case 2:
-			return new ShortNBT((short) 0);
+			return ShortNBT.func_229701_a_((short) 0);
 		case 3:
-			return new IntNBT(0);
+			return IntNBT.func_229692_a_(0);
 		case 4:
-			return new LongNBT(0L);
+			return LongNBT.func_229698_a_(0L);
 		case 5:
-			return new FloatNBT(0F);
+			return FloatNBT.func_229689_a_(0F);
 		case 6:
-			return new DoubleNBT(0D);
+			return DoubleNBT.func_229684_a_(0D);
 		case 8:
-			return new StringNBT("");
+			return StringNBT.func_229705_a_("");
 		case 9:
 			return new ListNBT();
 		case 10:

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.gui.selector.GuiTypeListSelector;
@@ -44,7 +44,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 			GuiUtils.drawItemStack(itemRenderer, this, currentItemStack, width / 2 - 10, height / 2 - 63);
 			if (GuiUtils.isHover(width / 2 - 10, height / 2 - 63, 20, 20, mouseX, mouseY))
 				renderTooltip(currentItemStack, mouseX, mouseY);
-			GlStateManager.color3f(1.0F, 1.0F, 1.0F);
+			RenderSystem.color3f(1.0F, 1.0F, 1.0F);
 		}
 	}
 

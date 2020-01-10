@@ -38,7 +38,7 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 	}
 
 	public float getZLevel() {
-		return blitOffset;
+		return getBlitOffset();
 	}
 
 	@Override

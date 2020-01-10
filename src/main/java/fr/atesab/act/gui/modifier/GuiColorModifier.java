@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
@@ -62,7 +62,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	public void render(int mouseX, int mouseY, float partialTicks) {
 		renderBackground();
 		if (!advanced) {
-			GlStateManager.color3f(1, 1, 1);
+			RenderSystem.color3f(1, 1, 1);
 			getMinecraft().getTextureManager().bindTexture(PICKER);
 			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200, 200);
 		} else {

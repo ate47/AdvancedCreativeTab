@@ -16,7 +16,7 @@ public class NBTShortElement extends NBTNumericElement<Short> {
 
 	@Override
 	public INBT get(Short value) {
-		return new ShortNBT(value);
+		return ShortNBT.func_229701_a_(value);
 	}
 	
 	@Override

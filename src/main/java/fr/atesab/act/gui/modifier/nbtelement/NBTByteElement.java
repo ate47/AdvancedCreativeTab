@@ -16,7 +16,7 @@ public class NBTByteElement extends NBTNumericElement<Byte> {
 
 	@Override
 	public INBT get(Byte value) {
-		return new ByteNBT(value);
+		return ByteNBT.func_229671_a_(value);
 	}
 
 	@Override
