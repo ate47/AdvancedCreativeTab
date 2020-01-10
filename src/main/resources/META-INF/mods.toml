@@ -1,6 +1,6 @@
 
 modLoader="javafml"
-loaderVersion="[28,)"
+loaderVersion="[30,)"
 issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[mods]]
 	modId="act"
@@ -14,7 +14,7 @@ issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[dependencies.act]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.15]"
+    versionRange="[1.15.1]"
     ordering="NONE"
     side="BOTH"
 
