@@ -32,6 +32,9 @@
     "gui.act.rightArrow": "Fleche droite",
     "gui.act.new": "Nouveau",
 
+    "gui.act.config": "Config",
+    "gui.act.disableToolTip": "Desactivé sans F3+H le tooltip",
+
     "gui.act.menu.template": "Modèles",
     "gui.act.menu.template.empty": "Vide",
     "gui.act.menu.template.stone": "Stone",

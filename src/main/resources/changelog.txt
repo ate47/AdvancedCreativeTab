@@ -3,7 +3,28 @@
 
 > Mod: Advanced Creative 2 (act)
 > Author(s): ATE47
-> Minecraft version(s): 1.12.2
+> Minecraft version(s): 1.8.9->1.15.1
+
+-------------------------------------------------------
+---------------- ACT 2.3 -- (MC1.13.2) ----------------
+-------------------------------------------------------
+
+- config menu button in mods (for every mods that register an ExtensionPoint)
+- config to disable the ACT tooltip if the advanced tooltip (F3+H) isn't enabled 
+  Asked by NicoNirva (https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode?comment=76)
+Fix:
+- a bug that display the save option in tooltip without SHIFT pressed
+
+-------------------------------------------------------
+---------------- ACT 2.2 -- (MC1.13.2) ----------------
+-------------------------------------------------------
+
+- new commands /act enchant /act format /gmsp
+- LIB: change command node system
+Fix:
+- a bug that open the save menu without saving in container
+- a bug that don't display red message when writing duration
+- a bug that crash the client when pressing keys in potion editor
 
 -------------------------------------------------------
 ---------------- ACT 2.1 -- (MC1.12.2) ----------------
