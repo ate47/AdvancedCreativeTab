@@ -31,7 +31,9 @@
     "gui.act.leftArrow": "Left arrow",
     "gui.act.rightArrow": "Right arrow",
     "gui.act.new": "New",
-    
+
+    "gui.act.config": "Config",
+    "gui.act.disableToolTip": "Disable tool tip without F3+H",
 
     "gui.act.menu.template": "Templates",
     "gui.act.menu.template.empty": "Empty",
