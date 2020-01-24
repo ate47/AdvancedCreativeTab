@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -46,6 +47,9 @@ import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
@@ -83,14 +87,18 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.client.gui.GuiModList;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfession;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import net.minecraftforge.registries.GameData;
 
 @Mod(ACTMod.MOD_ID)
@@ -104,19 +112,19 @@ public class ACTMod {
 			this.color = color;
 		}
 
-		public boolean isShow() {
-			return color != null;
-		}
-
 		public TextFormatting getColor() {
 			return color;
+		}
+
+		public boolean isShow() {
+			return color != null;
 		}
 	}
 
 	public static final ACTState MOD_STATE = ACTState.RELEASE;
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.2";
+	public static final String MOD_VERSION = "2.3";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 	/**
 	 * Link to {@link ModGuiFactory}
@@ -143,6 +151,10 @@ public class ACTMod {
 	private static CommandDispatcher<CommandSource> dispatcher = new CommandDispatcher<>();
 	private static Set<String> commandSet = new HashSet<>();
 	private static CommandDispatcher<ISuggestionProvider> suggestionProvider;
+
+	public static boolean doesDisableToolTip() {
+		return config.doesDisableToolTip();
+	}
 
 	@SuppressWarnings("unchecked")
 	private static <T> void forEachMatchIn(Object obj, Class<T> cls, Consumer<T> consumer) {
@@ -179,6 +191,10 @@ public class ACTMod {
 	 */
 	public static List<String> getCustomItems() {
 		return config.getCustomitems();
+	}
+
+	public static CommandDispatcher<CommandSource> getDispatcher() {
+		return dispatcher;
 	}
 
 	/**
@@ -291,11 +307,35 @@ public class ACTMod {
 		config.save();
 	}
 
+	public static void setDoesDisableToolTip(boolean doesDisableToolTip) {
+		config.setDoesDisableToolTip(doesDisableToolTip);
+		;
+	}
+
 	public ACTMod() {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
 		config = new Configuration();
 		config.sync(FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml").toFile());
 		MinecraftForge.EVENT_BUS.register(this);
+	}
+
+	private void checkModList(GuiScreen screen) {
+		// enabling the config button
+		if (screen instanceof GuiModList) {
+			ModInfo info = getFirstFieldOfTypeInto(ModInfo.class, screen);
+			if (info != null) {
+				Optional<? extends ModContainer> op = ModList.get().getModContainerById(info.getModId());
+				if (op.isPresent()) {
+					boolean value = op.get().getCustomExtension(ExtensionPoint.CONFIGGUIFACTORY).isPresent();
+					if (value) {
+						String config = I18n.format("fml.menu.mods.config");
+						for (IGuiEventListener b : screen.getChildren())
+							if (b instanceof GuiButton && ((GuiButton) b).displayString.equals(config))
+								((GuiButton) b).enabled = value;
+					}
+				}
+			}
+		}
 	}
 
 	private void commandSetup() {
@@ -495,6 +535,20 @@ public class ACTMod {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	private <T> T getFirstFieldOfTypeInto(Class<T> cls, Object obj) {
+		for (Field f : obj.getClass().getDeclaredFields()) {
+			f.setAccessible(true);
+			if (f.getType() == cls)
+				try {
+					return (T) f.get(obj);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					return null;
+				}
+		}
+		return null;
+	}
+
 	private void injectSuggestions() {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player != null && mc.player.connection != null) {
@@ -581,8 +635,9 @@ public class ACTMod {
 	}
 
 	@SubscribeEvent
-	public void onInitGui(InitGuiEvent.Post ev) {
-		injectSuggestions();
+	public void onClientTick(TickEvent.ClientTickEvent ev) {
+		if (ev.phase == TickEvent.Phase.END)
+			checkModList(Minecraft.getInstance().currentScreen);
 	}
 
 	@SubscribeEvent
@@ -591,6 +646,11 @@ public class ACTMod {
 			Minecraft.getInstance().fontRenderer
 					.drawString("Warning! Currently in " + MOD_STATE.getColor() + MOD_STATE.name(), 5, 5, 0xffffffff);
 		}
+	}
+
+	@SubscribeEvent
+	public void onInitGui(InitGuiEvent.Post ev) {
+		injectSuggestions();
 	}
 
 	@SubscribeEvent
@@ -630,6 +690,11 @@ public class ACTMod {
 						.appendSibling(
 								ModdedCommand.createText(I18n.format("gui.act.give.give"), TextFormatting.YELLOW)));
 		}
+
+		// remove if not in advanced game mode
+		if (config.doesDisableToolTip() && !ev.getFlags().isAdvanced())
+			return;
+
 		if (InputMappings.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 			NBTTagCompound compound = ev.getItemStack().getTag();
 			String s = (!ev.getFlags().isAdvanced() ? ev.getItemStack().getItem().getRegistryName().toString() : "");
@@ -747,10 +812,6 @@ public class ACTMod {
 							.appendText(" " + I18n.format("gui.act.shift"))
 							.setStyle(new Style().setColor(TextFormatting.GOLD)));
 
-	}
-
-	public static CommandDispatcher<CommandSource> getDispatcher() {
-		return dispatcher;
 	}
 
 }

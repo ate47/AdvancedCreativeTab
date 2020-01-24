@@ -111,7 +111,10 @@ public class GuiMenu extends GuiListModifier<Object> {
 		Tuple<?, ?> btn2 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("key.act.giver"),
 				new Tuple<>(() -> Minecraft.getInstance().displayGuiScreen(new GuiGiver(this)), () -> {
 				}));
-		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2 } : new Tuple[] { btn1, btn2 };
+		Tuple<?, ?> btn3 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.config"),
+				new Tuple<>(() -> mc.displayGuiScreen(new GuiConfig(this)), null));
+		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2, btn3 }
+				: new Tuple[] { btn1, btn2, btn3 };
 		elements.add(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
 		ACTMod.getCustomItems().forEach(data -> ADD_STACK
 				.accept(ItemUtils.getFromGiveCode(data.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)))));
