@@ -1,5 +1,6 @@
 package fr.atesab.act;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -46,7 +48,10 @@ import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
@@ -81,15 +86,20 @@ import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.client.gui.GuiModList;
+import net.minecraftforge.fml.client.gui.GuiSlotModList;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 
 @OnlyIn(Dist.CLIENT)
 @Mod(ACTMod.MOD_ID)
@@ -122,7 +132,7 @@ public class ACTMod {
 	public static final ACTState MOD_STATE = ACTState.RELEASE;
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.2";
+	public static final String MOD_VERSION = "2.3";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 	/**
 	 * Link to {@link ModGuiFactory}
@@ -150,6 +160,10 @@ public class ACTMod {
 	private static Set<String> commandSet = new HashSet<>();
 	private static CommandDispatcher<ISuggestionProvider> suggestionProvider;
 
+	public static boolean doesDisableToolTip() {
+		return config.doesDisableToolTip();
+	}
+
 	/**
 	 * Get all registered {@link IAttribute}
 	 * <p>
@@ -169,17 +183,6 @@ public class ACTMod {
 	 */
 	public static List<String> getCustomItems() {
 		return config.getCustomitems();
-	}
-
-	/**
-	 * Save an item from the code
-	 * 
-	 * @param code
-	 *            the code
-	 */
-	public static void saveItem(String code) {
-		LOGGER.info("Adding : " + code);
-		config.getCustomitems().add(0, code);
 	}
 
 	/**
@@ -311,11 +314,50 @@ public class ACTMod {
 		config.save();
 	}
 
+	/**
+	 * Save an item from the code
+	 * 
+	 * @param code
+	 *            the code
+	 */
+	public static void saveItem(String code) {
+		LOGGER.info("Adding : " + code);
+		config.getCustomitems().add(0, code);
+	}
+
+	public static void setDoesDisableToolTip(boolean doesDisableToolTip) {
+		config.setDoesDisableToolTip(doesDisableToolTip);
+		;
+	}
+
 	public ACTMod() {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
 		config = new Configuration();
 		config.sync(FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml").toFile());
 		MinecraftForge.EVENT_BUS.register(this);
+	}
+
+	private void checkModList(Screen screen) {
+		// enabling the config button
+		if (screen != null && screen instanceof GuiModList) {
+			/* GuiSlotModList.ModEntry */ Object entry = getFirstFieldOfTypeInto(
+					GuiSlotModList.class.getDeclaredClasses()[0], screen);
+			if (entry != null) {
+				ModInfo info = getFirstFieldOfTypeInto(ModInfo.class, entry);
+				if (info != null) {
+					Optional<? extends ModContainer> op = ModList.get().getModContainerById(info.getModId());
+					if (op.isPresent()) {
+						boolean value = op.get().getCustomExtension(ExtensionPoint.CONFIGGUIFACTORY).isPresent();
+						if (value) {
+							String config = I18n.format("fml.menu.mods.config");
+							for (IGuiEventListener b : screen.children())
+								if (b instanceof Button && ((Button) b).getMessage().equals(config))
+									((Button) b).active = value;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private void commandSetup() {
@@ -506,6 +548,20 @@ public class ACTMod {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	private <T> T getFirstFieldOfTypeInto(Class<T> cls, Object obj) {
+		for (Field f : obj.getClass().getDeclaredFields()) {
+			f.setAccessible(true);
+			if (f.getType() == cls)
+				try {
+					return (T) f.get(obj);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					return null;
+				}
+		}
+		return null;
+	}
+
 	private void injectSuggestions() {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player != null && mc.player.connection != null) {
@@ -592,6 +648,12 @@ public class ACTMod {
 	}
 
 	@SubscribeEvent
+	public void onClientTick(TickEvent.ClientTickEvent ev) {
+		if (ev.phase == TickEvent.Phase.END)
+			checkModList(Minecraft.getInstance().currentScreen);
+	}
+
+	@SubscribeEvent
 	public void onDrawScreen(DrawScreenEvent.Post ev) {
 		if (ev.getGui() instanceof GuiACT && MOD_STATE.isShow()) {
 			Minecraft.getInstance().fontRenderer
@@ -640,6 +702,11 @@ public class ACTMod {
 						.appendSibling(
 								ModdedCommand.createText(I18n.format("gui.act.give.give"), TextFormatting.YELLOW)));
 		}
+
+		// remove if not in advanced game mode
+		if (config.doesDisableToolTip() && !ev.getFlags().isAdvanced())
+			return;
+
 		if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 			CompoundNBT compound = ev.getItemStack().getTag();
 			String s = (!ev.getFlags().isAdvanced() ? ev.getItemStack().getItem().getRegistryName().toString() : "");
@@ -729,24 +796,25 @@ public class ACTMod {
 
 				ev.getToolTip().add(tags);
 			}
-		}
-		if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)) {
-			if (giver.getKey().getKeyCode() != 0 && isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-				if (isKeyDown(giver.getKey().getKeyCode()))
-					mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
-				ev.getToolTip().add(ModdedCommand
-						.createPrefix(giver.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
-						.appendSibling(ModdedCommand.createTranslatedText("cmd.act.opengiver", TextFormatting.YELLOW)));
-			}
-			if (menu.getKey().getKeyCode() != 0) {
-				if (isKeyDown(menu.getKey().getKeyCode())) {
-					String code = ItemUtils.getGiveCode(ev.getItemStack()).replace(ChatUtils.MODIFIER, '&');
-					ACTMod.saveItem(code);
-					mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
+			if (!(mc.currentScreen instanceof GuiGiver || mc.currentScreen instanceof GuiModifier)) {
+				if (giver.getKey().getKeyCode() != 0) {
+					if (isKeyDown(giver.getKey().getKeyCode()))
+						mc.displayGuiScreen(new GuiGiver(mc.currentScreen, ev.getItemStack()));
+					ev.getToolTip().add(ModdedCommand
+							.createPrefix(giver.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
+							.appendSibling(
+									ModdedCommand.createTranslatedText("cmd.act.opengiver", TextFormatting.YELLOW)));
 				}
-				ev.getToolTip().add(ModdedCommand
-						.createPrefix(menu.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
-						.appendSibling(ModdedCommand.createTranslatedText("gui.act.save", TextFormatting.YELLOW)));
+				if (menu.getKey().getKeyCode() != 0) {
+					if (isKeyDown(menu.getKey().getKeyCode())) {
+						String code = ItemUtils.getGiveCode(ev.getItemStack()).replace(ChatUtils.MODIFIER, '&');
+						ACTMod.saveItem(code);
+						mc.displayGuiScreen(new GuiMenu(mc.currentScreen));
+					}
+					ev.getToolTip().add(ModdedCommand
+							.createPrefix(menu.getLocalizedName(), TextFormatting.YELLOW, TextFormatting.GOLD)
+							.appendSibling(ModdedCommand.createTranslatedText("gui.act.save", TextFormatting.YELLOW)));
+				}
 			}
 		}
 		if (!isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
