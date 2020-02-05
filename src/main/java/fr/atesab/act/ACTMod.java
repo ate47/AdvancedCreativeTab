@@ -92,8 +92,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.client.gui.ModListScreen;
-import net.minecraftforge.fml.client.gui.ModListWidget;
+import net.minecraftforge.fml.client.gui.screen.ModListScreen;
+import net.minecraftforge.fml.client.gui.widget.ModListWidget;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -345,8 +345,7 @@ public class ACTMod {
 	private void checkModList(Screen screen) {
 		// enabling the config button
 		if (screen != null && screen instanceof ModListScreen) {
-			/* GuiSlotModList.ModEntry */ Object entry = getFirstFieldOfTypeInto(
-					ModListWidget.class.getDeclaredClasses()[0], screen);
+			ModListWidget.ModEntry entry = getFirstFieldOfTypeInto(ModListWidget.ModEntry.class, screen);
 			if (entry != null) {
 				ModInfo info = getFirstFieldOfTypeInto(ModInfo.class, entry);
 				if (info != null) {

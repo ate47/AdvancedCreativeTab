@@ -18,7 +18,7 @@ import net.minecraft.item.DyeItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.fml.client.config.GuiSlider;
+import net.minecraftforge.fml.client.gui.widget.Slider;
 
 public class GuiColorModifier extends GuiModifier<Integer> {
 	private final ResourceLocation PICKER = new ResourceLocation("textures/gui/picker.png");
@@ -28,7 +28,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	private boolean advanced = false;
 	private Button advButton;
 	private TextFieldWidget tfr, tfg, tfb, intColor, hexColor;
-	private GuiSlider r, g, b;
+	private Slider r, g, b;
 	private int defaultColor;
 
 	public GuiColorModifier(Screen parent, Consumer<Integer> setter, int color) {
@@ -64,7 +64,8 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		if (!advanced) {
 			RenderSystem.color3f(1, 1, 1);
 			getMinecraft().getTextureManager().bindTexture(PICKER);
-			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200, 200);
+			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200,
+					200);
 		} else {
 			GuiUtils.drawRect(width / 2 - 100, height / 2 - 80, width / 2 + 100, height / 2 + 80, 0x99000000);
 		}
@@ -96,8 +97,8 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 				show = () -> GuiUtils.drawTextBox(font, mouseX, mouseY, width, height, getZLevel(),
 						I18n.format("item.minecraft.firework_star." + DyeColor.values()[j].getTranslationKey()));
 			}
-			GuiUtils.drawItemStack(itemRenderer, this,
-					new ItemStack(DyeItem.getItem(DyeColor.values()[i])), x + 2, y + 2);
+			GuiUtils.drawItemStack(itemRenderer, this, new ItemStack(DyeItem.getItem(DyeColor.values()[i])), x + 2,
+					y + 2);
 		}
 		super.render(mouseX, mouseY, partialTicks);
 		show.run();
@@ -116,29 +117,29 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		addButton(new Button(width / 2 + 43, height / 2 + 81, 79, 20, I18n.format("gui.act.cancel"), b -> {
 			getMinecraft().displayGuiScreen(parent);
 		}));
-		
-		addButton(r = new GuiSlider(width / 2 - 99, height / 2 - 70, 158, 20, I18n.format("gui.act.red"), "", 0, 255,
+
+		addButton(r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, I18n.format("gui.act.red"), "", 0, 255,
 				color >> 16 & 0xFF, false, false, b -> {
-				}, new GuiSlider.ISlider() {
-					public void onChangeSliderValue(GuiSlider slider) {
+				}, new Slider.ISlider() {
+					public void onChangeSliderValue(Slider slider) {
 						updateRed(slider.getValueInt());
 					};
 				}));
 		tfr = new TextFieldWidget(font, r.x + r.getWidth() + 2, r.y + 1, 36, 18, "");
 
-		addButton(g = new GuiSlider(width / 2 - 99, height / 2 - 38, 158, 20, I18n.format("gui.act.green"), "", 0, 255,
+		addButton(g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, I18n.format("gui.act.green"), "", 0, 255,
 				color >> 8 & 0xFF, false, false, b -> {
-				}, new GuiSlider.ISlider() {
-					public void onChangeSliderValue(GuiSlider slider) {
+				}, new Slider.ISlider() {
+					public void onChangeSliderValue(Slider slider) {
 						updateGreen(slider.getValueInt());
 					};
 				}));
 		tfg = new TextFieldWidget(font, g.x + g.getWidth() + 2, g.y + 1, 36, 18, "");
 
-		addButton(b = new GuiSlider(width / 2 - 99, height / 2 - 3, 158, 20, I18n.format("gui.act.blue"), "", 0, 255,
+		addButton(b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, I18n.format("gui.act.blue"), "", 0, 255,
 				color >> 0 & 0xFF, false, false, b -> {
-				}, new GuiSlider.ISlider() {
-					public void onChangeSliderValue(GuiSlider slider) {
+				}, new Slider.ISlider() {
+					public void onChangeSliderValue(Slider slider) {
 						updateBlue(slider.getValueInt());
 					};
 				}));
