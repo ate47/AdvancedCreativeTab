@@ -49,7 +49,7 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 	}
 
 	@Override
-	public void renderTooltip(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY) {
+	public void renderTooltip1(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY) {
 		super.renderTooltip(matrixStack, stack, mouseX, mouseY);
 	}
 }

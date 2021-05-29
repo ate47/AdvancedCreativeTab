@@ -18,7 +18,7 @@ public class ItemStackButtonWidget extends AbstractButton {
 	 * an wrapper for the {@link Screen#renderTooltip(ItemStack, int, int)} method
 	 */
 	public interface ITooltipRenderer {
-		void renderTooltip(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY);
+		void renderTooltip1(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY);
 	}
 
 	private ItemStack stack;
@@ -51,7 +51,7 @@ public class ItemStackButtonWidget extends AbstractButton {
 
 	@Override
 	public void renderToolTip(MatrixStack matrixStack, int mouseX, int mouseY) {
-		parent.renderTooltip(matrixStack, getStack(), mouseX, mouseY);
+		parent.renderTooltip1(matrixStack, getStack(), mouseX, mouseY);
 		super.renderToolTip(matrixStack, mouseX, mouseY);
 	}
 }
