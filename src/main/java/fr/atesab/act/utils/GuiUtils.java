@@ -6,15 +6,18 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Arrays;
 import java.util.List;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import org.lwjgl.opengl.GL11;
+
+import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button.IPressable;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -47,7 +50,7 @@ public class GuiUtils {
 		@SubscribeEvent
 		public void onTick(TickEvent ev) {
 			if (delay < 0) {
-				Minecraft.getInstance().displayGuiScreen(screen);
+				Minecraft.getInstance().setScreen(screen);
 				MinecraftForge.EVENT_BUS.unregister(this);
 			} else
 				delay--;
@@ -84,17 +87,17 @@ public class GuiUtils {
 	 * Display a {@link Screen} with delay if in chat (to avoid screen close)
 	 * 
 	 * @param screen
-	 * @param forceDelay
-	 *            force the delay if the currentScreen isn't a {@link GuiChat}
+	 * @param forceDelay force the delay if the currentScreen isn't a
+	 *                   {@link GuiChat}
 	 * @see GuiUtils#displayScreen(Screen)
 	 * @since 2.0
 	 */
 	public static void displayScreen(Screen screen, boolean forceDelay) {
 		Minecraft mc = Minecraft.getInstance();
-		if (forceDelay || mc.currentScreen instanceof ChatScreen)
+		if (forceDelay || mc.screen instanceof ChatScreen)
 			new DelayScreen(screen, 20);
 		else
-			mc.displayGuiScreen(screen);
+			mc.setScreen(screen);
 	}
 
 	/**
@@ -102,10 +105,11 @@ public class GuiUtils {
 	 * 
 	 * @since 2.0
 	 */
+	@SuppressWarnings("deprecation")
 	public static void drawBox(int x, int y, int width, int height, float zLevel) {
 		zLevel -= 50F;
 		RenderSystem.disableRescaleNormal();
-		RenderHelper.disableStandardItemLighting();
+		RenderHelper.turnOff();
 		RenderSystem.disableLighting();
 		RenderSystem.disableDepthTest();
 		drawGradientRect(x - 3, y - 4, x + width + 3, y - 3, -267386864, -267386864, zLevel);
@@ -119,51 +123,47 @@ public class GuiUtils {
 		drawGradientRect(x - 3, y + height + 2, x + width + 3, y + height + 3, 1344798847, 1344798847, zLevel);
 		RenderSystem.enableLighting();
 		RenderSystem.enableDepthTest();
-		RenderHelper.func_227780_a_(); // enableStandardItemLighting
+		RenderHelper.turnBackOn();
 		RenderSystem.enableRescaleNormal();
 	}
 
 	/**
 	 * set the current color
 	 * 
-	 * @param r
-	 *            red
-	 * @param g
-	 *            green
-	 * @param b
-	 *            blue
+	 * @param r red
+	 * @param g green
+	 * @param b blue
 	 */
 	public static void color3f(float r, float g, float b) {
-
+		GL11.glColor3f(r, g, b);
 	}
 
 	/**
 	 * Draw a String centered
 	 * 
 	 * @since 2.0
-	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
-	 * @see #drawRightString(FontRenderer, String, int, int, int)
+	 * @see #drawCenterString(font, String, int, int, int, int)
+	 * @see #drawRightString(font, String, int, int, int)
 	 */
-	public static void drawCenterString(FontRenderer fontRenderer, String text, int x, int y, int color) {
-		drawCenterString(fontRenderer, text, x, y, color, fontRenderer.FONT_HEIGHT);
+	public static void drawCenterString(FontRenderer font, String text, int x, int y, int color) {
+		drawCenterString(font, text, x, y, color, font.lineHeight);
 	}
 
 	/**
 	 * Draw a String centered of a vertical segment
 	 * 
-	 * @param fontRenderer
+	 * @param font
 	 * @param text
 	 * @param x
 	 * @param y
 	 * @param color
-	 * @param height
-	 *            segment length
+	 * @param height segment length
 	 * @since 2.0
-	 * @see #drawCenterString(FontRenderer, String, int, int, int)
-	 * @see #drawString(FontRenderer, String, int, int, int, int)
+	 * @see #drawCenterString(font, String, int, int, int)
+	 * @see #drawString(font, String, int, int, int, int)
 	 */
-	public static void drawCenterString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
-		drawString(fontRenderer, text, x - fontRenderer.getStringWidth(text) / 2, y, color, height);
+	public static void drawCenterString(FontRenderer font, String text, int x, int y, int color, int height) {
+		drawString(font, text, x - font.width(text) / 2, y, color, height);
 	}
 
 	/**
@@ -172,6 +172,7 @@ public class GuiUtils {
 	 * @see #drawGradientRect(int, int, int, int, int, int, int, int, float)
 	 * @since 2.0
 	 */
+	@SuppressWarnings("deprecation")
 	public static void drawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor,
 			float zLevel) {
 		float f = (float) (startColor >> 24 & 255) / 255.0F;
@@ -190,18 +191,14 @@ public class GuiUtils {
 				GlStateManager.DestFactor.ZERO);
 		RenderSystem.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		BufferBuilder bufferbuilder = tessellator.getBuilder();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
 		// func_225582_a_ = pos func_227885_a_ = color
-		bufferbuilder.func_225582_a_((double) right, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) left, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) left, (double) bottom, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) right, (double) bottom, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
-				.endVertex();
-		tessellator.draw();
+		bufferbuilder.vertex((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.vertex((double) left, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.vertex((double) left, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.vertex((double) right, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		tessellator.end();
 		RenderSystem.shadeModel(7424);
 		RenderSystem.disableBlend();
 		RenderSystem.enableAlphaTest();
@@ -214,6 +211,7 @@ public class GuiUtils {
 	 * @see #drawGradientRect(int, int, int, int, int, int, float)
 	 * @since 2.0
 	 */
+	@SuppressWarnings("deprecation")
 	public static void drawGradientRect(int left, int top, int right, int bottom, int leftColor, int topColor,
 			int rightColor, int bottomColor, float zLevel) {
 		float f = (float) (leftColor >> 24 & 255) / 255.0F;
@@ -240,17 +238,13 @@ public class GuiUtils {
 				GlStateManager.DestFactor.ZERO);
 		RenderSystem.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		BufferBuilder bufferbuilder = tessellator.getBuilder();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
-		bufferbuilder.func_225582_a_((double) right, (double) top, (double) zLevel).func_227885_a_(f1, f2, f3, f)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) left, (double) top, (double) zLevel).func_227885_a_(f5, f6, f7, f4)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) left, (double) bottom, (double) zLevel).func_227885_a_(f9, f10, f11, f8)
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) right, (double) bottom, (double) zLevel)
-				.func_227885_a_(f13, f14, f15, f12).endVertex();
-		tessellator.draw();
+		bufferbuilder.vertex((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.vertex((double) left, (double) top, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.vertex((double) left, (double) bottom, (double) zLevel).color(f9, f10, f11, f8).endVertex();
+		bufferbuilder.vertex((double) right, (double) bottom, (double) zLevel).color(f13, f14, f15, f12).endVertex();
+		tessellator.end();
 		RenderSystem.shadeModel(7424);
 		RenderSystem.disableBlend();
 		RenderSystem.enableAlphaTest();
@@ -262,12 +256,13 @@ public class GuiUtils {
 	 * 
 	 * @since 2.1.1
 	 */
+	@SuppressWarnings("deprecation")
 	public static void drawItemStack(ItemRenderer itemRender, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
 		RenderSystem.enableDepthTest();
-		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
-		itemRender.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, itemstack, x, y, null);
+		itemRender.renderAndDecorateItem(itemstack, x, y);
+		itemRender.renderGuiItemDecorations(Minecraft.getInstance().font, itemstack, x, y, null);
 		RenderSystem.disableBlend();
 		RenderSystem.disableLighting();
 	}
@@ -277,12 +272,13 @@ public class GuiUtils {
 	 * 
 	 * @since 2.0
 	 */
+	@SuppressWarnings("deprecation")
 	public static void drawItemStack(ItemRenderer itemRender, Screen screen, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
 		RenderSystem.enableDepthTest();
-		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
-		itemRender.renderItemOverlayIntoGUI(screen.getMinecraft().fontRenderer, itemstack, x, y, null);
+		itemRender.renderAndDecorateItem(itemstack, x, y);
+		itemRender.renderGuiItemDecorations(screen.getMinecraft().font, itemstack, x, y, null);
 		RenderSystem.disableBlend();
 		RenderSystem.disableLighting();
 	}
@@ -290,8 +286,8 @@ public class GuiUtils {
 	/**
 	 * Draws a solid color rectangle with the specified coordinates and color.
 	 */
-	public static void drawRect(int left, int top, int right, int bottom, int color) {
-		AbstractGui.fill(left, top, right, bottom, color);
+	public static void drawRect(MatrixStack stack, int left, int top, int right, int bottom, int color) {
+		AbstractGui.fill(stack, left, top, right, bottom, color);
 	}
 
 	/**
@@ -300,11 +296,11 @@ public class GuiUtils {
 	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
 	 * @since 2.0
 	 */
-	public static void drawRelative(Widget field, int offsetX, int offsetY, int mouseX, int mouseY,
+	public static void drawRelative(MatrixStack stack, Widget field, int offsetX, int offsetY, int mouseX, int mouseY,
 			float partialTicks) {
-		field.x += offsetX;
-		field.y += offsetY;
-		field.render(mouseX + offsetX, mouseY + offsetY, partialTicks);
+		field.x += offsetX; // x
+		field.y += offsetY; // y
+		field.render(stack, mouseX + offsetX, mouseY + offsetY, partialTicks);
 		field.x -= offsetX;
 		field.y -= offsetY;
 	}
@@ -315,11 +311,11 @@ public class GuiUtils {
 	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
 	 * @since 2.0
 	 */
-	public static void drawRelativeToolTip(Widget widget, int offsetX, int offsetY, int mouseX, int mouseY,
-			float partialTicks) {
-		widget.x += offsetX;
-		widget.y += offsetY;
-		widget.renderToolTip(mouseX + offsetX, mouseY + offsetY);
+	public static void drawRelativeToolTip(MatrixStack stack, Widget widget, int offsetX, int offsetY, int mouseX,
+			int mouseY, float partialTicks) {
+		widget.x += offsetX; // x
+		widget.y += offsetY; // y
+		widget.renderToolTip(stack, mouseX + offsetX, mouseY + offsetY); // renderToolTip
 		widget.x -= offsetX;
 		widget.y -= offsetY;
 	}
@@ -328,44 +324,44 @@ public class GuiUtils {
 	 * Draw a String to the the right of a location
 	 * 
 	 * @since 2.0
-	 * @see #drawCenterString(FontRenderer, String, int, int, int)
-	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
+	 * @see #drawCenterString(font, String, int, int, int)
+	 * @see #drawRightString(font, String, int, int, int, int)
 	 */
 
-	public static void drawRightString(FontRenderer fontRenderer, String text, int x, int y, int color) {
-		drawCenterString(fontRenderer, text, x, y, color, fontRenderer.FONT_HEIGHT);
+	public static void drawRightString(FontRenderer font, String text, int x, int y, int color) {
+		drawCenterString(font, text, x, y, color, font.lineHeight);
 	}
 
 	/**
 	 * Draw a String on the screen at middle of an height to the right of location
 	 * 
 	 * @since 2.0
-	 * @see #drawString(FontRenderer, String, int, int, int, int)
-	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 * @see #drawString(font, String, int, int, int, int)
+	 * @see #drawCenterString(font, String, int, int, int, int)
 	 */
-	public static void drawRightString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
-		drawString(fontRenderer, text, x - fontRenderer.getStringWidth(text), y, color, height);
+	public static void drawRightString(FontRenderer font, String text, int x, int y, int color, int height) {
+		drawString(font, text, x - font.width(text), y, color, height);
 	}
 
 	/**
 	 * Draw a String to the right of a {@link GuiTextField}
 	 * 
 	 * @since 2.0
-	 * @see #drawRightString(FontRenderer, String, GuiTextField, int, int, int)
+	 * @see #drawRightString(font, String, GuiTextField, int, int, int)
 	 */
-	public static void drawRightString(FontRenderer fontRenderer, String text, TextFieldWidget field, int color) {
-		drawRightString(fontRenderer, text, field.x, field.y, color, field.getHeight());
+	public static void drawRightString(FontRenderer font, String text, Widget field, int color) {
+		drawRightString(font, text, field.x, field.y, color, field.getHeight());
 	}
 
 	/**
 	 * Draw a String to the right of a {@link GuiTextField} with offsets
 	 * 
 	 * @since 2.0
-	 * @see #drawRightString(FontRenderer, String, GuiTextField, int)
+	 * @see #drawRightString(font, String, GuiTextField, int)
 	 */
-	public static void drawRightString(FontRenderer fontRenderer, String text, TextFieldWidget field, int color,
-			int offsetX, int offsetY) {
-		drawRightString(fontRenderer, text, field.x + offsetX, field.y + offsetY, color, field.getHeight());
+	public static void drawRightString(FontRenderer font, String text, Widget field, int color, int offsetX,
+			int offsetY) {
+		drawRightString(font, text, field.x + offsetX, field.y + offsetY, color, field.getHeight());
 	}
 
 	/**
@@ -377,30 +373,27 @@ public class GuiUtils {
 		float scaleX = 1.0F / tileWidth;
 		float scaleY = 1.0F / tileHeight;
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		BufferBuilder bufferbuilder = tessellator.getBuilder();
 		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-		// func_225583_a_ = tex
-		bufferbuilder.func_225582_a_((double) x, (double) (y + height), 0.0D)
-				.func_225583_a_((float) (u * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
-		bufferbuilder.func_225582_a_((double) (x + width), (double) (y + height), 0.0D)
-				.func_225583_a_((float) ((u + (float) uWidth) * scaleX), (float) ((v + (float) vHeight) * scaleY))
-				.endVertex();
-		bufferbuilder.func_225582_a_((double) (x + width), (double) y, 0.0D)
-				.func_225583_a_((float) ((u + (float) uWidth) * scaleX), (float) (v * scaleY)).endVertex();
-		bufferbuilder.func_225582_a_((double) x, (double) y, 0.0D)
-				.func_225583_a_((float) (u * scaleX), (float) (v * scaleY)).endVertex();
-		tessellator.draw();
+		bufferbuilder.vertex((double) x, (double) (y + height), 0.0D)
+				.uv((float) (u * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
+		bufferbuilder.vertex((double) (x + width), (double) (y + height), 0.0D)
+				.uv((float) ((u + (float) uWidth) * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
+		bufferbuilder.vertex((double) (x + width), (double) y, 0.0D)
+				.uv((float) ((u + (float) uWidth) * scaleX), (float) (v * scaleY)).endVertex();
+		bufferbuilder.vertex((double) x, (double) y, 0.0D).uv((float) (u * scaleX), (float) (v * scaleY)).endVertex();
+		tessellator.end();
 	}
 
 	/**
 	 * Draw a String on the screen at middle of an height
 	 * 
 	 * @since 2.0
-	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
-	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
+	 * @see #drawCenterString(font, String, int, int, int, int)
+	 * @see #drawRightString(font, String, int, int, int, int)
 	 */
-	public static void drawString(FontRenderer fontRenderer, String text, int x, int y, int color, int height) {
-		fontRenderer.drawString(text, x, y + height / 2 - fontRenderer.FONT_HEIGHT / 2, color);
+	public static void drawString(FontRenderer font, String text, int x, int y, int color, int height) {
+		ACTMod.drawString(font, text, x, y + height / 2 - font.lineHeight / 2, color);
 	}
 
 	/**
@@ -408,16 +401,16 @@ public class GuiUtils {
 	 * 
 	 * @since 2.1
 	 */
-	public static void drawTextBox(FontRenderer fontRenderer, int x, int y, int parentWidth, int parentHeight,
-			float zLevel, String... args) {
+	public static void drawTextBox(FontRenderer font, int x, int y, int parentWidth, int parentHeight, float zLevel,
+			String... args) {
 		List<String> text = Arrays.asList(args);
-		int width = text.size() == 0 ? 0 : text.stream().mapToInt(fontRenderer::getStringWidth).max().getAsInt();
-		int height = text.size() * (1 + fontRenderer.FONT_HEIGHT);
+		int width = text.isEmpty() ? 0 : text.stream().mapToInt(font::width).max().getAsInt();
+		int height = text.size() * (1 + font.lineHeight);
 		Tuple<Integer, Integer> pos = getRelativeBoxPos(x, y, width, height, parentWidth, parentHeight);
 		drawBox(pos.a, pos.b, width, height, zLevel);
 		text.forEach(l -> {
-			fontRenderer.drawString(l, pos.a, pos.b, 0xffffffff);
-			pos.b += (1 + fontRenderer.FONT_HEIGHT);
+			ACTMod.drawString(font, l, pos.a, pos.b, 0xffffffff);
+			pos.b += (1 + font.lineHeight);
 		});
 	}
 
@@ -450,7 +443,7 @@ public class GuiUtils {
 				y = 0;
 		} else
 			y += 12;
-		return new Tuple<Integer, Integer>(x, y);
+		return new Tuple<>(x, y);
 	}
 
 	/**
@@ -477,15 +470,4 @@ public class GuiUtils {
 		return mouseX >= X && mouseX <= X + sizeX && mouseY >= Y && mouseY <= Y + sizeY;
 	}
 
-	/**
-	 * Check if a {@link GuiTextField} is hover by a location (mouse)
-	 * 
-	 * @return true if the field is hover
-	 * @see #isHover(GuiButton, int, int)
-	 * @see #isHover(int, int, int, int, int, int)
-	 * @since 2.0
-	 */
-	public static boolean isHover(TextFieldWidget field, int mouseX, int mouseY) {
-		return isHover(field.x, field.y, field.getWidth(), field.getHeight(), mouseX, mouseY);
-	}
 }

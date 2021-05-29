@@ -34,7 +34,7 @@ public class ModdedCommandHead extends ModdedCommand {
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
 			try {
-				ItemUtils.getHeads(Minecraft.getInstance().getSession().getUsername()).forEach(ItemUtils::give);
+				ItemUtils.getHeads(Minecraft.getInstance().getUser().getName()).forEach(ItemUtils::give);
 			} catch (Exception e) {
 				ChatUtils.error(e.getClass().getName() + ": " + e.getMessage());
 			}

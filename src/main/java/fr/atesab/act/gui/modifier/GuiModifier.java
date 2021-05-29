@@ -4,12 +4,13 @@ import java.util.function.Consumer;
 
 import fr.atesab.act.gui.GuiACT;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.ITextComponent;
 
 public class GuiModifier<T> extends GuiACT {
 
 	protected Consumer<T> setter;
 
-	public GuiModifier(Screen parent, String name, Consumer<T> setter) {
+	public GuiModifier(Screen parent, ITextComponent name, Consumer<T> setter) {
 		super(parent, name);
 		this.setter = setter;
 	}

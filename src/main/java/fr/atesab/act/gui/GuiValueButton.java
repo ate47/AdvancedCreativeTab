@@ -3,28 +3,29 @@ package fr.atesab.act.gui;
 import java.util.function.Consumer;
 
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.ITextComponent;
 
 public class GuiValueButton<T> extends Button {
-	private T Value;
+	private T value;
 
 	@SuppressWarnings("unchecked")
-	public GuiValueButton(int x, int y, int widthIn, int heightIn, String buttonText, T value,
+	public GuiValueButton(int x, int y, int widthIn, int heightIn, ITextComponent buttonText, T value,
 			Consumer<GuiValueButton<T>> action) {
 		super(x, y, widthIn, heightIn, buttonText, b -> action.accept((GuiValueButton<T>) b));
-		Value = value;
+		this.value = value;
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiValueButton(int x, int y, String buttonText, T value, Consumer<GuiValueButton<T>> action) {
+	public GuiValueButton(int x, int y, ITextComponent buttonText, T value, Consumer<GuiValueButton<T>> action) {
 		super(x, y, 200, 20, buttonText, b -> action.accept((GuiValueButton<T>) b));
-		Value = value;
+		this.value = value;
 	}
 
 	public T getValue() {
-		return Value;
+		return value;
 	}
 
 	public void setValue(T value) {
-		Value = value;
+		this.value = value;
 	}
 }

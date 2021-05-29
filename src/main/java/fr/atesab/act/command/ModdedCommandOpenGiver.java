@@ -32,7 +32,7 @@ public class ModdedCommandOpenGiver extends ModdedCommand {
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
 			GuiUtils.displayScreen(new GuiGiver(null,
-					ItemUtils.getGiveCode(Minecraft.getInstance().player.getHeldItem(Hand.MAIN_HAND))));
+					ItemUtils.getGiveCode(Minecraft.getInstance().player.getItemInHand(Hand.MAIN_HAND))));
 			return 0;
 		};
 	}

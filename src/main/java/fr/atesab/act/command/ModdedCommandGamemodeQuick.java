@@ -23,7 +23,7 @@ public class ModdedCommandGamemodeQuick extends ModdedCommand {
 	@Override
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
-			Minecraft.getInstance().player.sendChatMessage("/gamemode " + gamemode.getName());
+			Minecraft.getInstance().player.chat("/gamemode " + gamemode.getName());
 			return 0;
 		};
 	}

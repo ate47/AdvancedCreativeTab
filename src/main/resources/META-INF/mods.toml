@@ -1,10 +1,11 @@
 
 modLoader="javafml"
-loaderVersion="[31,)"
+loaderVersion="[36,)"
+license="GNU General Public License 3"
 issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[mods]]
 	modId="act"
-	version="2.3"
+	version="2.3.1"
 	displayName="Advanced creative tab 2"
 	displayURL="https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode"
 	logoFile="logo.png"
@@ -14,7 +15,7 @@ issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[dependencies.act]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.15.2]"
+    versionRange="[1.16,1.17)"
     ordering="NONE"
     side="BOTH"
 

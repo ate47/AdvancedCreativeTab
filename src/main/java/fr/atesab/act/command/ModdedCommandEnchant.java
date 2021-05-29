@@ -30,24 +30,24 @@ public class ModdedCommandEnchant extends ModdedCommand {
 		return command.then(Commands.argument("enchantname", EnchantmentArgument.enchantment()).executes(c -> {
 			Enchantment e = EnchantmentArgument.getEnchantment(c, "enchantname");
 			Minecraft mc = Minecraft.getInstance();
-			ItemStack is = mc.player.getHeldItemMainhand().copy();
+			ItemStack is = mc.player.getMainHandItem().copy();
 			if (is != null) {
 				Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(is);
 				map.put(e, e.getMaxLevel());
 				EnchantmentHelper.setEnchantments(map, is);
-				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);
+				ItemUtils.give(is, 36 + mc.player.inventory.selected);
 			}
 			return 0;
 		}).then(Commands.argument("enchantlevel", IntegerArgumentType.integer()).executes(c -> {
 			Enchantment e = EnchantmentArgument.getEnchantment(c, "enchantname");
 			int lvl = IntegerArgumentType.getInteger(c, "enchantlevel");
 			Minecraft mc = Minecraft.getInstance();
-			ItemStack is = mc.player.getHeldItemMainhand().copy();
+			ItemStack is = mc.player.getMainHandItem().copy();
 			if (is != null) {
 				Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(is);
 				map.put(e, lvl);
 				EnchantmentHelper.setEnchantments(map, is);
-				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);
+				ItemUtils.give(is, 36 + mc.player.inventory.selected);
 			}
 			return 0;
 		})));
@@ -57,14 +57,14 @@ public class ModdedCommandEnchant extends ModdedCommand {
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
 			Minecraft mc = Minecraft.getInstance();
-			ItemStack is = mc.player.getHeldItemMainhand();
+			ItemStack is = mc.player.getMainHandItem();
 			if (is != null) {
 				is = is.copy();
 				Map<Enchantment, Integer> map = EnchantmentHelper.getEnchantments(is);
-				for (EnchantmentData data : EnchantmentHelper.buildEnchantmentList(ACTMod.RANDOM, is, 30, true))
-					map.put(data.enchantment, data.enchantmentLevel);
+				for (EnchantmentData data : EnchantmentHelper.selectEnchantment(ACTMod.RANDOM, is, 30, true))
+					map.put(data.enchantment, data.level);
 				EnchantmentHelper.setEnchantments(map, is);
-				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);
+				ItemUtils.give(is, 36 + mc.player.inventory.selected);
 			}
 			return 0;
 		};

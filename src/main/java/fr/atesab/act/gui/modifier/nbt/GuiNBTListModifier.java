@@ -11,13 +11,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.text.ITextComponent;
 
 @GuiNBTList
 public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 	private ListNBT list;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTListModifier(String title, Screen parent, Consumer<ListNBT> setter, ListNBT list) {
+	public GuiNBTListModifier(ITextComponent title, Screen parent, Consumer<ListNBT> setter, ListNBT list) {
 		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = list.copy();
 		String k = "...";
@@ -25,16 +26,16 @@ public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 			addListElement(NBTElement.getElementByBase(this, k, base));
 		}
 		addListElement(new AddElementList(this, () -> {
-			if (this.list.getTagType() != 0) {
-				INBT base = GuiNBTModifier.getDefaultElement(this.list.getTagType());
+			if (this.list.getElementType() != 0) {
+				INBT base = GuiNBTModifier.getDefaultElement(this.list.getElementType());
 				if (base != null)
 					addListElement(getElements().size() - 1, NBTElement.getElementByBase(this, k, base));
 			} else
-				getMinecraft().displayGuiScreen(GuiNBTModifier.addElement(getElements().size() - 1, this, k));
+				getMinecraft().setScreen(GuiNBTModifier.addElement(getElements().size() - 1, this, k));
 			return null;
 		}));
 		setPaddingLeft(5);
-		setPaddingTop(13 + Minecraft.getInstance().fontRenderer.FONT_HEIGHT);
+		setPaddingTop(13 + Minecraft.getInstance().font.lineHeight);
 		setNoAdaptativeSize(true);
 	}
 

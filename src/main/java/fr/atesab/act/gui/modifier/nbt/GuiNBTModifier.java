@@ -25,34 +25,36 @@ import net.minecraft.nbt.LongArrayNBT;
 import net.minecraft.nbt.LongNBT;
 import net.minecraft.nbt.ShortNBT;
 import net.minecraft.nbt.StringNBT;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 
 	public static final BiConsumer<Integer, GuiListModifier<?>> ADD_ELEMENT = (i, lm) -> {
-		final GuiStringModifier modifier = new GuiStringModifier(lm, "gui.act.modifier.name", "", null);
+		final GuiStringModifier modifier = new GuiStringModifier(lm, new TranslationTextComponent("gui.act.modifier.name"), "", null);
 		modifier.setSetter(key -> {
 			if (!key.isEmpty())
 				modifier.setParent(addElement(i == null ? lm.getElements().size() - 1 : i, lm, key));
 		});
-		lm.getMinecraft().displayGuiScreen(modifier);
+		lm.getMinecraft().setScreen(modifier);
 	};
 
 	public static GuiButtonListSelector<INBT> addElement(int i, GuiListModifier<?> lm, String key) {
-		return new GuiButtonListSelector<INBT>(lm, "gui.act.modifier.tag.editor", Arrays.asList(
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.tag"), new CompoundNBT()),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.string"), StringNBT.func_229705_a_("")),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.int"), IntNBT.func_229692_a_(0)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.long"), LongNBT.func_229698_a_(0L)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.float"), FloatNBT.func_229689_a_(0F)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.double"), DoubleNBT.func_229684_a_(0D)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.short"), ShortNBT.func_229701_a_((short) 0)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.intArray"),
-						new IntArrayNBT(new int[0])),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.longArray"),
+		return new GuiButtonListSelector<>(lm, new TranslationTextComponent("gui.act.modifier.tag.editor"), Arrays.asList(
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.tag"), new CompoundNBT()),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.string"), StringNBT.valueOf("")),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.int"), IntNBT.valueOf(0)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.long"), LongNBT.valueOf(0L)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.float"), FloatNBT.valueOf(0F)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.double"), DoubleNBT.valueOf(0D)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.short"), ShortNBT.valueOf((short) 0)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.intArray"), new IntArrayNBT(new int[0])),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.longArray"),
 						new LongArrayNBT(new long[0])),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.byte"), ByteNBT.func_229671_a_((byte) 0)),
-				new Tuple<String, INBT>(I18n.format("gui.act.modifier.tag.editor.list"), new ListNBT())), base -> {
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.byte"), ByteNBT.valueOf((byte) 0)),
+				new Tuple<String, INBT>(I18n.get("gui.act.modifier.tag.editor.list"), new ListNBT())), base -> {
 					lm.addListElement(i, NBTElement.getElementByBase(lm, key, base));
 					return null;
 				});
@@ -60,45 +62,46 @@ public class GuiNBTModifier extends GuiListModifier<CompoundNBT> {
 
 	public static INBT getDefaultElement(int id) {
 		switch (id) {
-		case 1:
-			return ByteNBT.func_229671_a_((byte) 0);
-		case 2:
-			return ShortNBT.func_229701_a_((short) 0);
-		case 3:
-			return IntNBT.func_229692_a_(0);
-		case 4:
-			return LongNBT.func_229698_a_(0L);
-		case 5:
-			return FloatNBT.func_229689_a_(0F);
-		case 6:
-			return DoubleNBT.func_229684_a_(0D);
-		case 8:
-			return StringNBT.func_229705_a_("");
-		case 9:
-			return new ListNBT();
-		case 10:
-			return new CompoundNBT();
-		case 11:
-			return new IntArrayNBT(new int[0]);
-		case 12:
-			return new LongArrayNBT(new long[0]);
-		default:
-			return null;
+			case 1:
+				return ByteNBT.valueOf((byte) 0);
+			case 2:
+				return ShortNBT.valueOf((short) 0);
+			case 3:
+				return IntNBT.valueOf(0);
+			case 4:
+				return LongNBT.valueOf(0L);
+			case 5:
+				return FloatNBT.valueOf(0F);
+			case 6:
+				return DoubleNBT.valueOf(0D);
+			case 8:
+				return StringNBT.valueOf("");
+			case 9:
+				return new ListNBT();
+			case 10:
+				return new CompoundNBT();
+			case 11:
+				return new IntArrayNBT(new int[0]);
+			case 12:
+				return new LongArrayNBT(new long[0]);
+			default:
+				return null;
 		}
 	}
 
 	public GuiNBTModifier(Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
-		this("/", parent, setter, tag);
+		this(new StringTextComponent("/"), parent, setter, tag);
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTModifier(String title, Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
+	public GuiNBTModifier(ITextComponent title, Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
 		super(parent, title, new ArrayList<>(), setter, true, true, new Tuple[0]);
-		addListElement(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
-				() -> ADD_ELEMENT.accept(null, this), null));
-		tag.keySet().forEach(key -> addElement(key, tag.get(key)));
+		addListElement(
+				new ButtonElementList(200, 21, 200, 20, new StringTextComponent("+").withStyle(TextFormatting.GREEN),
+						() -> ADD_ELEMENT.accept(null, this), null));
+		tag.getAllKeys().forEach(key -> addElement(key, tag.get(key)));
 		setPaddingLeft(5);
-		setPaddingTop(13 + Minecraft.getInstance().fontRenderer.FONT_HEIGHT);
+		setPaddingTop(13 + Minecraft.getInstance().font.lineHeight);
 		setNoAdaptativeSize(true);
 	}
 

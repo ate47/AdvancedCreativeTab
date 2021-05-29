@@ -24,7 +24,7 @@ public class NBTUnknownElement extends NBTElement {
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor.unknown");
+		return I18n.get("gui.act.modifier.tag.editor.unknown");
 	}
 
 }

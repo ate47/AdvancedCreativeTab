@@ -45,52 +45,42 @@ public class CommandUtils {
 	 * @since 2.0
 	 */
 	public static List<String> getPlayerList() {
-		List<NetworkPlayerInfo> networkPlayerInfos = new ArrayList<NetworkPlayerInfo>(
-				Minecraft.getInstance().player.connection.getPlayerInfoMap());
-		networkPlayerInfos.sort(new Comparator<NetworkPlayerInfo>() {
-			public int compare(NetworkPlayerInfo o1, NetworkPlayerInfo o2) {
-				return o1.getGameProfile().getName().compareToIgnoreCase(o2.getGameProfile().getName());
-			}
-		});
+		List<NetworkPlayerInfo> networkPlayerInfos = new ArrayList<>(
+				Minecraft.getInstance().player.connection.getOnlinePlayers());
+		networkPlayerInfos.sort((o1, o2) -> o1.getGameMode().getName().compareToIgnoreCase(o2.getGameMode().getName()));
 		List<String> players = new ArrayList<String>();
 		for (NetworkPlayerInfo info : networkPlayerInfos)
-			players.add(info.getGameProfile().getName());
+			players.add(info.getGameMode().getName());
 		return players;
 	}
 
 	/**
 	 * Get all sub completion argument
 	 * 
-	 * @param options
-	 *            Possible sub arguments
-	 * @param args
-	 *            command arguments
+	 * @param options Possible sub arguments
+	 * @param args    command arguments
 	 * @return List of string who match sorted by name
 	 * @since 2.0
+	 * @deprecated 
 	 */
 	@Deprecated
 	public static List<String> getTabCompletion(List<String> options, String[] args) {
-		List<String> options_End = new ArrayList<String>();
+		List<String> optionsEnd = new ArrayList<>();
 		if (args.length == 0)
-			return options_End;
+			return optionsEnd;
 		String start = args[args.length - 1].toLowerCase();
 		for (int i = 0; i < options.size(); i++) {
 			if (options.get(i).toLowerCase().startsWith(start.toLowerCase()))
-				options_End.add(options.get(i));
+				optionsEnd.add(options.get(i));
 		}
-		options_End.sort(new Comparator<String>() {
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		}); // sort by name
-		return options_End;
+		optionsEnd.sort(String::compareToIgnoreCase); // sort by name
+		return optionsEnd;
 	}
 
 	/**
 	 * Send a message in chat like with the client (Client command will be execute)
 	 * 
-	 * @param message
-	 *            chat message to send
+	 * @param message chat message to send
 	 * @since 2.0
 	 */
 	public static void sendMessage(String message) {
@@ -98,7 +88,7 @@ public class CommandUtils {
 		if ((p = Minecraft.getInstance().player) != null) {
 			if (ForgeEventFactory.onClientSendMessage(message).isEmpty())
 				return;
-			p.sendChatMessage(message);
+			p.chat(message);
 		}
 	}
 

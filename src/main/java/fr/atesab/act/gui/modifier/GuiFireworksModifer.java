@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.ColorList;
@@ -21,7 +22,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.FireworkRocketItem.Shape;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 	private static class FireworkMainListElement extends ListElement {
@@ -32,20 +35,20 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 
 		public FireworkMainListElement(int flight) {
 			super(200, 29);
-			title = I18n.format("item.minecraft.firework_rocket.flight");
+			title = I18n.get("item.minecraft.firework_rocket.flight");
 			if (title.endsWith(":"))
 				title = title.substring(0, title.length() - 1);
 			title += " : ";
-			int l = font.getStringWidth(title + " : ") + 5;
-			this.flight = new TextFieldWidget(font, l, 2, 196 - l, 16, "");
-			this.flight.setMaxStringLength(6);
-			this.flight.setText("" + flight);
+			int l = font.width(title + " : ") + 5;
+			this.flight = new TextFieldWidget(font, l, 2, 196 - l, 16, new StringTextComponent(""));
+			this.flight.setMaxLength(6);
+			this.flight.setValue("" + flight);
 
 		}
 
 		@Override
 		public void init() {
-			flight.setFocused2(false);
+			flight.setFocus(false);
 			super.init();
 		}
 
@@ -55,18 +58,19 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		}
 
 		@Override
-		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-			GuiUtils.drawRelative(flight, offsetX, offsetY, mouseY, mouseY, partialTicks);
+		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+				float partialTicks) {
+			GuiUtils.drawRelative(matrixStack, flight, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawString(font, title, offsetX, offsetY, (err ? Color.RED : Color.WHITE).getRGB(),
 					flight.getHeight());
-			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
+			super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
 		public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
 			flight.mouseClicked(mouseX, mouseY, mouseButton);
 			if (GuiUtils.isHover(flight, mouseX, mouseY) && mouseButton == 1)
-				flight.setText("");
+				flight.setValue("");
 			super.mouseClicked(mouseX, mouseY, mouseButton);
 		}
 
@@ -74,7 +78,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		public void update() {
 			flight.tick();
 			try {
-				value = flight.getText().isEmpty() ? 0 : Integer.valueOf(flight.getText());
+				value = flight.getValue().isEmpty() ? 0 : Integer.valueOf(flight.getValue());
 				err = false;
 			} catch (NumberFormatException e) {
 				err = true;
@@ -101,58 +105,57 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 			super(204, 29);
 			this.exp = ItemUtils.getExplosionInformation(expData);
 			this.parent = parent;
-			buttonList.add(
-					new Button(0, 0, 100, 20, I18n.format("gui.act.modifier.meta.explosion"), b -> mc.displayGuiScreen(
+			buttonList.add(new Button(0, 0, 100, 20, new TranslationTextComponent("gui.act.modifier.meta.explosion"),
+					b -> mc.setScreen(
 							new GuiExplosionModifier(parent, exp -> ExplosionListElement.this.exp = exp, exp))));
 			buttonList.add(new RemoveElementButton(parent, 101, 0, 20, 20, this));
 			buttonList.add(new AddElementButton(parent, 122, 0, 20, 20, this, parent.builder));
-			buttonList.add(new AddElementButton(parent, 143, 0, 60, 20, I18n.format("gui.act.give.copy"), this,
-					() -> new ExplosionListElement(parent, exp.getTag())));
+			buttonList
+					.add(new AddElementButton(parent, 143, 0, 60, 20, new TranslationTextComponent("gui.act.give.copy"),
+							this, () -> new ExplosionListElement(parent, exp.getTag())));
 		}
 
 		@Override
 		public boolean match(String search) {
 			String s = search.toLowerCase();
-			return I18n.format("gui.act.modifier.type").toLowerCase().contains(s)
-					|| I18n.format("item.minecraft.firework_star.shape." + exp.getType().func_196068_b())
-							/* getFromId (...).getShapeName */.toLowerCase().contains(s)
-					|| I18n.format("item.minecraft.firework_star.trail").toLowerCase().contains(s)
-					|| I18n.format("item.minecraft.firework_star.flicker").toLowerCase().contains(s)
-					|| I18n.format("gui.act.modifier.meta.explosion.color").toLowerCase().contains(s)
-					|| I18n.format("gui.act.modifier.meta.explosion.fadeColor").toLowerCase().contains(s);
+			return I18n.get("gui.act.modifier.type").toLowerCase().contains(s)
+					|| I18n.get("item.minecraft.firework_star.shape." + exp.getType().getId()).toLowerCase().contains(s)
+					|| I18n.get("item.minecraft.firework_star.trail").toLowerCase().contains(s)
+					|| I18n.get("item.minecraft.firework_star.flicker").toLowerCase().contains(s)
+					|| I18n.get("gui.act.modifier.meta.explosion.color").toLowerCase().contains(s)
+					|| I18n.get("gui.act.modifier.meta.explosion.fadeColor").toLowerCase().contains(s);
 		}
 
 		@Override
-		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		public void drawNext(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+				float partialTicks) {
 			if (GuiUtils.isHover(0, 0, 200, 20, mouseX, mouseY)) {
 				List<String> data = new ArrayList<>();
-				String type = I18n.format("gui.act.modifier.type") + " : " + TextFormatting.YELLOW
-						+ I18n.format("item.minecraft.firework_star.shape." + exp.getType().func_196068_b());
-				String trail = I18n.format("item.minecraft.firework_star.trail");
-				String flicker = I18n.format("item.minecraft.firework_star.flicker");
-				String color = I18n.format("gui.act.modifier.meta.explosion.color") + " : ";
-				String fadeColor = I18n.format("gui.act.modifier.meta.explosion.fadeColor") + " : ";
+				String type = I18n.get("gui.act.modifier.type") + " : " + TextFormatting.YELLOW
+						+ I18n.get("item.minecraft.firework_star.shape." + exp.getType().getName());
+				String trail = I18n.get("item.minecraft.firework_star.trail");
+				String flicker = I18n.get("item.minecraft.firework_star.flicker");
+				String color = I18n.get("gui.act.modifier.meta.explosion.color") + " : ";
+				String fadeColor = I18n.get("gui.act.modifier.meta.explosion.fadeColor") + " : ";
 				data.add(type);
-				int width = font.getStringWidth(type);
+				int width = font.width(type);
 				if (exp.isTrail()) {
 					data.add(trail);
-					width = Math.max(width, font.getStringWidth(trail));
+					width = Math.max(width, font.width(trail));
 				}
 				if (exp.isFlicker()) {
 					data.add(flicker);
-					width = Math.max(width, font.getStringWidth(flicker));
+					width = Math.max(width, font.width(flicker));
 				}
 				if (exp.getColors().length != 0) {
 					data.add(color);
-					width = Math.max(width,
-							(font.FONT_HEIGHT + 1) * exp.getColors().length + font.getStringWidth(color));
+					width = Math.max(width, (font.lineHeight + 1) * exp.getColors().length + font.width(color));
 				}
 				if (exp.getFadeColors().length != 0) {
 					data.add(fadeColor);
-					width = Math.max(width,
-							(font.FONT_HEIGHT + 1) * exp.getFadeColors().length + font.getStringWidth(fadeColor));
+					width = Math.max(width, (font.lineHeight + 1) * exp.getFadeColors().length + font.width(fadeColor));
 				}
-				int height = data.size() * (1 + font.FONT_HEIGHT) + 2;
+				int height = data.size() * (1 + font.lineHeight) + 2;
 				width += 2;
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX + offsetX, mouseY + offsetY, width,
 						height, parent.width, parent.height);
@@ -165,31 +168,31 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 				pos.b += 2;
 				int i;
 				for (i = 0; i < data.size(); i++)
-					font.drawString(data.get(i), pos.a, pos.b + i * (font.FONT_HEIGHT + 1), 0xffffffff);
+					font.draw(matrixStack, data.get(i), pos.a, pos.b + i * (font.lineHeight + 1), 0xffffffff);
 				if (exp.getFadeColors().length != 0) {
 					i -= 1;
-					int x = pos.a + font.getStringWidth(fadeColor);
-					int y = pos.b + i * (font.FONT_HEIGHT + 1);
+					int x = pos.a + font.width(fadeColor);
+					int y = pos.b + i * (font.lineHeight + 1);
 					for (int j = 0; j < exp.getFadeColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + font.FONT_HEIGHT, y + font.FONT_HEIGHT,
+						GuiUtils.drawGradientRect(x, y, x + font.lineHeight, y + font.lineHeight,
 								0xff000000 | exp.getFadeColors()[j], 0xff000000 | exp.getFadeColors()[j],
 								parent.getZLevel());
-						x += font.FONT_HEIGHT + 1;
+						x += font.lineHeight + 1;
 					}
 				}
 				if (exp.getColors().length != 0) {
 					i -= 1;
-					int x = pos.a + font.getStringWidth(color);
-					int y = pos.b + i * (font.FONT_HEIGHT + 1);
+					int x = pos.a + font.width(color);
+					int y = pos.b + i * (font.lineHeight + 1);
 					for (int j = 0; j < exp.getColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + font.FONT_HEIGHT, y + font.FONT_HEIGHT,
+						GuiUtils.drawGradientRect(x, y, x + font.lineHeight, y + font.lineHeight,
 								0xff000000 | exp.getColors()[j], 0xff000000 | exp.getColors()[j], parent.getZLevel());
-						x += font.FONT_HEIGHT + 1;
+						x += font.lineHeight + 1;
 					}
 				}
 
 			}
-			super.drawNext(offsetX, offsetY, mouseX, mouseY, partialTicks);
+			super.drawNext(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 	}
 
@@ -199,16 +202,16 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 		private Button type;
 
 		public GuiExplosionModifier(Screen parent, Consumer<ExplosionInformation> setter, ExplosionInformation exp) {
-			super(parent, "gui.act.modifier.meta.fireworks", setter);
+			super(parent, new TranslationTextComponent("gui.act.modifier.meta.fireworks"), setter);
 			this.exp = exp.clone();
-			colors = new ColorList(this, 0, 0, 6, exp.getColors(), I18n.format("gui.act.modifier.meta.explosion.color"),
+			colors = new ColorList(this, 0, 0, 6, exp.getColors(), I18n.get("gui.act.modifier.meta.explosion.color"),
 					24);
 			fadeColors = new ColorList(this, 0, 0, 6, exp.getFadeColors(),
-					I18n.format("gui.act.modifier.meta.explosion.fadeColor"), 24);
+					I18n.get("gui.act.modifier.meta.explosion.fadeColor"), 24);
 		}
 
 		private void defineButton() {
-			type.setMessage(I18n.format("item.minecraft.firework_star.shape." + exp.getType().func_196068_b()));
+			type.setMessage(new TranslationTextComponent("item.minecraft.firework_star.shape." + exp.getType().getName()));
 		}
 
 		@Override
@@ -217,39 +220,40 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 			colors.y = height / 2 - 42;
 			fadeColors.x = width / 2 + 100;
 			fadeColors.y = height / 2 - 42;
-			addButton(type = new Button(width / 2 - 200, height / 2 - 42, 199, 20, I18n.format(""), b -> {
+			addButton(type = new Button(width / 2 - 200, height / 2 - 42, 199, 20, new StringTextComponent(""), b -> {
 				List<Tuple<String, Shape>> elements = new ArrayList<>(Shape.values().length);
 				for (Shape s : Shape.values())
-					elements.add(new Tuple<>(I18n.format("item.minecraft.firework_star.shape." + s.func_196068_b()), // getShapeName
-							s));
-				mc.displayGuiScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this,
-						"gui.act.modifier.meta.explosion.shape", elements, s -> {
+					elements.add(new Tuple<>(I18n.get("item.minecraft.firework_star.shape." + s.getName()), s));
+				mc.setScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this,
+						new TranslationTextComponent("gui.act.modifier.meta.explosion.shape"), elements, s -> {
 							exp.type(s);
 							defineButton();
 							return null;
 						}));
 			}));
 			addButton(new GuiBooleanButton(width / 2 - 200, height / 2 - 21, 199, 20,
-					I18n.format("item.minecraft.firework_star.trail"), exp::trail, exp::isTrail));
+					new TranslationTextComponent("item.minecraft.firework_star.trail"), exp::trail, exp::isTrail));
 			addButton(new GuiBooleanButton(width / 2 - 200, height / 2, 199, 20,
-					I18n.format("item.minecraft.firework_star.flicker"), exp::flicker, exp::isFlicker));
+					new TranslationTextComponent("item.minecraft.firework_star.flicker"), exp::flicker,
+					exp::isFlicker));
 
-			addButton(new Button(width / 2 - 100, height / 2 + 21, 99, 20, I18n.format("gui.done"), b -> {
-				set(exp.colors(colors.getColors()).fadeColors(fadeColors.getColors()));
-				getMinecraft().displayGuiScreen(parent);
-			}));
-			addButton(new Button(width / 2 - 200, height / 2 + 21, 99, 20, I18n.format("gui.act.cancel"),
-					b -> getMinecraft().displayGuiScreen(parent)));
+			addButton(new Button(width / 2 - 100, height / 2 + 21, 99, 20, new TranslationTextComponent("gui.done"),
+					b -> {
+						set(exp.colors(colors.getColors()).fadeColors(fadeColors.getColors()));
+						getMinecraft().setScreen(parent);
+					}));
+			addButton(new Button(width / 2 - 200, height / 2 + 21, 99, 20,
+					new TranslationTextComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
 			defineButton();
 			super.init();
 		}
 
 		@Override
-		public void render(int mouseX, int mouseY, float partialTicks) {
-			renderBackground();
+		public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+			renderBackground(matrixStack);
 			colors.draw(mouseX, mouseY, getZLevel());
 			fadeColors.draw(mouseX, mouseY, getZLevel());
-			super.render(mouseX, mouseY, partialTicks);
+			super.render(matrixStack, mouseX, mouseY, partialTicks);
 			colors.drawNext(mouseX, mouseY, getZLevel());
 			fadeColors.drawNext(mouseX, mouseY, getZLevel());
 		}
@@ -267,7 +271,8 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundNBT> {
 
 	@SuppressWarnings("unchecked")
 	public GuiFireworksModifer(Screen parent, Consumer<CompoundNBT> setter, CompoundNBT tag) {
-		super(parent, "gui.act.modifier.meta.fireworks", new ArrayList<>(), setter, new Tuple[0]);
+		super(parent, new TranslationTextComponent("gui.act.modifier.meta.fireworks"), new ArrayList<>(), setter,
+				new Tuple[0]);
 		addListElement(main = new FireworkMainListElement(tag.contains("Flight") ? tag.getInt("Flight") : 1));
 		tag.getList("Explosions", 10)
 				.forEach(base -> addListElement(new ExplosionListElement(this, (CompoundNBT) base)));

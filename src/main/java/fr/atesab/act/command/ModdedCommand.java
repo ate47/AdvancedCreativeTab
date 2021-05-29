@@ -18,7 +18,7 @@ import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -27,22 +27,21 @@ public class ModdedCommand {
 
 	public static final int MAX_EXAMPLE = 6;
 
-	public static ITextComponent createPrefix(String text, TextFormatting color, TextFormatting border) {
-		return createText("[", border).appendSibling(createText(text, color)).appendSibling(createText("] ", border));
+	public static IFormattableTextComponent createPrefix(String text, TextFormatting color, TextFormatting border) {
+		return createText("[", border).append(createText(text, color)).append(createText("] ", border));
 	}
 
-	public static ITextComponent createText(String text, TextFormatting color) {
-		return new StringTextComponent(Objects.requireNonNull(text)).applyTextStyle(color);
+	public static IFormattableTextComponent createText(String text, TextFormatting color) {
+		return new StringTextComponent(Objects.requireNonNull(text)).withStyle(color);
 	}
 
-	public static ITextComponent createTranslatedPrefix(String text, TextFormatting color, TextFormatting border,
-			Object... args) {
-		return createText("[", border).appendSibling(createTranslatedText(text, color, args))
-				.appendSibling(createText("] ", border));
+	public static IFormattableTextComponent createTranslatedPrefix(String text, TextFormatting color,
+			TextFormatting border, Object... args) {
+		return createText("[", border).append(createTranslatedText(text, color, args)).append(createText("] ", border));
 	}
 
-	public static ITextComponent createTranslatedText(String lang, TextFormatting color, Object... args) {
-		return new TranslationTextComponent(Objects.requireNonNull(lang), args).applyTextStyle(color);
+	public static IFormattableTextComponent createTranslatedText(String lang, TextFormatting color, Object... args) {
+		return new TranslationTextComponent(Objects.requireNonNull(lang), args).withStyle(color);
 	}
 
 	private final Map<String, ModdedCommand> NAME_TO_COMMAND = new TreeMap<>();
@@ -80,8 +79,7 @@ public class ModdedCommand {
 	/**
 	 * add an alias to this command
 	 * 
-	 * @param alias
-	 *            the alias
+	 * @param alias the alias
 	 * @return the current command
 	 */
 	public ModdedCommand addAlias(String alias) {
@@ -107,7 +105,7 @@ public class ModdedCommand {
 	 * @return the translated description of this command
 	 */
 	public String getDescription() {
-		return I18n.format(getDescriptionTranslationKey());
+		return I18n.get(getDescriptionTranslationKey());
 	}
 
 	/**
@@ -177,8 +175,7 @@ public class ModdedCommand {
 	 * Called for registering argument command, should not be used for no argument
 	 * command, see {@link #onNoArgument()} for that
 	 * 
-	 * @param command
-	 *            the argument builder
+	 * @param command the argument builder
 	 * @return the same command argument builder modified
 	 */
 	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
@@ -193,8 +190,8 @@ public class ModdedCommand {
 	 */
 	protected Command<CommandSource> onNoArgument() {
 		return defaultCommand != null ? defaultCommand.onNoArgument() : c -> {
-			c.getSource().sendErrorMessage(new TranslationTextComponent("cmd.act.error.noargument")
-					.applyTextStyles(new TextFormatting[] { TextFormatting.RED, TextFormatting.ITALIC }));
+			c.getSource().sendFailure(new TranslationTextComponent("cmd.act.error.noargument")
+					.withStyle(TextFormatting.RED, TextFormatting.ITALIC));
 			return 1;
 		};
 	}
@@ -208,8 +205,7 @@ public class ModdedCommand {
 	/**
 	 * register the command to a {@link CommandDispatcher}
 	 * 
-	 * @param dispatcher
-	 *            the dispatcher
+	 * @param dispatcher the dispatcher
 	 */
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
 		register();
@@ -237,8 +233,7 @@ public class ModdedCommand {
 	/**
 	 * register a {@link SubCommand} and made it default
 	 * 
-	 * @param subCommand
-	 *            the {@link SubCommand}
+	 * @param subCommand the {@link SubCommand}
 	 * @return the parent command
 	 */
 	public ModdedCommand registerDefaultSubCommand(ModdedCommand subCommand) {
@@ -261,8 +256,7 @@ public class ModdedCommand {
 	/**
 	 * register a {@link SubCommand}
 	 * 
-	 * @param subCommand
-	 *            the {@link SubCommand}
+	 * @param subCommand the {@link SubCommand}
 	 * @return the parent command
 	 */
 	public ModdedCommand registerSubCommand(ModdedCommand subCommand) {

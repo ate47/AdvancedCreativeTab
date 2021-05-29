@@ -7,7 +7,7 @@ import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.command.arguments.StringListArgumentType;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.HoverEvent;
@@ -27,11 +27,11 @@ public class ModdedCommandFormat extends ModdedCommand {
 					TextFormatting[] element = StringListArgumentType.getEnumList(TextFormatting.class, c,
 							"formatname");
 					for (TextFormatting f : element) {
-						c.getSource()
-								.sendFeedback(createText(f.getFriendlyName() + " (&" + f.toString().substring(1) + ")",
-										TextFormatting.YELLOW).appendSibling(createText(": ", TextFormatting.DARK_GRAY))
-												.appendSibling(createText(f.getFriendlyName(), f)),
-										false);
+						c.getSource().sendSuccess(
+								createText(f.getName() + " (&" + f.toString().substring(1) + ")", TextFormatting.YELLOW)
+										.append(createText(": ", TextFormatting.DARK_GRAY))
+										.append(createText(f.getName(), f)),
+								false);
 					}
 
 					return element.length;
@@ -41,28 +41,31 @@ public class ModdedCommandFormat extends ModdedCommand {
 	@Override
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
-			ITextComponent text = new StringTextComponent("");
+			IFormattableTextComponent text = new StringTextComponent("");
 			int element = 0;
 			int line = 0;
 			for (TextFormatting format : TextFormatting.values()) {
-				HoverEvent he = new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						createText(format.getFriendlyName() + " (&" + format.toString().substring(1) + ")",
-								TextFormatting.YELLOW));
-				text = text.appendSibling(createText("&" + format.toString().substring(1) + " ", TextFormatting.RESET)
-						.applyTextStyle(s -> s.setHoverEvent(he)));
-				text = text
-						.appendSibling(createText("&" + format.toString().substring(1), format)
-								.applyTextStyle(s -> s.setHoverEvent(he)))
-						.appendSibling(createText(" ", TextFormatting.RESET));
+				HoverEvent he = new HoverEvent(HoverEvent.Action.SHOW_TEXT, createText(
+						format.getName() + " (&" + format.toString().substring(1) + ")", TextFormatting.YELLOW));
+				text = text.append(
+						createText("&" + format.toString().substring(1) + " ", TextFormatting.RESET).withStyle(s -> {
+							s.withHoverEvent(he); // setHoverEvent
+							return s;
+						})); // applyTextStyle
+				text = text.append(createText("&" + format.toString().substring(1), format).withStyle(s -> {
+					s.withHoverEvent(he); // setHoverEvent
+					return s;
+				}) // applyTextStyle
+				).append(createText(" ", TextFormatting.RESET));
 				if (++element == ELEMENT_PER_LINE) {
-					c.getSource().sendFeedback(text, false);
+					c.getSource().sendSuccess(text, false);
 					text = new StringTextComponent("");
 					element = 0;
 					line++;
 				}
 			}
 			if (element != 0) {
-				c.getSource().sendFeedback(text, false);
+				c.getSource().sendSuccess(text, false);
 				line++;
 			}
 			return line;

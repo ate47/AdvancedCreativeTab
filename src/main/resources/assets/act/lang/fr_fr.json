@@ -166,6 +166,13 @@
     "cmd.act.rename": "Renommer l'objet en main",
     "cmd.act.head": "Se donner une tête",
     "cmd.act.aliases" : "Alias",
+    "cmd.act.info": "Info du mod",
+    "cmd.act.info.title": "Mod",
+    "cmd.act.info.version": "Version",
+    "cmd.act.info.authors": "Auteur(s)",
+    "cmd.act.info.licence": "Licence",
+    "cmd.act.info.link": "Lien",
+    "cmd.act.info.link.open": "Cliquer pour ouvrir le lien",
 
     "cmd.act.error.noargument": "Cette commande prend des arguments!"
 }

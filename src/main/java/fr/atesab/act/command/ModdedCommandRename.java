@@ -24,12 +24,12 @@ public class ModdedCommandRename extends ModdedCommand {
 	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
 		return command.then(Commands.argument("itemname", StringArgumentType.greedyString()).executes(c -> {
 			Minecraft mc = Minecraft.getInstance();
-			ItemStack is = mc.player.getHeldItemMainhand();
+			ItemStack is = mc.player.getMainHandItem();
 			if (is != null) {
-				is.setDisplayName(new StringTextComponent(StringArgumentType.getString(c, "itemname")
+				is.setHoverName(new StringTextComponent(StringArgumentType.getString(c, "itemname")
 						.replaceAll("&([0-9a-fA-FrRk-oK-O])", ChatUtils.MODIFIER + "$1")
 						.replaceAll("&" + ChatUtils.MODIFIER, "&")));
-				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);
+				ItemUtils.give(is, 36 + mc.player.inventory.selected);
 			}
 			return 0;
 		}));
@@ -39,11 +39,11 @@ public class ModdedCommandRename extends ModdedCommand {
 	protected Command<CommandSource> onNoArgument() {
 		return c -> {
 			Minecraft mc = Minecraft.getInstance();
-			ItemStack is = mc.player.getHeldItemMainhand();
+			ItemStack is = mc.player.getMainHandItem();
 			if (is != null) {
 				is = is.copy();
-				is.clearCustomName();
-				ItemUtils.give(is, 36 + mc.player.inventory.currentItem);
+				is.resetHoverName();
+				ItemUtils.give(is, 36 + mc.player.inventory.selected);
 			}
 			return 0;
 		};

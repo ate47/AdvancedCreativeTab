@@ -28,8 +28,7 @@ public class AdvancedCreativeTab extends ItemGroup {
 	/**
 	 * add a block to this tab
 	 * 
-	 * @param sub
-	 *            the block
+	 * @param sub the block
 	 */
 	public void addSubitem(Block sub) {
 		addSubitem(new ItemStack(sub, 1));
@@ -38,8 +37,7 @@ public class AdvancedCreativeTab extends ItemGroup {
 	/**
 	 * add a item to this tab
 	 * 
-	 * @param sub
-	 *            the item
+	 * @param sub the item
 	 */
 	public void addSubitem(Item sub) {
 		addSubitem(new ItemStack(sub, 1));
@@ -48,8 +46,7 @@ public class AdvancedCreativeTab extends ItemGroup {
 	/**
 	 * add a stack to this tab
 	 * 
-	 * @param sub
-	 *            the stack
+	 * @param sub the stack
 	 */
 	public void addSubitem(ItemStack sub) {
 		subItems.add(sub);
@@ -57,16 +54,16 @@ public class AdvancedCreativeTab extends ItemGroup {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ItemStack createIcon() {
+	public ItemStack makeIcon() {
 		return ItemUtils.buildStack(Blocks.STRUCTURE_BLOCK, 1, null, null,
-				new Tuple[] { new Tuple<Enchantment, Integer>(Enchantments.FORTUNE, 1) });
+				new Tuple[] { new Tuple<Enchantment, Integer>(Enchantments.BLOCK_FORTUNE, 1) });
 	}
 
 	@Override
-	public void fill(NonNullList<ItemStack> items) {
+	public void fillItemList(NonNullList<ItemStack> items) {
 		items.addAll(subItems);
 		ACTMod.getCustomItems().stream().map(ItemUtils::getFromGiveCode).forEach(items::add);
-		super.fill(items);
+		super.fillItemList(items);
 	}
 
 }

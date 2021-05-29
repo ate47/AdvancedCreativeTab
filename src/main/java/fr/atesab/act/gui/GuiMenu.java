@@ -3,6 +3,8 @@ package fr.atesab.act.gui;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+
 import org.lwjgl.glfw.GLFW;
 
 import fr.atesab.act.ACTMod;
@@ -17,7 +19,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class GuiMenu extends GuiListModifier<Object> {
 	private static class MenuListElement extends ListElement {
@@ -31,26 +35,27 @@ public class GuiMenu extends GuiListModifier<Object> {
 		}
 
 		@Override
-		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+				float partialTicks) {
 			GuiUtils.drawItemStack(mc.getItemRenderer(), parent, stack, offsetX + 1, offsetY + 1);
-			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
+			super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
-		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		public void drawNext(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+				float partialTicks) {
 			if (GuiUtils.isHover(0, 0, 18, 18, mouseX, mouseY)) {
-				GuiUtils.drawRect(offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
-				parent.renderTooltip(stack, mouseX + offsetX, mouseY + offsetY);
+				GuiUtils.drawRect(matrixStack, offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
+				parent.renderTooltip(matrixStack, stack, mouseX + offsetX, mouseY + offsetY);
 			}
-			super.drawNext(offsetX, offsetY, mouseX, mouseY, partialTicks);
+			super.drawNext(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
 		public boolean match(String search) {
 			search = search.toLowerCase();
-			return stack.getDisplayName().getUnformattedComponentText().toLowerCase().contains(search)
-					|| stack.getItem().getDefaultInstance().getDisplayName().getUnformattedComponentText().toLowerCase()
-							.contains(search);
+			return stack.getDisplayName().getString().toLowerCase().contains(search)
+					|| stack.getItem().getDefaultInstance().getDisplayName().getString().toLowerCase().contains(search);
 		}
 
 		@Override
@@ -62,7 +67,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 						int i = parent.getElements().indexOf(this);
 						parent.addListElement(i, new MenuListElement(parent, stack.copy()));
 					} else
-						mc.displayGuiScreen(new GuiGiver(parent, stack, s -> {
+						mc.setScreen(new GuiGiver(parent, stack, s -> {
 							ItemStack is = ItemUtils.getFromGiveCode(s);
 							if (is != null)
 								stack = is;
@@ -88,46 +93,48 @@ public class GuiMenu extends GuiListModifier<Object> {
 	};
 
 	private Runnable ADD = () -> {
-		getMinecraft().displayGuiScreen(new GuiTypeListSelector(this, "gui.act.modifier.attr.type", is -> {
-			GuiGiver giver = new GuiGiver(this, (ItemStack) null, i -> ADD_STACK.accept(i), false);
-			if (getMinecraft().currentScreen instanceof GuiTypeListSelector)
-				((GuiTypeListSelector) getMinecraft().currentScreen).setParent(giver);
-			giver.setPreText(ItemUtils.getCustomTag(is, ACTMod.TEMPLATE_TAG_NAME, ""));
-			return null;
-		}, ACTMod.getTemplates()));
+		getMinecraft().setScreen(
+				new GuiTypeListSelector(this, new TranslationTextComponent("gui.act.modifier.attr.type"), is -> {
+					GuiGiver giver = new GuiGiver(this, (ItemStack) null, i -> ADD_STACK.accept(i), false);
+					if (getMinecraft().screen instanceof GuiTypeListSelector)
+						((GuiTypeListSelector) getMinecraft().screen).setParent(giver);
+					giver.setPreText(ItemUtils.getCustomTag(is, ACTMod.TEMPLATE_TAG_NAME, ""));
+					return null;
+				}, ACTMod.getTemplates()));
 	};
 
 	@SuppressWarnings("unchecked")
 	public GuiMenu(Screen parent) {
-		super(parent, "gui.act.menu", new ArrayList<>(), o -> {
+		super(parent, new TranslationTextComponent("gui.act.menu"), new ArrayList<>(), o -> {
 		}, true, false, new Tuple[0]);
-		Tuple<?, ?> btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("cmd.act.edit"), new Tuple<>(() -> {
-			final int slot = getMinecraft().player.inventory.currentItem;
-			getMinecraft().displayGuiScreen(new GuiItemStackModifier(this,
-					getMinecraft().player.getHeldItemMainhand().copy(), is -> ItemUtils.give(is, 36 + slot)));
+		Tuple<?, ?> btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("cmd.act.edit"), new Tuple<>(() -> {
+			final int slot = getMinecraft().player.inventory.selected;
+			getMinecraft().setScreen(new GuiItemStackModifier(this, getMinecraft().player.getMainHandItem().copy(),
+					is -> ItemUtils.give(is, 36 + slot)));
 		}, () -> {
 		}));
-		Tuple<?, ?> btn2 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("key.act.giver"),
-				new Tuple<>(() -> Minecraft.getInstance().displayGuiScreen(new GuiGiver(this)), () -> {
+		Tuple<?, ?> btn2 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("key.act.giver"),
+				new Tuple<>(() -> Minecraft.getInstance().setScreen(new GuiGiver(this)), () -> {
 				}));
 
-		Tuple<?, ?> btn3 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.config"),
-				new Tuple<>(() -> mc.displayGuiScreen(new GuiConfig(this)), null));
+		Tuple<?, ?> btn3 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("gui.act.config"),
+				new Tuple<>(() -> mc.setScreen(new GuiConfig(this)), null));
 		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2, btn3 }
 				: new Tuple[] { btn1, btn2, btn3 };
-		addListElement(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
+		addListElement(new ButtonElementList(24, 24, 20, 20,
+				new StringTextComponent("+").withStyle(TextFormatting.GREEN), ADD, null));
 		ACTMod.getCustomItems().forEach(ADD_STACK::accept);
 	}
 
 	@Override
 	protected Object get() {
 		ACTMod.getCustomItems().clear();
-		getElements().stream().filter(le -> le instanceof MenuListElement)
+		getElements().stream().filter(MenuListElement.class::isInstance)
 				.forEach(m -> ACTMod.saveItem(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
 		ACTMod.saveConfigs();
 		return null;
 	}
-	
+
 	@Override
 	public void onClose() {
 		get();

@@ -2,12 +2,13 @@ package fr.atesab.act.utils;
 
 import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.event.ClickEvent;
@@ -26,13 +27,12 @@ public class ChatUtils {
 	/**
 	 * Send an error
 	 * 
-	 * @param error
-	 *            error message
+	 * @param error error message
 	 * @since 2.0
 	 * @see ChatUtils#show(String)
 	 */
 	public static void error(String error) {
-		send(getErrorPrefix().appendText(error));
+		send(getErrorPrefix().append(error));
 	}
 
 	/**
@@ -42,9 +42,9 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getPrefix()
 	 */
-	public static ITextComponent getErrorPrefix() {
-		return getPrefix(new StringTextComponent(I18n.format("gui.act.error"))
-				.setStyle(new Style().setColor(TextFormatting.RED)), TextFormatting.WHITE);
+	public static IFormattableTextComponent getErrorPrefix() {
+		return getPrefix(new TranslationTextComponent("gui.act.error").withStyle(TextFormatting.RED),
+				TextFormatting.WHITE);
 	}
 
 	/**
@@ -54,28 +54,25 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getErrorPrefix()
 	 */
-	public static ITextComponent getPrefix() {
+	public static IFormattableTextComponent getPrefix() {
 		return getPrefix(null, null);
 	}
 
-	private static ITextComponent getPrefix(ITextComponent notif, TextFormatting endColor) {
-		ITextComponent p = new StringTextComponent("")
-				.setStyle(new Style().setColor(endColor != null ? endColor : TextFormatting.WHITE))
-				.appendSibling(new StringTextComponent("[").setStyle(new Style().setColor(TextFormatting.RED))
-						.appendSibling(new StringTextComponent(ACTMod.MOD_LITTLE_NAME)
-								.setStyle(new Style().setColor(TextFormatting.GOLD))));
+	private static IFormattableTextComponent getPrefix(ITextComponent notif, TextFormatting endColor) {
+		IFormattableTextComponent p = new StringTextComponent("")
+				.withStyle(endColor != null ? endColor : TextFormatting.WHITE)
+				.append(new StringTextComponent("[").withStyle(TextFormatting.RED)
+						.append(new StringTextComponent(ACTMod.MOD_LITTLE_NAME).withStyle(TextFormatting.GOLD)));
 		if (notif != null)
-			p.appendSibling(new StringTextComponent("/").setStyle(new Style().setColor(TextFormatting.WHITE)))
-					.appendSibling(notif);
-		return p.appendSibling(new StringTextComponent("]").setStyle(new Style().setColor(TextFormatting.RED)))
-				.appendSibling(new StringTextComponent(" "));
+			p.append(new StringTextComponent("/").withStyle(TextFormatting.WHITE)).append(notif);
+		return p.append(new StringTextComponent("]").withStyle(TextFormatting.RED))
+				.append(new StringTextComponent(" "));
 	}
 
 	/**
 	 * Send a message to say an {@link ItemStack} has been given in the inventory
 	 * 
-	 * @param itemStack
-	 *            the stack
+	 * @param itemStack the stack
 	 * @since 2.0
 	 */
 	public static void itemStack(ItemStack itemStack) {
@@ -85,41 +82,43 @@ public class ChatUtils {
 			item.putInt("Count", itemStack.getCount());
 			if (itemStack.getTag() != null)
 				item.put("tag", itemStack.getTag());
-			send(getPrefix().appendSibling(new TranslationTextComponent("gui.act.give.msg").appendText(": ")
-					.applyTextStyle(s -> s.setColor(TextFormatting.GOLD))
-					.appendSibling(itemStack.getDisplayName().deepCopy().applyTextStyle(style -> {
-						style.setHoverEvent(
-								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new StringTextComponent(item.toString())));
-						style.setClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + ACTMod.ACT_COMMAND.getName() + " "
+			send(getPrefix().append(new TranslationTextComponent("gui.act.give.msg").append(": ")
+					.withStyle(TextFormatting.GOLD).append(itemStack.getDisplayName().copy().withStyle(style -> {
+						style.withHoverEvent(
+								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemHover(itemStack)));
+						style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + ACTMod.ACT_COMMAND.getName() + " "
 								+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName() + " " + ItemUtils.getGiveCode(itemStack)));
+						return style;
 					}))));
 		} else
-			error(I18n.format("gui.act.give.fail2"));
+			error(I18n.get("gui.act.give.fail2"));
 	}
 
 	/**
 	 * Send a {@link ITextComponent} to chat
 	 * 
-	 * @param message
-	 *            The {@link ITextComponent}
+	 * @param message The {@link ITextComponent}
 	 * @since 2.0
 	 * @see ChatUtils#show(String)
 	 * @see ChatUtils#error(String)
 	 */
 	public static void send(ITextComponent message) {
-		if (Minecraft.getInstance().player != null)
-			Minecraft.getInstance().player.sendMessage(message);
+		ClientPlayerEntity plr = Minecraft.getInstance().player;
+		if (plr != null)
+			plr.sendMessage(message, plr.getUUID());
 	}
 
 	/**
 	 * Send a text message
 	 * 
-	 * @param message
-	 *            The message
+	 * @param message The message
 	 * @since 2.0
 	 * @see ChatUtils#error(String)
 	 */
 	public static void show(String message) {
-		send(getPrefix().appendText(message));
+		send(getPrefix().append(message));
+	}
+
+	private ChatUtils() {
 	}
 }

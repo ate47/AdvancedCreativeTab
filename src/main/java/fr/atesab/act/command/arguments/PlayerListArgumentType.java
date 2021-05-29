@@ -10,8 +10,8 @@ import net.minecraft.client.Minecraft;
 public class PlayerListArgumentType extends StringListArgumentType {
 
 	public PlayerListArgumentType() {
-		super(Collections.emptyList(),
-				Arrays.asList(Minecraft.getInstance().getSession().getUsername(), "Notch", "ATE47"), true);
+		super(Collections.emptyList(), Arrays.asList(Minecraft.getInstance().getUser().getName(), "Notch", "ATE47"),
+				true);
 	}
 
 	public static PlayerListArgumentType playerList() {

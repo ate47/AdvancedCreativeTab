@@ -14,7 +14,7 @@ import fr.atesab.act.command.arguments.StringListArgumentType;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
@@ -64,22 +64,20 @@ public class ModdedCommandHelp extends ModdedCommand {
 								String parentName = mainCommand.getGlobalName();
 								if (cmd != null) {
 									count += 3;
-									src.sendFeedback(
-											createText("-- " + I18n.format("cmd.act.help", cmd.getName()) + " --",
-													titleColor),
+									src.sendSuccess(createText("-- " + I18n.get("cmd.act.help", cmd.getName()) + " --",
+											titleColor), false);
+									src.sendSuccess(createTranslatedText(cmd.getDescriptionTranslationKey(), textColor),
 											false);
-									src.sendFeedback(
-											createTranslatedText(cmd.getDescriptionTranslationKey(), textColor), false);
-									src.sendFeedback(
+									src.sendSuccess(
 											createTranslatedText("cmd.act.aliases",
 													titleColor)
-															.appendSibling(createText(": ",
+															.append(createText(": ",
 																	TextFormatting.DARK_GRAY))
-															.appendSibling(createText(
+															.append(createText(
 																	cmd.getAliases().stream()
 																			.filter(s -> !s.equals(cmd.getName()))
 																			.collect(Collectors.joining(", ")),
-																	textColor)),
+																	textColor)), // appendSibling
 											false);
 									Map<CommandNode<CommandSource>, String> usages = getDispatcher()
 											.getSmartUsage(cmd.getNode(), src);
@@ -93,8 +91,8 @@ public class ModdedCommandHelp extends ModdedCommand {
 										}
 
 								} else {
-									src.sendErrorMessage(createText(
-											I18n.format("cmd.act.mc.invalid", "/" + parentName + " " + getName()),
+									src.sendFailure(createText(
+											I18n.get("cmd.act.mc.invalid", "/" + parentName + " " + getName()),
 											TextFormatting.RED));
 									return count + 1;
 								}
@@ -109,7 +107,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 		return c -> {
 			CommandSource src = c.getSource();
 			int count = 1;
-			src.sendFeedback(createText("-- " + I18n.format("cmd.act.help", title) + " --", titleColor), false);
+			src.sendSuccess(createText("-- " + I18n.get("cmd.act.help", title) + " --", titleColor), false);
 			Map<CommandNode<CommandSource>, String> usages;
 			String parentName = mainCommand.getGlobalName();
 			for (ModdedCommand command : mainCommand.getSubCommands()) {
@@ -131,7 +129,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 
 	private void showCommand(ModdedCommand command, CommandSource src, String name, String usage,
 			boolean showDescription) {
-		ITextComponent component;
+		IFormattableTextComponent component;
 
 		if (usage.isEmpty())
 			component = createText(name, commandColor);
@@ -139,22 +137,18 @@ public class ModdedCommandHelp extends ModdedCommand {
 			component = createText(name + " " + usage, commandColor);
 
 		if (command.getClickOption() == CommandClickOption.doCommand)
-			component.applyTextStyle(style -> {
-				style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						createTranslatedText("cmd.act.help.do", titleColor)));
-				style.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, name));
-			});
+			component = component.withStyle(s -> s.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, // SHOW_TEXT
+					createTranslatedText("cmd.act.help.do", titleColor)))
+					.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, name)));
 		else
-			component.applyTextStyle(style -> {
-				style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-						createTranslatedText("cmd.act.help.click", titleColor)));
-				style.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, name + " "));
-			});
+			component = component.withStyle(s -> s.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, // SHOW_TEXT
+					createTranslatedText("cmd.act.help.click", titleColor)))
+					.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, name + " ")));
 		if (showDescription)
-			src.sendFeedback(component.appendSibling(createText(": ", TextFormatting.DARK_GRAY))
-					.appendSibling(createTranslatedText(command.getDescriptionTranslationKey(), textColor)), false);
+			src.sendSuccess(component.append(createText(": ", TextFormatting.DARK_GRAY))
+					.append(createTranslatedText(command.getDescriptionTranslationKey(), textColor)), false);
 		else
-			src.sendFeedback(component, false);
+			src.sendSuccess(component, false);
 	}
 
 }

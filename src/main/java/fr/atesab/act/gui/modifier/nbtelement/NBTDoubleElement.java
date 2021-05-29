@@ -16,7 +16,7 @@ public class NBTDoubleElement extends NBTNumericElement<Double> {
 
 	@Override
 	public INBT get(Double value) {
-		return DoubleNBT.func_229684_a_(value);
+		return DoubleNBT.valueOf(value);
 	}
 
 	@Override

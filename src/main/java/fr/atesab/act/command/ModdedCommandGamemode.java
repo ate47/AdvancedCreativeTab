@@ -30,14 +30,14 @@ public class ModdedCommandGamemode extends ModdedCommand {
 		for (GameType gametype : GameType.values())
 			if (gametype != GameType.NOT_SET) {
 				command.then(Commands.literal(gametype.getName()).executes(c -> {
-					Minecraft.getInstance().player.sendChatMessage("/gamemode " + gametype.getName().toLowerCase());
+					Minecraft.getInstance().player.chat("/gamemode " + gametype.getName().toLowerCase());
 					return 0;
 				}));
 			}
 		// /gm 0,1,2,3
 		return command.then(Commands
 				.argument("gamemodeid", IntegerArgumentType.integer(0, GameType.values().length - 2)).executes(c -> {
-					Minecraft.getInstance().player.sendChatMessage(
+					Minecraft.getInstance().player.chat(
 							"/gamemode " + GameType.values()[1 + IntegerArgumentType.getInteger(c, "gamemodeid")]);
 					return 0;
 				}));

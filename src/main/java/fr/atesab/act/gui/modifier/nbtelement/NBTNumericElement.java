@@ -4,6 +4,7 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.INBT;
+import net.minecraft.util.text.StringTextComponent;
 
 public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	private T value;
@@ -14,8 +15,8 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 		super(parent, key, Math.max(sizeX, 200), Math.max(sizeY, 21));
 		this.value = value;
 		this.type = type;
-		fieldList.add(field = new TextFieldWidget(font, 2, 2, 196, 16, ""));
-		field.setText(String.valueOf(value));
+		fieldList.add(field = new TextFieldWidget(font, 2, 2, 196, 16, new StringTextComponent("")));
+		field.setValue(String.valueOf(value));
 	}
 
 	public NBTNumericElement(String type, GuiListModifier<?> parent, String key, T value) {
@@ -51,7 +52,7 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor." + type);
+		return I18n.get("gui.act.modifier.tag.editor." + type);
 	}
 
 	public T getValue() {
@@ -64,17 +65,17 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 
 	@Override
 	public boolean match(String search) {
-		return field.getText().toLowerCase().contains(search.toLowerCase()) || super.match(search);
+		return field.getValue().toLowerCase().contains(search.toLowerCase()) || super.match(search);
 	}
 
 	@Override
 	public boolean charTyped(char key, int modifiers) {
 		if (super.charTyped(key, modifiers)) {
 			try {
-				if (field.getText().isEmpty())
+				if (field.getValue().isEmpty())
 					setNull();
 				else
-					value = parseValue(field.getText());
+					value = parseValue(field.getValue());
 				field.setTextColor(0xffffffff);
 			} catch (NumberFormatException e) {
 				field.setTextColor(0xffff0000);
@@ -88,10 +89,10 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 	public boolean keyPressed(int key, int scanCode, int modifiers) {
 		if (super.keyPressed(key, scanCode, modifiers)) {
 			try {
-				if (field.getText().isEmpty())
+				if (field.getValue().isEmpty())
 					setNull();
 				else
-					value = parseValue(field.getText());
+					value = parseValue(field.getValue());
 				field.setTextColor(0xffffffff);
 			} catch (NumberFormatException e) {
 				field.setTextColor(0xffff0000);
@@ -107,7 +108,7 @@ public abstract class NBTNumericElement<T extends Number> extends NBTElement {
 
 	public void updateValue(T value) {
 		this.value = value;
-		field.setText("" + value);
+		field.setValue("" + value);
 		field.setTextColor(0xffffffff);
 	}
 

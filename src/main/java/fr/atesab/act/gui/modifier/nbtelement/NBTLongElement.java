@@ -16,7 +16,7 @@ public class NBTLongElement extends NBTNumericElement<Long> {
 
 	@Override
 	public INBT get(Long value) {
-		return LongNBT.func_229698_a_(value);
+		return LongNBT.valueOf(value);
 	}
 	@Override
 	public void setNull() {

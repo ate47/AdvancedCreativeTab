@@ -15,6 +15,7 @@ public class ModdedCommandACT extends ModdedCommand {
 	public final ModdedCommandRename SC_RENAME;
 	public final ModdedCommandHead SC_HEAD;
 	public final ModdedCommandRandomFireWorks SC_RANDOM_FIREWORKS;
+	public final ModdedCommandInfo SC_INFO;
 
 	public ModdedCommandACT() {
 		super(ACTMod.MOD_ID);
@@ -31,5 +32,6 @@ public class ModdedCommandACT extends ModdedCommand {
 				.addAlias("om"));
 		registerSubCommand(SC_RANDOM_FIREWORKS = new ModdedCommandRandomFireWorks());
 		registerSubCommand(SC_RENAME = new ModdedCommandRename());
+		registerSubCommand(SC_INFO = new ModdedCommandInfo());
 	}
 }

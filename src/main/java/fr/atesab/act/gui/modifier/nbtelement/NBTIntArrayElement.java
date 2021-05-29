@@ -6,6 +6,8 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.IntArrayNBT;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class NBTIntArrayElement extends NBTElement {
 	private IntArrayNBT value;
@@ -13,10 +15,12 @@ public class NBTIntArrayElement extends NBTElement {
 	public NBTIntArrayElement(GuiListModifier<?> parent, String key, IntArrayNBT value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(new Button(0, 0, 200, 20, I18n.format("gui.act.modifier.tag.editor.intArray"), b -> {
-			mc.displayGuiScreen(new GuiNBTIntArrayModifier(parent.getStringTitle() + key + "/", parent,
-					tag -> NBTIntArrayElement.this.value = tag, value.copy()));
-		}));
+		buttonList.add(
+				new Button(0, 0, 200, 20, new TranslationTextComponent("gui.act.modifier.tag.editor.intArray"), b -> {
+					mc.setScreen(
+							new GuiNBTIntArrayModifier(new StringTextComponent(parent.getStringTitle() + key + "/"),
+									parent, tag -> NBTIntArrayElement.this.value = tag, value.copy()));
+				}));
 	}
 
 	@Override
@@ -31,7 +35,7 @@ public class NBTIntArrayElement extends NBTElement {
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor.intArray") + "[" + value.getIntArray().length + "]";
+		return I18n.get("gui.act.modifier.tag.editor.intArray") + "[" + value.size() + "]";
 	}
 
 }

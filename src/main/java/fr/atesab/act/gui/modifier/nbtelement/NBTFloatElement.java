@@ -16,7 +16,7 @@ public class NBTFloatElement extends NBTNumericElement<Float> {
 
 	@Override
 	public INBT get(Float value) {
-		return FloatNBT.func_229689_a_(value);
+		return FloatNBT.valueOf(value);
 	}
 	
 	@Override

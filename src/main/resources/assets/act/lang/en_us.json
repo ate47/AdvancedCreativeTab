@@ -166,6 +166,13 @@
     "cmd.act.rename": "Rename inhand item",
     "cmd.act.head": "Give a head",
     "cmd.act.aliases" : "Aliases",
+    "cmd.act.info": "Mod info",
+    "cmd.act.info.title": "Mod",
+    "cmd.act.info.version": "Version",
+    "cmd.act.info.authors": "Author(s)",
+    "cmd.act.info.licence": "License",
+    "cmd.act.info.link": "Link",
+    "cmd.act.info.link.open": "Click to open the link",
 
     "cmd.act.error.noargument": "This command take arguments!"
 }

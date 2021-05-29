@@ -29,11 +29,11 @@ public class ItemReader {
 								.<StackReference, Integer>argument("count", IntegerArgumentType.integer())
 								.executes(ctx -> {
 									ctx.getSource().stack = ItemArgument.getItem(ctx, "item")
-											.createStack(IntegerArgumentType.getInteger(ctx, "count"), false);
+											.createItemStack(IntegerArgumentType.getInteger(ctx, "count"), false);
 									return 1;
 								}))
 						.executes(ctx -> {
-							ctx.getSource().stack = ItemArgument.getItem(ctx, "item").createStack(1, false);
+							ctx.getSource().stack = ItemArgument.getItem(ctx, "item").createItemStack(1, false);
 							return 1;
 						})));
 	}
@@ -41,8 +41,7 @@ public class ItemReader {
 	/**
 	 * read an item from a give code
 	 * 
-	 * @param giveCode
-	 *            the give code
+	 * @param giveCode the give code
 	 * @return the parsed item
 	 */
 	public ItemStack readItem(String giveCode) {

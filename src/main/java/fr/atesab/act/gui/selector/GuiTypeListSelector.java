@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.text.ITextComponent;
 
 public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
@@ -25,13 +26,13 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		@Override
 		public boolean match(String search) {
 			String s = search.toLowerCase();
-			return itemStack.getDisplayName().getUnformattedComponentText().toLowerCase().contains(s)
+			return itemStack.getDisplayName().getString().toLowerCase().contains(s)
 					|| itemStack.getItem().getRegistryName().toString().toLowerCase().contains(s);
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter) {
+	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter) {
 		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		NonNullList<ItemStack> stacks = NonNullList.create();
 		Registry.ITEM.forEach(i -> // Item.REGISTRY
@@ -39,13 +40,13 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		stacks.forEach(stack -> addListElement(new TypeListElement(this, stack)));
 	}
 
-	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter,
+	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter,
 			NonNullList<ItemStack> stacks) {
 		this(parent, name, setter, stacks.stream());
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiTypeListSelector(Screen parent, String name, Function<ItemStack, Screen> setter,
+	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter,
 			Stream<ItemStack> stacks) {
 		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		stacks.forEach(stack -> addListElement(new TypeListElement(this, stack)));
