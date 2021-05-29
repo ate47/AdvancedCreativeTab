@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Multimap;
+import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -55,6 +56,8 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
@@ -701,9 +704,17 @@ public class ItemUtils {
 		CompoundNBT display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
 		ListNBT nbtTagList = display.getList("Lore", 8);
 		String[] array = new String[nbtTagList.size()];
-		for (int i = 0; i < array.length; i++)
-			array[i] = unformatLore(nbtTagList.getString(i));
-		display.put("Lore", nbtTagList);
+		for (int j = 0; j < nbtTagList.size(); ++j) {
+			String s = nbtTagList.getString(j);
+			array[j] = "";
+			try {
+				IFormattableTextComponent iformattabletextcomponent1 = ITextComponent.Serializer.fromJson(s);
+				if (iformattabletextcomponent1 != null) {
+					array[j] = iformattabletextcomponent1.getString();
+				}
+			} catch (JsonParseException jsonparseexception) {
+			}
+		}
 		return array;
 	}
 
@@ -1085,8 +1096,9 @@ public class ItemUtils {
 	public static ItemStack setLore(ItemStack stack, String[] lore) {
 		ListNBT nbtTagList = new ListNBT();
 		for (String l : lore)
-			nbtTagList.add(StringNBT.valueOf(l));
-		stack.getOrCreateTagElement(NBT_CHILD_DISPLAY).put("Lore", nbtTagList);
+			nbtTagList.add(StringNBT.valueOf(ITextComponent.Serializer.toJson(new StringTextComponent(l))));
+		CompoundNBT display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
+		display.put("Lore", nbtTagList);
 		return stack;
 	}
 
