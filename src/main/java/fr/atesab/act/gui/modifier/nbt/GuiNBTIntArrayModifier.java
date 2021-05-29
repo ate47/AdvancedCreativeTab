@@ -23,7 +23,7 @@ public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> {
 		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = new ArrayList<>();
 		String k = "...";
-		for (int i : array.toArray(Integer[]::new)) {
+		for (int i : array.getAsIntArray()) {
 			addListElement(new NBTIntegerElement(this, k, i));
 			list.add(i);
 		}
