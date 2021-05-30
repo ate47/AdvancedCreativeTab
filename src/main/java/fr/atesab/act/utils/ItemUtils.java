@@ -36,7 +36,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.attributes.Attribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.FireworkRocketItem.Shape;
@@ -59,7 +58,6 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -71,6 +69,9 @@ import net.minecraftforge.registries.ForgeRegistries;
  * @since 2.0
  */
 public class ItemUtils {
+	/**
+	 * Attribute data
+	 */
 	public static class AttributeData {
 		private EquipmentSlotType slot;
 		private AttributeModifier modifier;
@@ -156,6 +157,12 @@ public class ItemUtils {
 		/**
 		 * Create an {@link ExplosionInformation}
 		 * 
+		 * @param type       the type of the explosion
+		 * @param trail      if the explosion has a trail
+		 * @param flicker    if the explosion has a flicker
+		 * @param colors     the explosion colors
+		 * @param fadeColors the explosion fadeColors
+		 * 
 		 * @since 2.0
 		 */
 		public ExplosionInformation(int type, boolean trail, boolean flicker, int[] colors, int[] fadeColors) {
@@ -164,6 +171,12 @@ public class ItemUtils {
 
 		/**
 		 * Create an {@link ExplosionInformation}
+		 * 
+		 * @param type       the type of the explosion
+		 * @param trail      if the explosion has a trail
+		 * @param flicker    if the explosion has a flicker
+		 * @param colors     the explosion colors
+		 * @param fadeColors the explosion fadeColors
 		 * 
 		 * @since 2.1
 		 */
@@ -378,9 +391,7 @@ public class ItemUtils {
 
 	private static final ItemReader ITEM_READER = new ItemReader();
 	private static final Random RANDOM = ACTMod.RANDOM;
-	/*
-	 * Caches are made to avoid the waiting time between requests to Mojang API
-	 */
+	// Caches are made to avoid the waiting time between requests to Mojang API
 	private static final Map<String, Tuple<Long, CompoundNBT>> SKIN_CACHE = new HashMap<>();
 	private static final Map<String, Tuple<Long, String>> UUID_CACHE = new HashMap<>();
 
@@ -396,16 +407,15 @@ public class ItemUtils {
 	/**
 	 * Create a custom stack
 	 * 
-	 * @param block
-	 * @param count
-	 * @param name
-	 * @param lore
+	 * @param block        the stack block
+	 * @param count        the stack count
+	 * @param name         the stack display name
+	 * @param lore         the lore of the stack
 	 * @param enchantments Array of {@link Tuple} of {@link Enchantment} with there
 	 *                     level
 	 * @return your stack
-	 * @see #buildStack(Item, int, int, String, String[], Tuple...)
+	 * @see #buildStack(Item, int, String, String[], Tuple[])
 	 */
-	@SuppressWarnings("deprecation")
 	public static ItemStack buildStack(Block block, int count, @Nullable String name, @Nullable String[] lore,
 			@Nullable Tuple<Enchantment, Integer>[] enchantments) {
 		return buildStack(block.asItem(), count, name, lore, enchantments);
@@ -414,14 +424,14 @@ public class ItemUtils {
 	/**
 	 * Create a custom stack
 	 * 
-	 * @param item
-	 * @param count
-	 * @param name
-	 * @param lore
+	 * @param item         the stack item
+	 * @param count        the stack count
+	 * @param name         the stack display name
+	 * @param lore         the lore of the stack
 	 * @param enchantments Array of {@link Tuple} of {@link Enchantment} with there
 	 *                     level
 	 * @return your stack
-	 * @see #buildStack(Block, int, int, String, String[], Tuple...)
+	 * @see #buildStack(Block, int, String, String[], Tuple[])
 	 * @since 2.0
 	 */
 	public static ItemStack buildStack(Item item, int count, @Nullable String name, @Nullable String[] lore,
@@ -439,6 +449,7 @@ public class ItemUtils {
 	/**
 	 * Check if the player have a clear slot in his hotbar
 	 * 
+	 * @param mc the game
 	 * @return true if a slot is clear
 	 * @since 2.0
 	 */
@@ -452,6 +463,8 @@ public class ItemUtils {
 	/**
 	 * Get a list of tuples of Slot / Attribute of a stack
 	 * 
+	 * @param stack the stack to read
+	 * @return the attributes
 	 * @since 2.0
 	 * @see #setAttributes(List, ItemStack)
 	 */
@@ -466,6 +479,9 @@ public class ItemUtils {
 
 	/**
 	 * Get Leather armor integer color (10511680 if no color has been found)
+	 * 
+	 * @param stack the stack to read
+	 * @return the color of the stack
 	 */
 	public static int getColor(ItemStack stack) {
 		CompoundNBT tag = stack.getTag();
@@ -478,6 +494,10 @@ public class ItemUtils {
 	/**
 	 * Get a custom String tag at the nbt root of a stack or a default value
 	 * 
+	 * @param stack        the custom tag
+	 * @param key          the key
+	 * @param defaultValue the default value
+	 * @return the value
 	 * @since 2.0
 	 * @see #setCustomTag(ItemStack, String, String)
 	 */
@@ -491,6 +511,8 @@ public class ItemUtils {
 	/**
 	 * Get {@link Enchantment}s of an {@link ItemStack}
 	 * 
+	 * @param stack the stack to read
+	 * @return the enchantments
 	 * @see #setEnchantments(List, ItemStack)
 	 * @see #getEnchantments(ItemStack)
 	 * @since 2.0
@@ -503,8 +525,9 @@ public class ItemUtils {
 	 * Get {@link Enchantment}s of an {@link ItemStack} with checking if it is a
 	 * book
 	 * 
-	 * @param stack
+	 * @param stack the stack to read
 	 * @param book  if this stack is a book or not
+	 * @return the enchantments
 	 * @see #setEnchantments(List, ItemStack, boolean)
 	 * @see #getEnchantments(ItemStack)
 	 * @since 2.0
@@ -535,6 +558,9 @@ public class ItemUtils {
 	 * Get {@link ExplosionInformation} from a tag, if the tag is null a
 	 * legit-random explosion will be return
 	 * 
+	 * @param explosion get an explosion from a tag, null for a random explosion
+	 * @return the explosion
+	 * 
 	 * @since 2.1
 	 */
 	public static ExplosionInformation getExplosionInformation(@Nullable CompoundNBT explosion) {
@@ -543,6 +569,9 @@ public class ItemUtils {
 
 	/**
 	 * Get an {@link ItemStack} from a give code (like after a /give player (code))
+	 * 
+	 * @param code the item code
+	 * @return the item stack
 	 * 
 	 * @since 2.0
 	 * @see #getGiveCode(ItemStack)
@@ -556,6 +585,9 @@ public class ItemUtils {
 	/**
 	 * Get a give code from a {@link ItemStack} (like after a /give player (code))
 	 * 
+	 * @param itemStack the stack
+	 * @return the give code
+	 * 
 	 * @since 2.0
 	 * @see #getFromGiveCode(String)
 	 */
@@ -565,6 +597,10 @@ public class ItemUtils {
 
 	/**
 	 * Get a give code from a {@link ItemStack} (like after a /give player (code))
+	 * 
+	 * @param itemStack the stack
+	 * @param showCount the count
+	 * @return the give code
 	 * 
 	 * @since 2.0
 	 * @see #getFromGiveCode(String)
@@ -580,11 +616,18 @@ public class ItemUtils {
 	/**
 	 * Change a head with new skin information given by name
 	 * 
+	 * @param is   the stack to fill
+	 * @param name the head name
+	 * @return the item stack
+	 * 
 	 * @since 2.0
 	 * @see #getHead(String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
 	 * @see #getHeads(String...)
+	 * @throws IOException if an error occured while asking the profile
+	 * @throws CommandSyntaxException if an error occured while parsing the profile
+	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
 	public static ItemStack getHead(ItemStack is, String name)
 			throws IOException, CommandSyntaxException, NoSuchElementException {
@@ -598,6 +641,12 @@ public class ItemUtils {
 
 	/**
 	 * Change a head with new skin information given by uuid, url and name
+	 * 
+	 * @param is   the stack to fill
+	 * @param uuid the head uuid
+	 * @param url  the head url
+	 * @param name the head name
+	 * @return the item stack
 	 * 
 	 * @since 2.0
 	 * @see #getHead(String)
@@ -624,11 +673,17 @@ public class ItemUtils {
 	/**
 	 * Create a head with skin information given by name
 	 * 
+	 * @param name the head name
+	 * @return the item stack
+	 * 
 	 * @since 2.0
 	 * @see #getHead(ItemStack, String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
 	 * @see #getHeads(String...)
+	 * @throws IOException if an error occured while asking the profile
+	 * @throws CommandSyntaxException if an error occured while parsing the profile
+	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
 	public static ItemStack getHead(String name) throws IOException, CommandSyntaxException, NoSuchElementException {
 		return getHead(new ItemStack(Items.PLAYER_HEAD, 1), name);
@@ -636,6 +691,11 @@ public class ItemUtils {
 
 	/**
 	 * Create a head with skin information given by uuid, url and name
+	 * 
+	 * @param uuid the head uuid
+	 * @param url  the head url
+	 * @param name the head name
+	 * @return the item stack
 	 * 
 	 * @since 2.0
 	 * @see #getHead(String)
@@ -650,11 +710,17 @@ public class ItemUtils {
 	/**
 	 * Create a heads with skin information given by names
 	 * 
+	 * @param players the player to get the head
+	 * @return the item heads
+	 * 
 	 * @since 2.0
 	 * @see #getHead(String)
 	 * @see #getHead(ItemStack, String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
+	 * @throws IOException if an error occured while asking the profile
+	 * @throws CommandSyntaxException if an error occured while parsing the profile
+	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
 	public static List<ItemStack> getHeads(Collection<ClientPlayerEntity> players)
 			throws IOException, CommandSyntaxException, NoSuchElementException {
@@ -664,11 +730,17 @@ public class ItemUtils {
 	/**
 	 * Create a heads with skin information given by names
 	 * 
+	 * @param names the name of the players
+	 * @return the item heads
+	 * 
 	 * @since 2.0
 	 * @see #getHead(String)
 	 * @see #getHead(ItemStack, String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
+	 * @throws IOException if an error occured while asking the profile
+	 * @throws CommandSyntaxException if an error occured while parsing the profile
+	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
 	public static List<ItemStack> getHeads(String... names)
 			throws IOException, CommandSyntaxException, NoSuchElementException {
@@ -688,14 +760,11 @@ public class ItemUtils {
 		return stacks;
 	}
 
-	private static String unformatLore(String format) {
-		return format.startsWith("\"") && format.endsWith("\"") && format.length() > 1
-				? format.substring(1, format.length() - 1)
-				: format;
-	}
-
 	/**
 	 * Get lore(description) of an {@link ItemStack}
+	 * 
+	 * @param stack the stack to read
+	 * @return the lore
 	 * 
 	 * @since 2.0
 	 * @see #setLore(ItemStack, String[])
@@ -756,7 +825,7 @@ public class ItemUtils {
 		int exp = RANDOM.nextInt(7 - flight) + 1; // a number between 1 and 7 - flight (number of additional
 													// gunpowder) -> (number of explosion)
 		for (int i = 0; i < exp; i++)
-			explosions.add(new ExplosionInformation().getTag());
+			explosions.add(getExplosionInformation(null).getTag());
 		fwt.put(NBT_CHILD_EXPLOSIONS, explosions);
 		ItemStack fw = new ItemStack(Items.FIREWORK_ROCKET);
 		CompoundNBT tag = new CompoundNBT();
@@ -777,8 +846,8 @@ public class ItemUtils {
 	 * 
 	 * @param uuid Player's UUID
 	 * @return skin information
-	 * @throws IOException
-	 * @throws CommandSyntaxException
+	 * @throws IOException if an error occured while asking the profile
+	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @since 2.0
 	 */
 	public static CompoundNBT getSkinInformationFromUUID(String uuid) throws IOException, CommandSyntaxException {
@@ -814,8 +883,8 @@ public class ItemUtils {
 	 * 
 	 * @param names Players' names
 	 * @return List of name find
-	 * @throws IOException
-	 * @throws CommandSyntaxException
+	 * @throws IOException if an error occured while downloading the uuid
+	 * @throws CommandSyntaxException if an error occured while parsing the uuid
 	 * @since 2.0
 	 */
 	public static List<Tuple<String, String>> getUUIDByNames(String... names)
@@ -854,7 +923,7 @@ public class ItemUtils {
 	/**
 	 * Try to give an item in the hotbar
 	 * 
-	 * @param stack
+	 * @param stack the stack
 	 * @since 2.0
 	 * @see #give(ItemStack, int)
 	 */
@@ -865,6 +934,8 @@ public class ItemUtils {
 	/**
 	 * Try to give an item in a slot
 	 * 
+	 * @param stack the stack
+	 * @param slot  the slot to fill
 	 * @since 2.1
 	 * @see #give(ItemStack)
 	 */
@@ -875,19 +946,23 @@ public class ItemUtils {
 	/**
 	 * Try to give an item in the hotbar
 	 * 
-	 * @param stack
+	 * @param stacks the stacks to give
 	 * @since 2.0
 	 * @see #give(ItemStack, int)
 	 */
-	public static void give(List<ItemStack> stack) {
-		give(Minecraft.getInstance(), stack);
+	public static void give(List<ItemStack> stacks) {
+		give(Minecraft.getInstance(), stacks);
 	}
 
 	/**
 	 * Try to give an item in the hotbar
 	 * 
+	 * @param mc    the game
+	 * @param stack the stack to give
+	 * 
 	 * @since 2.0
 	 * @see #give(ItemStack)
+	 * @deprecated use {@link #give(ItemStack)} instead
 	 */
 	@Deprecated
 	public static void give(Minecraft mc, ItemStack stack) {
@@ -909,8 +984,12 @@ public class ItemUtils {
 	/**
 	 * Try to give an item in a slot
 	 * 
+	 * @param mc    the game
+	 * @param stack the stack to give
+	 * @param slot  the slot to fill
 	 * @since 2.0
 	 * @see #give(ItemStack, int)
+	 * @deprecated use {@link #give(ItemStack, int)} instead
 	 */
 	@Deprecated
 	public static void give(Minecraft mc, ItemStack stack, int slot) {
@@ -923,16 +1002,19 @@ public class ItemUtils {
 	/**
 	 * Try to give an item in the hotbar
 	 * 
+	 * @param mc     the game
+	 * @param stacks the stacks to give
 	 * @since 2.0
 	 * @see #give(ItemStack)
+	 * @deprecated use {@link #give(List)} instead
 	 */
 	@Deprecated
-	public static void give(Minecraft mc, List<ItemStack> stack) {
+	public static void give(Minecraft mc, List<ItemStack> stacks) {
 		if (mc.player != null && mc.player.isCreative()) {
 			int i = 0, j = 0;
 			ItemStack is;
-			stacks: for (; j < stack.size(); j++) {
-				is = stack.get(j);
+			stacks: for (; j < stacks.size(); j++) {
+				is = stacks.get(j);
 				for (; i < 9; i++) {
 					if (mc.player.inventory.items.get(i).isEmpty()) {
 						give(mc, is, 36 + i);
@@ -994,6 +1076,10 @@ public class ItemUtils {
 	/**
 	 * Set a list of tuples of Slot / Attribute to a stack
 	 * 
+	 * @param attributes the attributes to set
+	 * @param stack      the stack to update
+	 * @return the stack
+	 * 
 	 * @since 2.0
 	 * @see #getAttributes(ItemStack)
 	 */
@@ -1024,6 +1110,11 @@ public class ItemUtils {
 	/**
 	 * Set or create a custom String tag at the nbt root of a stack
 	 * 
+	 * @param stack the stack to set
+	 * @param key   the key
+	 * @param value the value to set
+	 * @return the stack
+	 * 
 	 * @since 2.0
 	 * @see #getCustomTag(ItemStack, String, String)
 	 */
@@ -1038,6 +1129,10 @@ public class ItemUtils {
 	/**
 	 * Set {@link Enchantment}s of an {@link ItemStack}
 	 * 
+	 * @param enchantments the enchantments to set
+	 * @param stack        the stack to fill
+	 * @return the stack
+	 * 
 	 * @see #setEnchantments(List, ItemStack, boolean)
 	 * @see #getEnchantments(ItemStack)
 	 * @since 2.0
@@ -1050,9 +1145,10 @@ public class ItemUtils {
 	 * Set {@link Enchantment}s of an {@link ItemStack} with checking if it is a
 	 * book
 	 * 
-	 * @param enchantments
-	 * @param stack
+	 * @param enchantments the enchantments to set
+	 * @param stack        the stack to fill
 	 * @param book         if this stack is a book or not
+	 * @return the stack
 	 * @see #setEnchantments(List, ItemStack)
 	 * @see #getEnchantments(ItemStack, boolean)
 	 * @since 2.0
@@ -1090,6 +1186,9 @@ public class ItemUtils {
 	/**
 	 * Set lore(description) of a {@link ItemStack}
 	 * 
+	 * @param stack Set stack to set
+	 * @param lore the lore to set
+	 * @return Your new stack
 	 * @since 2.0
 	 * @see #getLore(ItemStack)
 	 */

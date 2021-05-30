@@ -63,7 +63,7 @@ public class GuiUtils {
 	/**
 	 * Set clipboard text
 	 * 
-	 * @param text
+	 * @param text the text to set
 	 * @since 2.0
 	 */
 	public static void addToClipboard(String text) {
@@ -75,7 +75,7 @@ public class GuiUtils {
 	/**
 	 * Display a {@link Screen} with delay if in chat (to avoid screen close)
 	 * 
-	 * @param screen
+	 * @param screen the screen to show
 	 * @see GuiUtils#displayScreen(Screen, boolean)
 	 * @since 2.0
 	 */
@@ -86,9 +86,9 @@ public class GuiUtils {
 	/**
 	 * Display a {@link Screen} with delay if in chat (to avoid screen close)
 	 * 
-	 * @param screen
+	 * @param screen     the screen to show
 	 * @param forceDelay force the delay if the currentScreen isn't a
-	 *                   {@link GuiChat}
+	 *                   {@link ChatScreen}
 	 * @see GuiUtils#displayScreen(Screen)
 	 * @since 2.0
 	 */
@@ -102,6 +102,12 @@ public class GuiUtils {
 
 	/**
 	 * Draw a box on the screen
+	 * 
+	 * @param x      x tl location
+	 * @param y      y tl location
+	 * @param width  box width
+	 * @param height box height
+	 * @param zLevel zlevel of the screen
 	 * 
 	 * @since 2.0
 	 */
@@ -141,9 +147,14 @@ public class GuiUtils {
 	/**
 	 * Draw a String centered
 	 * 
+	 * @param font  font renderer
+	 * @param text  the text
+	 * @param x     x text location
+	 * @param y     y text location
+	 * @param color text color
 	 * @since 2.0
-	 * @see #drawCenterString(font, String, int, int, int, int)
-	 * @see #drawRightString(font, String, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int)
 	 */
 	public static void drawCenterString(FontRenderer font, String text, int x, int y, int color) {
 		drawCenterString(font, text, x, y, color, font.lineHeight);
@@ -152,15 +163,15 @@ public class GuiUtils {
 	/**
 	 * Draw a String centered of a vertical segment
 	 * 
-	 * @param font
-	 * @param text
-	 * @param x
-	 * @param y
-	 * @param color
+	 * @param font   font renderer
+	 * @param text   the text
+	 * @param x      x text location
+	 * @param y      y text location
+	 * @param color  text color
 	 * @param height segment length
 	 * @since 2.0
-	 * @see #drawCenterString(font, String, int, int, int)
-	 * @see #drawString(font, String, int, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int)
+	 * @see #drawString(FontRenderer, String, int, int, int, int)
 	 */
 	public static void drawCenterString(FontRenderer font, String text, int x, int y, int color, int height) {
 		drawString(font, text, x - font.width(text) / 2, y, color, height);
@@ -168,6 +179,14 @@ public class GuiUtils {
 
 	/**
 	 * Draw a rectangle with a vertical gradient
+	 * 
+	 * @param left       left location
+	 * @param top        top location
+	 * @param right      right location
+	 * @param bottom     bottom location
+	 * @param startColor startColor color
+	 * @param endColor   endColor color
+	 * @param zLevel     zLevel of the screen
 	 * 
 	 * @see #drawGradientRect(int, int, int, int, int, int, int, int, float)
 	 * @since 2.0
@@ -207,6 +226,16 @@ public class GuiUtils {
 
 	/**
 	 * Draw a gradient rectangle
+	 * 
+	 * @param left        left location
+	 * @param top         top location
+	 * @param right       right location
+	 * @param bottom      bottom location
+	 * @param leftColor   leftColor color
+	 * @param topColor    topColor color
+	 * @param rightColor  rightColor color
+	 * @param bottomColor bottomColor color
+	 * @param zLevel      zLevel of the screen
 	 * 
 	 * @see #drawGradientRect(int, int, int, int, int, int, float)
 	 * @since 2.0
@@ -254,6 +283,11 @@ public class GuiUtils {
 	/**
 	 * Draw an {@link ItemStack} on a {@link Screen}
 	 * 
+	 * @param itemRender the renderer
+	 * @param itemstack  the stack
+	 * @param x          the x location
+	 * @param y          the y location
+	 * 
 	 * @since 2.1.1
 	 */
 	@SuppressWarnings("deprecation")
@@ -270,6 +304,12 @@ public class GuiUtils {
 	/**
 	 * Draw an {@link ItemStack} on a {@link Screen}
 	 * 
+	 * @param itemRender the renderer
+	 * @param screen     the screen
+	 * @param itemstack  the stack
+	 * @param x          the x location
+	 * @param y          the y location
+	 * 
 	 * @since 2.0
 	 */
 	@SuppressWarnings("deprecation")
@@ -285,15 +325,29 @@ public class GuiUtils {
 
 	/**
 	 * Draws a solid color rectangle with the specified coordinates and color.
+	 * 
+	 * @param stack  the matrix stack
+	 * @param left   left location
+	 * @param top    top location
+	 * @param right  right location
+	 * @param bottom bottom location
+	 * @param color  the color
 	 */
 	public static void drawRect(MatrixStack stack, int left, int top, int right, int bottom, int color) {
 		AbstractGui.fill(stack, left, top, right, bottom, color);
 	}
 
 	/**
-	 * Draw relatively a {@link GuiTextField}
+	 * Draw relatively a {@link Widget}
 	 * 
-	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
+	 * @param stack        the matrix stack
+	 * @param field        the field
+	 * @param offsetX      the x offset
+	 * @param offsetY      the y offset
+	 * @param mouseX       the mouse X location
+	 * @param mouseY       the mouse Y location
+	 * @param partialTicks the partialTicks of the render
+	 * 
 	 * @since 2.0
 	 */
 	public static void drawRelative(MatrixStack stack, Widget field, int offsetX, int offsetY, int mouseX, int mouseY,
@@ -308,7 +362,14 @@ public class GuiUtils {
 	/**
 	 * Draw relatively a {@link Widget}
 	 * 
-	 * @see #drawRelative(Minecraft, GuiButton, int, int, int, int, float)
+	 * @param stack        the matrix stack
+	 * @param widget        the widget
+	 * @param offsetX      the x offset
+	 * @param offsetY      the y offset
+	 * @param mouseX       the mouse X location
+	 * @param mouseY       the mouse Y location
+	 * @param partialTicks the partialTicks of the render
+	 * 
 	 * @since 2.0
 	 */
 	public static void drawRelativeToolTip(MatrixStack stack, Widget widget, int offsetX, int offsetY, int mouseX,
@@ -323,9 +384,15 @@ public class GuiUtils {
 	/**
 	 * Draw a String to the the right of a location
 	 * 
+	 * @param font  the renderer
+	 * @param text  the string to render
+	 * @param x     the x location
+	 * @param y     the y location
+	 * @param color the color of the text
+	 * 
 	 * @since 2.0
-	 * @see #drawCenterString(font, String, int, int, int)
-	 * @see #drawRightString(font, String, int, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
 	 */
 
 	public static void drawRightString(FontRenderer font, String text, int x, int y, int color) {
@@ -335,29 +402,49 @@ public class GuiUtils {
 	/**
 	 * Draw a String on the screen at middle of an height to the right of location
 	 * 
+	 * @param font   the renderer
+	 * @param text   the string to render
+	 * @param x      the x location
+	 * @param y      the y location
+	 * @param color  the color of the text
+	 * @param height the height of the text
+	 * 
 	 * @since 2.0
-	 * @see #drawString(font, String, int, int, int, int)
-	 * @see #drawCenterString(font, String, int, int, int, int)
+	 * @see #drawString(FontRenderer, String, int, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
 	 */
 	public static void drawRightString(FontRenderer font, String text, int x, int y, int color, int height) {
 		drawString(font, text, x - font.width(text), y, color, height);
 	}
 
 	/**
-	 * Draw a String to the right of a {@link GuiTextField}
+	 * Draw a String to the right of a {@link Widget}
+	 * 
+	 * @param font  the renderer
+	 * @param text  the string to render
+	 * @param field the widget
+	 * @param color the color of the text
 	 * 
 	 * @since 2.0
-	 * @see #drawRightString(font, String, GuiTextField, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
 	 */
 	public static void drawRightString(FontRenderer font, String text, Widget field, int color) {
 		drawRightString(font, text, field.x, field.y, color, field.getHeight());
 	}
 
 	/**
-	 * Draw a String to the right of a {@link GuiTextField} with offsets
+	 * Draw a String to the right of a {@link Widget} with offsets
+	 * 
+	 * @param font    the renderer
+	 * @param text    the string to render
+	 * @param field   the widget
+	 * @param color   the color of the text
+	 * @param offsetX the x offset
+	 * @param offsetY the y offset
 	 * 
 	 * @since 2.0
-	 * @see #drawRightString(font, String, GuiTextField, int)
+	 * @see #drawRightString(FontRenderer, String, Widget, int)
 	 */
 	public static void drawRightString(FontRenderer font, String text, Widget field, int color, int offsetX,
 			int offsetY) {
@@ -367,6 +454,17 @@ public class GuiUtils {
 	/**
 	 * Draws a scaled, textured, tiled modal rect at z = 0. This method isn't used
 	 * anywhere in vanilla code.
+	 * 
+	 * @param x          x location
+	 * @param y          y location
+	 * @param u          x uv location
+	 * @param v          y uv location
+	 * @param uWidth     uv width
+	 * @param vHeight    uv height
+	 * @param width      width
+	 * @param height     height
+	 * @param tileWidth  tile width
+	 * @param tileHeight tile height
 	 */
 	public static void drawScaledCustomSizeModalRect(int x, int y, float u, float v, int uWidth, int vHeight, int width,
 			int height, float tileWidth, float tileHeight) {
@@ -388,9 +486,16 @@ public class GuiUtils {
 	/**
 	 * Draw a String on the screen at middle of an height
 	 * 
+	 * @param font   the renderer
+	 * @param text   the string to render
+	 * @param x      the x location
+	 * @param y      the y location
+	 * @param color  the color of the text
+	 * @param height the height of the text
+	 * 
 	 * @since 2.0
-	 * @see #drawCenterString(font, String, int, int, int, int)
-	 * @see #drawRightString(font, String, int, int, int, int)
+	 * @see #drawCenterString(FontRenderer, String, int, int, int, int)
+	 * @see #drawRightString(FontRenderer, String, int, int, int, int)
 	 */
 	public static void drawString(FontRenderer font, String text, int x, int y, int color, int height) {
 		ACTMod.drawString(font, text, x, y + height / 2 - font.lineHeight / 2, color);
@@ -398,6 +503,14 @@ public class GuiUtils {
 
 	/**
 	 * Draw a text box on the screen
+	 * 
+	 * @param font         the renderer
+	 * @param x            the x location
+	 * @param y            the y location
+	 * @param parentWidth  the parent width
+	 * @param parentHeight the parent height
+	 * @param zLevel       the zLevel of the screen
+	 * @param args         the lines to show
 	 * 
 	 * @since 2.1
 	 */
@@ -417,6 +530,9 @@ public class GuiUtils {
 	/**
 	 * Get a respectively a green or a red integer color for true or false boolean
 	 * 
+	 * @param value the boolean value
+	 * @return the color
+	 * 
 	 * @since 2.0
 	 */
 	public static int getRedGreen(boolean value) {
@@ -426,6 +542,15 @@ public class GuiUtils {
 	/**
 	 * get a tuple of (x,y) location on the screen for a box to put it without
 	 * loosing it at borders
+	 * 
+	 * @param x            the x location
+	 * @param y            the y location
+	 * @param width        the width
+	 * @param height       the height
+	 * @param parentWidth  the parent width
+	 * @param parentHeight the parent height
+	 * 
+	 * @return (x,y) location
 	 * 
 	 * @since 2.0
 	 */
@@ -447,27 +572,34 @@ public class GuiUtils {
 	}
 
 	/**
-	 * Check if a {@link GuiButton} is hover by a location (mouse)
+	 * Check if a {@link Widget} is hover by a location (mouse)
 	 * 
-	 * @return true if the button is hover
-	 * @see #isHover(GuiTextField, int, int)
+	 * @param widget the widget
+	 * @param mouseX the mouse x location
+	 * @param mouseY the mouse y location
+	 * @return true if the button is hover, false otherwise
 	 * @see #isHover(int, int, int, int, int, int)
 	 * @since 2.0
 	 */
-	public static boolean isHover(Widget button, int mouseX, int mouseY) {
-		return isHover(button.x, button.y, button.getWidth(), button.getHeight(), mouseX, mouseY);
+	public static boolean isHover(Widget widget, int mouseX, int mouseY) {
+		return isHover(widget.x, widget.y, widget.getWidth(), widget.getHeight(), mouseX, mouseY);
 	}
 
 	/**
 	 * Check if a box is hover by a location (mouse)
 	 * 
+	 * @param x      the x location
+	 * @param y      the y location
+	 * @param sizeX  the width
+	 * @param sizeY  the height
+	 * @param mouseX the mouse x location
+	 * @param mouseY the mouse y location
 	 * @return true if the field is hover
-	 * @see #isHover(GuiButton, int, int)
-	 * @see #isHover(GuiTextField, int, int)
+	 * @see #isHover(Widget, int, int)
 	 * @since 2.0
 	 */
-	public static boolean isHover(int X, int Y, int sizeX, int sizeY, int mouseX, int mouseY) {
-		return mouseX >= X && mouseX <= X + sizeX && mouseY >= Y && mouseY <= Y + sizeY;
+	public static boolean isHover(int x, int y, int sizeX, int sizeY, int mouseX, int mouseY) {
+		return mouseX >= x && mouseX <= x + sizeX && mouseY >= y && mouseY <= y + sizeY;
 	}
 
 }

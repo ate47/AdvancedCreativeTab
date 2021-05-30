@@ -231,9 +231,9 @@ public class ModdedCommand {
 	}
 
 	/**
-	 * register a {@link SubCommand} and made it default
+	 * register a {@link ModdedCommand} and made it default
 	 * 
-	 * @param subCommand the {@link SubCommand}
+	 * @param subCommand the {@link ModdedCommand}
 	 * @return the parent command
 	 */
 	public ModdedCommand registerDefaultSubCommand(ModdedCommand subCommand) {
@@ -254,9 +254,9 @@ public class ModdedCommand {
 	}
 
 	/**
-	 * register a {@link SubCommand}
+	 * register a {@link ModdedCommand}
 	 * 
-	 * @param subCommand the {@link SubCommand}
+	 * @param subCommand the {@link ModdedCommand}
 	 * @return the parent command
 	 */
 	public ModdedCommand registerSubCommand(ModdedCommand subCommand) {

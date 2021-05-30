@@ -150,8 +150,9 @@ public class ACTMod {
 
 	public static final String MOD_LINK = "https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode";
 	/**
-	 * Link to {@link ModGuiFactory}
+	 * @deprecated removed option
 	 */
+	@Deprecated
 	public static final String MOD_FACTORY = "fr.atesab.act.gui.ModGuiFactory";
 	public static final ModdedCommandACT ACT_COMMAND = new ModdedCommandACT();
 	public static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
@@ -176,24 +177,30 @@ public class ACTMod {
 	private static Set<String> commandSet = new HashSet<>();
 	private static CommandDispatcher<ISuggestionProvider> suggestionProvider;
 
+	/**
+	 * @return if the tool tip is disabled
+	 */
 	public static boolean doesDisableToolTip() {
 		return config.doesDisableToolTip();
 	}
 
 	/**
-	 * Get all registered {@link IAttribute}
+	 * Get all registered {@link Attribute}
 	 * <p>
-	 * To add Attributes, use {@link HashSet#add(IAttribute)}
+	 * To add Attributes, use {@link Set#add(Object)}
 	 * </p>
 	 * 
+	 * @return the attributes
 	 * @since 2.1
 	 */
-	public static HashSet<Attribute> getAttributes() {
+	public static Set<Attribute> getAttributes() {
 		return attributes;
 	}
 
 	/**
 	 * Get saved custom items codes
+	 * 
+	 * @return the codes
 	 * 
 	 * @since 2.1
 	 */
@@ -211,6 +218,7 @@ public class ACTMod {
 	/**
 	 * Get the map by categories of modifiers
 	 * 
+	 * @return the modifier
 	 * @since 2.1
 	 * @see #registerStringModifier(String, String, Consumer)
 	 */
@@ -221,6 +229,8 @@ public class ACTMod {
 	/**
 	 * Get template give code of a template {@link ItemStack}
 	 * 
+	 * @param template the template stack
+	 * @return the codes the code of the template
 	 * @since 2.0
 	 * @see #registerTemplate(String, ItemStack, String)
 	 * @see #getTemplates()
@@ -231,6 +241,8 @@ public class ACTMod {
 
 	/**
 	 * Create a {@link Stream} with {@link ItemStack} templates with translated name
+	 * 
+	 * @return the templates
 	 * 
 	 * @since 2.0
 	 * @see #registerTemplate(String, ItemStack, String)
@@ -284,6 +296,8 @@ public class ACTMod {
 	/**
 	 * Register a string modifier at root
 	 * 
+	 * @param name     the modifier name
+	 * @param modifier the modifier
 	 * @since 2.1
 	 * @see #getStringModifier()
 	 * @see #registerStringModifier(String, String, Consumer)
@@ -294,6 +308,10 @@ public class ACTMod {
 
 	/**
 	 * Register a string modifier in a category
+	 * 
+	 * @param name     the modifier name
+	 * @param category the modifier category
+	 * @param modifier the modifier
 	 * 
 	 * @since 2.1
 	 * @see #getStringModifier()
@@ -308,6 +326,10 @@ public class ACTMod {
 
 	/**
 	 * Register a new Template with a lang code, an icon an give data
+	 * 
+	 * @param lang the template description
+	 * @param icon the icon
+	 * @param data the code
 	 * 
 	 * @since 2.0
 	 * @see #getTemplates()
@@ -337,10 +359,24 @@ public class ACTMod {
 		config.getCustomitems().add(0, code);
 	}
 
+	/**
+	 * set doesDisableToolTip
+	 * 
+	 * @param doesDisableToolTip the value
+	 */
 	public static void setDoesDisableToolTip(boolean doesDisableToolTip) {
 		config.setDoesDisableToolTip(doesDisableToolTip);
 	}
 
+	/**
+	 * Draw a string on the screen
+	 * 
+	 * @param renderer the font renderer
+	 * @param str      the string
+	 * @param x        the y location
+	 * @param y        the x location
+	 * @param color    the text color
+	 */
 	public static void drawString(FontRenderer renderer, String str, int x, int y, int color) {
 		renderer.draw(STACK, str, x, y, color);
 	}

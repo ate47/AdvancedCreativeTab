@@ -82,7 +82,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	}
 
 	/**
-	 * Create a {@link NBTBase} from this {@link NBTElement}
+	 * Create a {@link INBT} from this {@link NBTElement}
 	 * 
 	 * @return the base
 	 */
@@ -95,6 +95,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	/**
 	 * Get the type of the NBTElement
 	 * 
+	 * @return the type name
 	 * @since 2.1
 	 */
 	public abstract String getType();
@@ -108,10 +109,10 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	/**
 	 * Get a {@link NBTElement} with a base
 	 * 
-	 * @param parent
-	 * @param key
-	 * @param base
-	 * @return
+	 * @param parent parent modifier
+	 * @param key the key of the tag
+	 * @param base the tag
+	 * @return the {@link NBTElement} from this tag
 	 * @since 2.1
 	 */
 	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, INBT base) {

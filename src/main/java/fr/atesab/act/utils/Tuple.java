@@ -36,10 +36,10 @@ public class Tuple<A, B> {
 		/**
 		 * Create a quad tuple with four data
 		 * 
-		 * @param a
-		 * @param b
-		 * @param c
-		 * @param d
+		 * @param a a value 
+		 * @param b b value
+		 * @param c c value 
+		 * @param d d value
 		 * @since 2.0
 		 */
 		public QuadTuple(A a, B b, C c, D d) {
@@ -51,7 +51,7 @@ public class Tuple<A, B> {
 		/**
 		 * Create a new quad tuple with same data
 		 * 
-		 * @param quad
+		 * @param quad the quad to clone
 		 * @since 2.1
 		 */
 		public QuadTuple(QuadTuple<A, B, C, D> quad) {
@@ -66,8 +66,8 @@ public class Tuple<A, B> {
 	/**
 	 * Create a simple tuple with two data
 	 * 
-	 * @param a
-	 * @param b
+	 * @param a a value
+	 * @param b b value
 	 * @since 2.0
 	 */
 	public Tuple(A a, B b) {
@@ -78,7 +78,7 @@ public class Tuple<A, B> {
 	/**
 	 * Create a new tuple with same data
 	 * 
-	 * @param tuple
+	 * @param tuple the tuple to clone
 	 * @since 2.0
 	 */
 	public Tuple(Tuple<A, B> tuple) {

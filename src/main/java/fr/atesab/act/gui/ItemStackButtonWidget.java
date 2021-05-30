@@ -15,7 +15,7 @@ public class ItemStackButtonWidget extends AbstractButton {
 	}
 
 	/**
-	 * an wrapper for the {@link Screen#renderTooltip(ItemStack, int, int)} method
+	 * an wrapper for the render Screen item tool tip method
 	 */
 	public interface ITooltipRenderer {
 		void renderTooltip1(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY);
