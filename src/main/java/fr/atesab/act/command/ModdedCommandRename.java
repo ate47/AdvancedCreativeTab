@@ -8,10 +8,10 @@ import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 
 public class ModdedCommandRename extends ModdedCommand {
 
@@ -21,29 +21,30 @@ public class ModdedCommandRename extends ModdedCommand {
 	}
 
 	@Override
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		return command.then(Commands.argument("itemname", StringArgumentType.greedyString()).executes(c -> {
 			Minecraft mc = Minecraft.getInstance();
 			ItemStack is = mc.player.getMainHandItem();
 			if (is != null) {
-				is.setHoverName(new StringTextComponent(StringArgumentType.getString(c, "itemname")
+				is.setHoverName(new TextComponent(StringArgumentType.getString(c, "itemname")
 						.replaceAll("&([0-9a-fA-FrRk-oK-O])", ChatUtils.MODIFIER + "$1")
 						.replaceAll("&" + ChatUtils.MODIFIER, "&")));
-				ItemUtils.give(is, 36 + mc.player.inventory.selected);
+				ItemUtils.give(is, 36 + mc.player.getInventory().selected);
 			}
 			return 0;
 		}));
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
 			Minecraft mc = Minecraft.getInstance();
 			ItemStack is = mc.player.getMainHandItem();
 			if (is != null) {
 				is = is.copy();
 				is.resetHoverName();
-				ItemUtils.give(is, 36 + mc.player.inventory.selected);
+				ItemUtils.give(is, 36 + mc.player.getInventory().selected);
 			}
 			return 0;
 		};

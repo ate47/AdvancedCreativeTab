@@ -9,9 +9,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 
 public class ModdedCommandOpenMenu extends ModdedCommand {
 	private Function<String[], Screen> menu;
@@ -30,7 +30,7 @@ public class ModdedCommandOpenMenu extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return allowArguments ? c -> {
 			GuiUtils.displayScreen(menu.apply(new String[0]));
 			return 0;
@@ -41,7 +41,8 @@ public class ModdedCommandOpenMenu extends ModdedCommand {
 	}
 
 	@Override
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		return allowArguments
 				? command.then(Commands.argument("menuoptions", StringArgumentType.greedyString()).executes(c -> {
 					GuiUtils.displayScreen(menu.apply(StringArgumentType.getString(c, "menuoptions").split(" ")));

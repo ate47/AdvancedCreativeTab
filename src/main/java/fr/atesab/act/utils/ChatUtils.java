@@ -1,19 +1,18 @@
 package fr.atesab.act.utils;
 
 import fr.atesab.act.ACTMod;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * A set of tools to help to communicate in chat with the player
@@ -42,9 +41,9 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getPrefix()
 	 */
-	public static IFormattableTextComponent getErrorPrefix() {
-		return getPrefix(new TranslationTextComponent("gui.act.error").withStyle(TextFormatting.RED),
-				TextFormatting.WHITE);
+	public static MutableComponent getErrorPrefix() {
+		return getPrefix(new TranslatableComponent("gui.act.error").withStyle(ChatFormatting.RED),
+				ChatFormatting.WHITE);
 	}
 
 	/**
@@ -54,19 +53,17 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getErrorPrefix()
 	 */
-	public static IFormattableTextComponent getPrefix() {
+	public static MutableComponent getPrefix() {
 		return getPrefix(null, null);
 	}
 
-	private static IFormattableTextComponent getPrefix(ITextComponent notif, TextFormatting endColor) {
-		IFormattableTextComponent p = new StringTextComponent("")
-				.withStyle(endColor != null ? endColor : TextFormatting.WHITE)
-				.append(new StringTextComponent("[").withStyle(TextFormatting.RED)
-						.append(new StringTextComponent(ACTMod.MOD_LITTLE_NAME).withStyle(TextFormatting.GOLD)));
+	private static MutableComponent getPrefix(Component notif, ChatFormatting endColor) {
+		MutableComponent p = new TextComponent("").withStyle(endColor != null ? endColor : ChatFormatting.WHITE)
+				.append(new TextComponent("[").withStyle(ChatFormatting.RED)
+						.append(new TextComponent(ACTMod.MOD_LITTLE_NAME).withStyle(ChatFormatting.GOLD)));
 		if (notif != null)
-			p.append(new StringTextComponent("/").withStyle(TextFormatting.WHITE)).append(notif);
-		return p.append(new StringTextComponent("]").withStyle(TextFormatting.RED))
-				.append(new StringTextComponent(" "));
+			p.append(new TextComponent("/").withStyle(ChatFormatting.WHITE)).append(notif);
+		return p.append(new TextComponent("]").withStyle(ChatFormatting.RED)).append(new TextComponent(" "));
 	}
 
 	/**
@@ -77,17 +74,18 @@ public class ChatUtils {
 	 */
 	public static void itemStack(ItemStack itemStack) {
 		if (itemStack != null) {
-			CompoundNBT item = new CompoundNBT();
+			CompoundTag item = new CompoundTag();
 			item.putString("id", itemStack.getItem().getRegistryName().toString());
 			item.putInt("Count", itemStack.getCount());
 			if (itemStack.getTag() != null)
 				item.put("tag", itemStack.getTag());
-			send(getPrefix().append(new TranslationTextComponent("gui.act.give.msg").append(": ")
-					.withStyle(TextFormatting.GOLD).append(itemStack.getDisplayName().copy().withStyle(style -> {
+			send(getPrefix().append(new TranslatableComponent("gui.act.give.msg").append(": ")
+					.withStyle(ChatFormatting.GOLD).append(itemStack.getDisplayName().copy().withStyle(style -> {
 						style.withHoverEvent(
-								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemHover(itemStack)));
-						style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, "/" + ACTMod.ACT_COMMAND.getName() + " "
-								+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName() + " " + ItemUtils.getGiveCode(itemStack)));
+								new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(itemStack)));
+						style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+								"/" + ACTMod.ACT_COMMAND.getName() + " " + ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName()
+										+ " " + ItemUtils.getGiveCode(itemStack)));
 						return style;
 					}))));
 		} else
@@ -95,15 +93,15 @@ public class ChatUtils {
 	}
 
 	/**
-	 * Send a {@link ITextComponent} to chat
+	 * Send a {@link Component} to chat
 	 * 
-	 * @param message The {@link ITextComponent}
+	 * @param message The {@link Component}
 	 * @since 2.0
 	 * @see ChatUtils#show(String)
 	 * @see ChatUtils#error(String)
 	 */
-	public static void send(ITextComponent message) {
-		ClientPlayerEntity plr = Minecraft.getInstance().player;
+	public static void send(Component message) {
+		Player plr = Minecraft.getInstance().player;
 		if (plr != null)
 			plr.sendMessage(message, plr.getUUID());
 	}

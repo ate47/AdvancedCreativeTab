@@ -5,9 +5,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.world.GameType;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.level.GameType;
 
 public class ModdedCommandGamemode extends ModdedCommand {
 
@@ -25,15 +25,14 @@ public class ModdedCommandGamemode extends ModdedCommand {
 	}
 
 	@Override
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		// /gm <gamemode>
 		for (GameType gametype : GameType.values())
-			if (gametype != GameType.NOT_SET) {
-				command.then(Commands.literal(gametype.getName()).executes(c -> {
-					Minecraft.getInstance().player.chat("/gamemode " + gametype.getName().toLowerCase());
-					return 0;
-				}));
-			}
+			command.then(Commands.literal(gametype.getName()).executes(c -> {
+				Minecraft.getInstance().player.chat("/gamemode " + gametype.getName().toLowerCase());
+				return 0;
+			}));
 		// /gm 0,1,2,3
 		return command.then(Commands
 				.argument("gamemodeid", IntegerArgumentType.integer(0, GameType.values().length - 2)).executes(c -> {

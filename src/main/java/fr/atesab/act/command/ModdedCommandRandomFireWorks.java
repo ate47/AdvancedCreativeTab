@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.ItemUtils;
-import net.minecraft.command.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 public class ModdedCommandRandomFireWorks extends ModdedCommand {
 	public ModdedCommandRandomFireWorks() {
@@ -13,7 +13,7 @@ public class ModdedCommandRandomFireWorks extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
 			ItemUtils.give(ItemUtils.getRandomFireworks());
 			return 1;

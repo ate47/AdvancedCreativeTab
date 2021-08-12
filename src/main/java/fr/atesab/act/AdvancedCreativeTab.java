@@ -5,19 +5,19 @@ import java.util.Collection;
 
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * A creative tab to add items
  */
-public class AdvancedCreativeTab extends ItemGroup {
+public class AdvancedCreativeTab extends CreativeModeTab {
 
 	private Collection<ItemStack> subItems = new ArrayList<>();
 

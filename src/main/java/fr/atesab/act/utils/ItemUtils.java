@@ -28,38 +28,40 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import fr.atesab.act.ACTMod;
-import net.minecraft.block.Block;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.FireworkRocketItem.Shape;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.ToolItem;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.renderer.EffectInstance;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.FireworkRocketItem.Shape;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -73,11 +75,11 @@ public class ItemUtils {
 	 * Attribute data
 	 */
 	public static class AttributeData {
-		private EquipmentSlotType slot;
+		private EquipmentSlot slot;
 		private AttributeModifier modifier;
 		private Attribute attribute;
 
-		public AttributeData(EquipmentSlotType slot, AttributeModifier modifier, Attribute attribute) {
+		public AttributeData(EquipmentSlot slot, AttributeModifier modifier, Attribute attribute) {
 			this.slot = slot;
 			this.modifier = modifier;
 			this.attribute = attribute;
@@ -86,7 +88,7 @@ public class ItemUtils {
 		/**
 		 * @param slot the slot to set
 		 */
-		public void setSlot(EquipmentSlotType slot) {
+		public void setSlot(EquipmentSlot slot) {
 			this.slot = slot;
 		}
 
@@ -121,7 +123,7 @@ public class ItemUtils {
 		/**
 		 * @return the slot
 		 */
-		public EquipmentSlotType getSlot() {
+		public EquipmentSlot getSlot() {
 			return slot;
 		}
 	}
@@ -193,7 +195,7 @@ public class ItemUtils {
 		 * 
 		 * @param explosion the non null explosion tag
 		 */
-		public ExplosionInformation(CompoundNBT explosion) {
+		public ExplosionInformation(CompoundTag explosion) {
 			this(explosion.getByte("Type"), explosion.getBoolean("Trail"), explosion.getBoolean("Flicker"),
 					explosion.getIntArray("Colors"), explosion.getIntArray("FadeColors"));
 		}
@@ -232,8 +234,8 @@ public class ItemUtils {
 		 * @return the tag
 		 * @since 2.0
 		 */
-		public CompoundNBT getTag() {
-			CompoundNBT tag = new CompoundNBT();
+		public CompoundTag getTag() {
+			CompoundTag tag = new CompoundTag();
 			tag.putByte("Type", (byte) type.getId());
 			if (trail)
 				tag.putBoolean("Trail", true);
@@ -277,10 +279,10 @@ public class ItemUtils {
 	 */
 	public static final class PotionInformation {
 		private int customColor;
-		private List<EffectInstance> customEffects;
+		private List<MobEffectInstance> customEffects;
 		private Potion main;
 
-		public PotionInformation(int customColor, Potion main, List<EffectInstance> customEffects) {
+		public PotionInformation(int customColor, Potion main, List<MobEffectInstance> customEffects) {
 			this.customColor = customColor;
 			this.main = main;
 			this.customEffects = customEffects;
@@ -290,7 +292,7 @@ public class ItemUtils {
 			return customColor;
 		}
 
-		public List<EffectInstance> getCustomEffects() {
+		public List<MobEffectInstance> getCustomEffects() {
 			return customEffects;
 		}
 
@@ -303,7 +305,7 @@ public class ItemUtils {
 			return this;
 		}
 
-		public PotionInformation customEffects(List<EffectInstance> customEffects) {
+		public PotionInformation customEffects(List<MobEffectInstance> customEffects) {
 			this.customEffects = customEffects;
 			return this;
 		}
@@ -327,15 +329,15 @@ public class ItemUtils {
 		public static final AttributeModifierBuilder SWORD_ATTACK_SPEED;
 		static {
 			ArmorItem armor = (ArmorItem) Items.NETHERITE_CHESTPLATE;
-			ToolItem tool = (ToolItem) Items.NETHERITE_PICKAXE;
+			DiggerItem tool = (DiggerItem) Items.NETHERITE_PICKAXE;
 			SwordItem sword = (SwordItem) Items.NETHERITE_SWORD;
 
 			final Multimap<Attribute, AttributeModifier> poolArmor = armor
 					.getDefaultAttributeModifiers(armor.getSlot());
 			final Multimap<Attribute, AttributeModifier> poolTool = tool
-					.getDefaultAttributeModifiers(EquipmentSlotType.MAINHAND);
+					.getDefaultAttributeModifiers(EquipmentSlot.MAINHAND);
 			final Multimap<Attribute, AttributeModifier> poolSword = sword
-					.getDefaultAttributeModifiers(EquipmentSlotType.MAINHAND);
+					.getDefaultAttributeModifiers(EquipmentSlot.MAINHAND);
 
 			ARMOR = new AttributeModifierBuilder(Attributes.ARMOR,
 					poolArmor.get(Attributes.ARMOR).stream().findAny().get());
@@ -377,7 +379,7 @@ public class ItemUtils {
 			return attribute.getDescriptionId();
 		}
 
-		public AttributeData buildData(EquipmentSlotType slot, double val, AttributeModifier.Operation op) {
+		public AttributeData buildData(EquipmentSlot slot, double val, AttributeModifier.Operation op) {
 			return new AttributeData(slot, build(val, op), attribute);
 		}
 	}
@@ -392,7 +394,7 @@ public class ItemUtils {
 	private static final ItemReader ITEM_READER = new ItemReader();
 	private static final Random RANDOM = ACTMod.RANDOM;
 	// Caches are made to avoid the waiting time between requests to Mojang API
-	private static final Map<String, Tuple<Long, CompoundNBT>> SKIN_CACHE = new HashMap<>();
+	private static final Map<String, Tuple<Long, CompoundTag>> SKIN_CACHE = new HashMap<>();
 	private static final Map<String, Tuple<Long, String>> UUID_CACHE = new HashMap<>();
 
 	private static final Character[] RANDOM_CHAR = { 'X', 'Y', 'M', 'Z' };
@@ -438,7 +440,7 @@ public class ItemUtils {
 			@Nullable Tuple<Enchantment, Integer>[] enchantments) {
 		ItemStack is = new ItemStack(item, count);
 		if (name != null)
-			is.setHoverName(new StringTextComponent(name));
+			is.setHoverName(new TextComponent(name));
 		if (lore != null)
 			setLore(is, lore);
 		if (enchantments != null)
@@ -454,9 +456,11 @@ public class ItemUtils {
 	 * @since 2.0
 	 */
 	public static boolean canGive(Minecraft mc) {
-		for (int i = 0; i < 9; i++)
-			if (mc.player.inventory.getItem(i) == null || mc.player.inventory.getItem(i).getItem().equals(Items.AIR))
+		for (int i = 0; i < 9; i++) {
+			ItemStack it = mc.player.getInventory().getItem(i);
+			if (it == null || it.equals(Items.AIR))
 				return true;
+		}
 		return false;
 	}
 
@@ -470,7 +474,7 @@ public class ItemUtils {
 	 */
 	public static List<AttributeData> getAttributes(ItemStack stack) {
 		List<AttributeData> l = new ArrayList<>();
-		for (EquipmentSlotType slot : EquipmentSlotType.values())
+		for (EquipmentSlot slot : EquipmentSlot.values())
 			stack.getAttributeModifiers(slot)
 					.forEach((attribute, modifier) -> l.add(new AttributeData(slot, modifier, attribute)));
 
@@ -484,7 +488,7 @@ public class ItemUtils {
 	 * @return the color of the stack
 	 */
 	public static int getColor(ItemStack stack) {
-		CompoundNBT tag = stack.getTag();
+		CompoundTag tag = stack.getTag();
 		return (tag == null || !tag.contains(NBT_CHILD_DISPLAY)
 				|| !tag.getCompound(NBT_CHILD_DISPLAY).contains("color")) ? 10511680
 						: tag.getCompound(NBT_CHILD_DISPLAY).getInt("color");
@@ -502,7 +506,7 @@ public class ItemUtils {
 	 * @see #setCustomTag(ItemStack, String, String)
 	 */
 	public static String getCustomTag(ItemStack stack, String key, String defaultValue) {
-		CompoundNBT tag = stack.getTag();
+		CompoundTag tag = stack.getTag();
 		if (tag == null)
 			return defaultValue;
 		return tag.contains(key) ? tag.getString(key) : defaultValue;
@@ -538,10 +542,10 @@ public class ItemUtils {
 				(e1, e2) -> e2.getDescriptionId().compareToIgnoreCase(e1.getDescriptionId()));
 		Registry.ENCHANTMENT.forEach(e -> map.put(e, 0));
 		String key = book ? NBT_CHILD_BOOK_ENCHANTMENTS : NBT_CHILD_ENCHANTMENTS;
-		ListNBT list = stack.getTag() != null && stack.getTag().contains(key) ? stack.getTag().getList(key, 10)
-				: new ListNBT();
+		ListTag list = stack.getTag() != null && stack.getTag().contains(key) ? stack.getTag().getList(key, 10)
+				: new ListTag();
 		for (int i = 0; i < list.size(); i++) {
-			CompoundNBT tag = list.getCompound(i);
+			CompoundTag tag = list.getCompound(i);
 			if (tag.contains("id")) {
 				Enchantment ench = Registry.ENCHANTMENT.get(ResourceLocation.tryParse(tag.getString("id")));
 				if (ench != null)
@@ -563,7 +567,7 @@ public class ItemUtils {
 	 * 
 	 * @since 2.1
 	 */
-	public static ExplosionInformation getExplosionInformation(@Nullable CompoundNBT explosion) {
+	public static ExplosionInformation getExplosionInformation(@Nullable CompoundTag explosion) {
 		return explosion == null ? new ExplosionInformation() : new ExplosionInformation(explosion);
 	}
 
@@ -625,13 +629,13 @@ public class ItemUtils {
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
 	 * @see #getHeads(String...)
-	 * @throws IOException if an error occured while asking the profile
+	 * @throws IOException            if an error occured while asking the profile
 	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
 	public static ItemStack getHead(ItemStack is, String name)
 			throws IOException, CommandSyntaxException, NoSuchElementException {
-		CompoundNBT skullOwner = is.getOrCreateTagElement("SkullOwner");
+		CompoundTag skullOwner = is.getOrCreateTagElement("SkullOwner");
 		String uuid = getUUIDByNames(name).stream().findFirst().get().b;
 		skullOwner.merge(getSkinInformationFromUUID(uuid));
 		skullOwner.putString("Name", name);
@@ -655,10 +659,10 @@ public class ItemUtils {
 	 * @see #getHeads(String...)
 	 */
 	public static ItemStack getHead(ItemStack is, String uuid, String url, String name) {
-		CompoundNBT skullOwner = is.getOrCreateTagElement("SkullOwner");
+		CompoundTag skullOwner = is.getOrCreateTagElement("SkullOwner");
 		skullOwner.putString("Id", addHyphen(uuid.replaceAll("-", "")));
-		ListNBT textures = new ListNBT();
-		CompoundNBT texture = new CompoundNBT();
+		ListTag textures = new ListTag();
+		CompoundTag texture = new CompoundTag();
 		texture.putString("Value",
 				Base64.getEncoder().encodeToString(("{\"textures\":{\"SKIN\":{\"url\":\"" + url + "\"}}}").getBytes()));
 		textures.add(texture);
@@ -681,7 +685,7 @@ public class ItemUtils {
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
 	 * @see #getHeads(String...)
-	 * @throws IOException if an error occured while asking the profile
+	 * @throws IOException            if an error occured while asking the profile
 	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
@@ -718,13 +722,13 @@ public class ItemUtils {
 	 * @see #getHead(ItemStack, String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
-	 * @throws IOException if an error occured while asking the profile
+	 * @throws IOException            if an error occured while asking the profile
 	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
-	public static List<ItemStack> getHeads(Collection<ClientPlayerEntity> players)
+	public static List<ItemStack> getHeads(Collection<Player> players)
 			throws IOException, CommandSyntaxException, NoSuchElementException {
-		return getHeads(players.stream().map(ClientPlayerEntity::getScoreboardName).toArray(String[]::new));
+		return getHeads(players.stream().map(Player::getScoreboardName).toArray(String[]::new));
 	}
 
 	/**
@@ -738,7 +742,7 @@ public class ItemUtils {
 	 * @see #getHead(ItemStack, String)
 	 * @see #getHead(String, String, String)
 	 * @see #getHead(ItemStack, String, String, String)
-	 * @throws IOException if an error occured while asking the profile
+	 * @throws IOException            if an error occured while asking the profile
 	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @throws NoSuchElementException if the profile can't be read with the answer
 	 */
@@ -748,7 +752,7 @@ public class ItemUtils {
 		getUUIDByNames(names).stream().forEach(tuple -> {
 			try {
 				ItemStack stack = new ItemStack(Items.PLAYER_HEAD, 1);
-				CompoundNBT skullOwner = stack.getOrCreateTagElement("SkullOwner");
+				CompoundTag skullOwner = stack.getOrCreateTagElement("SkullOwner");
 				String uuid = tuple.b;
 				skullOwner.merge(getSkinInformationFromUUID(uuid));
 				skullOwner.putString("Name", tuple.a);
@@ -770,16 +774,16 @@ public class ItemUtils {
 	 * @see #setLore(ItemStack, String[])
 	 */
 	public static String[] getLore(ItemStack stack) {
-		CompoundNBT display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
-		ListNBT nbtTagList = display.getList("Lore", 8);
+		CompoundTag display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
+		ListTag nbtTagList = display.getList("Lore", 8);
 		String[] array = new String[nbtTagList.size()];
 		for (int j = 0; j < nbtTagList.size(); ++j) {
 			String s = nbtTagList.getString(j);
 			array[j] = "";
 			try {
-				IFormattableTextComponent iformattabletextcomponent1 = ITextComponent.Serializer.fromJson(s);
-				if (iformattabletextcomponent1 != null) {
-					array[j] = iformattabletextcomponent1.getString();
+				MutableComponent MutableComponent1 = Component.Serializer.fromJson(s);
+				if (MutableComponent1 != null) {
+					array[j] = MutableComponent1.getString();
 				}
 			} catch (JsonParseException jsonparseexception) {
 			}
@@ -787,10 +791,10 @@ public class ItemUtils {
 		return array;
 	}
 
-	private static CompoundNBT getOrCreateSubCompound(CompoundNBT compound, String key) {
+	private static CompoundTag getOrCreateSubCompound(CompoundTag compound, String key) {
 		if (compound.contains(key, 10))
 			return compound.getCompound(key);
-		CompoundNBT nbttagcompound = new CompoundNBT();
+		CompoundTag nbttagcompound = new CompoundTag();
 		compound.put(key, nbttagcompound);
 		return nbttagcompound;
 	}
@@ -804,8 +808,8 @@ public class ItemUtils {
 	 * @since 2.0
 	 */
 	public static PotionInformation getPotionInformation(ItemStack stack) {
-		CompoundNBT tag = stack.getTag();
-		List<EffectInstance> customEffects = PotionUtils.getCustomEffects(tag);
+		CompoundTag tag = stack.getTag();
+		List<MobEffectInstance> customEffects = PotionUtils.getCustomEffects(tag);
 		return new PotionInformation(
 				tag != null && tag.contains("CustomPotionColor") ? tag.getInt("CustomPotionColor") : -1,
 				PotionUtils.getPotion(tag), customEffects);
@@ -818,62 +822,62 @@ public class ItemUtils {
 	 * @since 2.1
 	 */
 	public static ItemStack getRandomFireworks() {
-		CompoundNBT fwt = new CompoundNBT();
+		CompoundTag fwt = new CompoundTag();
 		int flight = RANDOM.nextInt(3); // a number between 0 and 2 (number of additional gunpowder)
 		fwt.putInt("Flight", flight + 1);
-		ListNBT explosions = new ListNBT();
+		ListTag explosions = new ListTag();
 		int exp = RANDOM.nextInt(7 - flight) + 1; // a number between 1 and 7 - flight (number of additional
 													// gunpowder) -> (number of explosion)
 		for (int i = 0; i < exp; i++)
 			explosions.add(getExplosionInformation(null).getTag());
 		fwt.put(NBT_CHILD_EXPLOSIONS, explosions);
 		ItemStack fw = new ItemStack(Items.FIREWORK_ROCKET);
-		CompoundNBT tag = new CompoundNBT();
+		CompoundTag tag = new CompoundTag();
 		tag.put(NBT_CHILD_FIREWORKS, fwt);
 		fw.setTag(tag);
 		// create a random name and description because "why not ?"
 		List<EntityType<?>> list = ForgeRegistries.ENTITIES.getValues().stream().filter(EntityType::canSummon)
 				.collect(Collectors.toList());
-		fw.setHoverName(new TranslationTextComponent(list.get(RANDOM.nextInt(list.size())).getDescriptionId())
-				.withStyle(TextFormatting.values()[RANDOM.nextInt(16)])
+		fw.setHoverName(new TranslatableComponent(list.get(RANDOM.nextInt(list.size())).getDescriptionId())
+				.withStyle(ChatFormatting.values()[RANDOM.nextInt(16)])
 				.append(" " + CommandUtils.getRandomElement(RANDOM_CHAR) + RANDOM.nextInt(1000)));
-		setLore(fw, new String[] { TextFormatting.YELLOW + "" + TextFormatting.ITALIC + I18n.get("cmd.act.rfw") });
+		setLore(fw, new String[] { ChatFormatting.YELLOW + "" + ChatFormatting.ITALIC + I18n.get("cmd.act.rfw") });
 		return fw;
 	}
 
 	/**
-	 * Request {@link CompoundNBT} of Skin Information with the Mojang API
+	 * Request {@link CompoundTag} of Skin Information with the Mojang API
 	 * 
 	 * @param uuid Player's UUID
 	 * @return skin information
-	 * @throws IOException if an error occured while asking the profile
+	 * @throws IOException            if an error occured while asking the profile
 	 * @throws CommandSyntaxException if an error occured while parsing the profile
 	 * @since 2.0
 	 */
-	public static CompoundNBT getSkinInformationFromUUID(String uuid) throws IOException, CommandSyntaxException {
+	public static CompoundTag getSkinInformationFromUUID(String uuid) throws IOException, CommandSyntaxException {
 		// check if a skin is find in the cache (1min : the minimum time between
 		// request)
 		if (SKIN_CACHE.containsKey(uuid) && SKIN_CACHE.get(uuid).a + 60000 > System.currentTimeMillis())
 			return SKIN_CACHE.get(uuid).b.copy();
-		CompoundNBT requestCompound = JsonToNBT.parseTag(
+		CompoundTag requestCompound = TagParser.parseTag(
 				sendRequest("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.replaceAll("-", ""),
 						null, null, null));
-		CompoundNBT newTag = new CompoundNBT();
+		CompoundTag newTag = new CompoundTag();
 		if (requestCompound.contains("properties", 9)) {
-			ListNBT properties = requestCompound.getList("properties", 10);
-			ListNBT textures = new ListNBT();
+			ListTag properties = requestCompound.getList("properties", 10);
+			ListTag textures = new ListTag();
 			properties.forEach(base -> {
-				CompoundNBT tex = (CompoundNBT) base;
-				CompoundNBT newTex = new CompoundNBT();
+				CompoundTag tex = (CompoundTag) base;
+				CompoundTag newTex = new CompoundTag();
 				if (tex.contains("value", 8))
 					newTex.putString("Value", tex.getString("value"));
 				textures.add(newTex);
 			});
-			newTag.put("Properties", new CompoundNBT());
+			newTag.put("Properties", new CompoundTag());
 			newTag.putString("Id", addHyphen(uuid.replaceAll("-", "")));
 			newTag.getCompound("Properties").put("textures", textures);
 		}
-		SKIN_CACHE.put(uuid, new Tuple<Long, CompoundNBT>(System.currentTimeMillis(), newTag.copy()));
+		SKIN_CACHE.put(uuid, new Tuple<Long, CompoundTag>(System.currentTimeMillis(), newTag.copy()));
 		return newTag;
 	}
 
@@ -883,7 +887,7 @@ public class ItemUtils {
 	 * 
 	 * @param names Players' names
 	 * @return List of name find
-	 * @throws IOException if an error occured while downloading the uuid
+	 * @throws IOException            if an error occured while downloading the uuid
 	 * @throws CommandSyntaxException if an error occured while parsing the uuid
 	 * @since 2.0
 	 */
@@ -904,11 +908,11 @@ public class ItemUtils {
 				.collect(Collectors.joining(","));
 		// request only if names aren't in cache
 		if (!query.isEmpty()) {
-			CompoundNBT tag = JsonToNBT.parseTag("{data:" + sendRequest("https://api.mojang.com/profiles/minecraft",
+			CompoundTag tag = TagParser.parseTag("{data:" + sendRequest("https://api.mojang.com/profiles/minecraft",
 					"POST", "application/json", "[" + query + "]") + "}");
 			if (tag.contains("data", 9))
 				tag.getList("data", 10).forEach(base -> {
-					CompoundNBT data = (CompoundNBT) base;
+					CompoundTag data = (CompoundTag) base;
 					if (data.contains("id", 8) && data.contains("name", 8)) {
 						String name = data.getString("name");
 						String id = data.getString("id");
@@ -969,7 +973,7 @@ public class ItemUtils {
 		if (mc.player != null && mc.player.isCreative()) {
 			if (stack != null) {
 				for (int i = 0; i < 9; i++) {
-					if (mc.player.inventory.items.get(i).isEmpty()) {
+					if (mc.player.getInventory().items.get(i).isEmpty()) {
 						give(mc, stack, 36 + i);
 						ChatUtils.itemStack(stack);
 						return;
@@ -1016,7 +1020,7 @@ public class ItemUtils {
 			stacks: for (; j < stacks.size(); j++) {
 				is = stacks.get(j);
 				for (; i < 9; i++) {
-					if (mc.player.inventory.items.get(i).isEmpty()) {
+					if (mc.player.getInventory().items.get(i).isEmpty()) {
 						give(mc, is, 36 + i);
 						ChatUtils.itemStack(is);
 						i++;
@@ -1039,7 +1043,7 @@ public class ItemUtils {
 	 * @since 2.0
 	 */
 	public static boolean isUnbreakable(ItemStack stack) {
-		CompoundNBT tag = stack.getTag();
+		CompoundTag tag = stack.getTag();
 		return tag != null && tag.getBoolean("Unbreakable");
 	}
 
@@ -1098,8 +1102,8 @@ public class ItemUtils {
 	 */
 	public static ItemStack setColor(ItemStack stack, int color) {
 		if (stack.getTag() == null)
-			stack.setTag(new CompoundNBT());
-		CompoundNBT display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
+			stack.setTag(new CompoundTag());
+		CompoundTag display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
 		if (color == 10511680 && display.contains("color"))
 			display.remove("color");
 		else
@@ -1119,9 +1123,9 @@ public class ItemUtils {
 	 * @see #getCustomTag(ItemStack, String, String)
 	 */
 	public static ItemStack setCustomTag(ItemStack stack, String key, String value) {
-		CompoundNBT tag = stack.getTag();
+		CompoundTag tag = stack.getTag();
 		if (tag == null)
-			stack.setTag(tag = new CompoundNBT());
+			stack.setTag(tag = new CompoundTag());
 		tag.putString(key, value);
 		return stack;
 	}
@@ -1155,11 +1159,11 @@ public class ItemUtils {
 	 */
 	public static ItemStack setEnchantments(List<Tuple<Enchantment, Integer>> enchantments, ItemStack stack,
 			boolean book) {
-		ListNBT nbttaglist = new ListNBT();
+		ListTag nbttaglist = new ListTag();
 		enchantments.forEach(tuple -> {
 			if (tuple.b == 0)
 				return;
-			CompoundNBT nbttagcompound = new CompoundNBT();
+			CompoundTag nbttagcompound = new CompoundTag();
 			nbttagcompound.putString("id", tuple.a.getRegistryName().toString());
 			nbttagcompound.putInt("lvl", tuple.b);
 			nbttaglist.add(nbttagcompound);
@@ -1170,7 +1174,7 @@ public class ItemUtils {
 
 	/**
 	 * Create a new {@link ItemStack} with the same count, metadata and
-	 * {@link CompoundNBT} than the given stack but with a new {@link Item} type
+	 * {@link CompoundTag} than the given stack but with a new {@link Item} type
 	 * 
 	 * @param item  New {@link Item} type
 	 * @param stack Your stack to copy
@@ -1187,16 +1191,16 @@ public class ItemUtils {
 	 * Set lore(description) of a {@link ItemStack}
 	 * 
 	 * @param stack Set stack to set
-	 * @param lore the lore to set
+	 * @param lore  the lore to set
 	 * @return Your new stack
 	 * @since 2.0
 	 * @see #getLore(ItemStack)
 	 */
 	public static ItemStack setLore(ItemStack stack, String[] lore) {
-		ListNBT nbtTagList = new ListNBT();
+		ListTag nbtTagList = new ListTag();
 		for (String l : lore)
-			nbtTagList.add(StringNBT.valueOf(ITextComponent.Serializer.toJson(new StringTextComponent(l))));
-		CompoundNBT display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
+			nbtTagList.add(StringTag.valueOf(Component.Serializer.toJson(new TextComponent(l))));
+		CompoundTag display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
 		display.put("Lore", nbtTagList);
 		return stack;
 	}
@@ -1211,11 +1215,11 @@ public class ItemUtils {
 	 * @since 2.0
 	 */
 	public static ItemStack setPotionInformation(ItemStack stack, PotionInformation info) {
-		ListNBT nbttaglist = new ListNBT();
+		ListTag nbttaglist = new ListTag();
 		info.getCustomEffects().forEach(effect -> {
-			nbttaglist.add(effect.save(new CompoundNBT()));
+			nbttaglist.add(effect.save(new CompoundTag()));
 		});
-		CompoundNBT tag = stack.getOrCreateTag();
+		CompoundTag tag = stack.getOrCreateTag();
 		tag.putString("Potion", info.getMain().getRegistryName().toString());
 		if (info.customColor != -1)
 			tag.putInt("CustomPotionColor", info.customColor);
@@ -1238,7 +1242,7 @@ public class ItemUtils {
 		if (value) {
 			stack.getOrCreateTag().putBoolean("Unbreakable", true);
 		} else {
-			CompoundNBT tag = stack.getTag();
+			CompoundTag tag = stack.getTag();
 			if (tag != null)
 				tag.remove("Unbreakable");
 		}

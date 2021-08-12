@@ -3,7 +3,7 @@ package fr.atesab.act.gui;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -16,12 +16,12 @@ import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class GuiMenu extends GuiListModifier<Object> {
 	private static class MenuListElement extends ListElement {
@@ -35,14 +35,13 @@ public class GuiMenu extends GuiListModifier<Object> {
 		}
 
 		@Override
-		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-				float partialTicks) {
+		public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawItemStack(mc.getItemRenderer(), parent, stack, offsetX + 1, offsetY + 1);
 			super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
 		@Override
-		public void drawNext(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+		public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
 				float partialTicks) {
 			if (GuiUtils.isHover(0, 0, 18, 18, mouseX, mouseY)) {
 				GuiUtils.drawRect(matrixStack, offsetX, offsetY, offsetX + 18, offsetY + 18, 0x55cccccc);
@@ -94,7 +93,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	private Runnable ADD = () -> {
 		getMinecraft().setScreen(
-				new GuiTypeListSelector(this, new TranslationTextComponent("gui.act.modifier.attr.type"), is -> {
+				new GuiTypeListSelector(this, new TranslatableComponent("gui.act.modifier.attr.type"), is -> {
 					GuiGiver giver = new GuiGiver(this, (ItemStack) null, i -> ADD_STACK.accept(i), false);
 					if (getMinecraft().screen instanceof GuiTypeListSelector)
 						((GuiTypeListSelector) getMinecraft().screen).setParent(giver);
@@ -105,10 +104,10 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	@SuppressWarnings("unchecked")
 	public GuiMenu(Screen parent) {
-		super(parent, new TranslationTextComponent("gui.act.menu"), new ArrayList<>(), o -> {
+		super(parent, new TranslatableComponent("gui.act.menu"), new ArrayList<>(), o -> {
 		}, true, false, new Tuple[0]);
 		Tuple<?, ?> btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("cmd.act.edit"), new Tuple<>(() -> {
-			final int slot = getMinecraft().player.inventory.selected;
+			final int slot = getMinecraft().player.getInventory().selected;
 			getMinecraft().setScreen(new GuiItemStackModifier(this, getMinecraft().player.getMainHandItem().copy(),
 					is -> ItemUtils.give(is, 36 + slot)));
 		}, () -> {
@@ -121,8 +120,8 @@ public class GuiMenu extends GuiListModifier<Object> {
 				new Tuple<>(() -> mc.setScreen(new GuiConfig(this)), null));
 		buttons = Minecraft.getInstance().player == null ? new Tuple[] { btn2, btn3 }
 				: new Tuple[] { btn1, btn2, btn3 };
-		addListElement(new ButtonElementList(24, 24, 20, 20,
-				new StringTextComponent("+").withStyle(TextFormatting.GREEN), ADD, null));
+		addListElement(new ButtonElementList(24, 24, 20, 20, new TextComponent("+").withStyle(ChatFormatting.GREEN),
+				ADD, null));
 		ACTMod.getCustomItems().forEach(ADD_STACK::accept);
 	}
 

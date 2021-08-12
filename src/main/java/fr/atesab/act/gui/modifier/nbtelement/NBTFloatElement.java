@@ -1,8 +1,8 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.FloatNBT;
-import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.FloatTag;
+import net.minecraft.nbt.Tag;
 
 public class NBTFloatElement extends NBTNumericElement<Float> {
 
@@ -15,10 +15,10 @@ public class NBTFloatElement extends NBTNumericElement<Float> {
 	}
 
 	@Override
-	public INBT get(Float value) {
-		return FloatNBT.valueOf(value);
+	public Tag get(Float value) {
+		return FloatTag.valueOf(value);
 	}
-	
+
 	@Override
 	public void setNull() {
 		setValue(0.0F);

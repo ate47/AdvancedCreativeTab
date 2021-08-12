@@ -15,33 +15,33 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class ModdedCommand {
 
 	public static final int MAX_EXAMPLE = 6;
 
-	public static IFormattableTextComponent createPrefix(String text, TextFormatting color, TextFormatting border) {
+	public static MutableComponent createPrefix(String text, ChatFormatting color, ChatFormatting border) {
 		return createText("[", border).append(createText(text, color)).append(createText("] ", border));
 	}
 
-	public static IFormattableTextComponent createText(String text, TextFormatting color) {
-		return new StringTextComponent(Objects.requireNonNull(text)).withStyle(color);
+	public static MutableComponent createText(String text, ChatFormatting color) {
+		return new TextComponent(Objects.requireNonNull(text)).withStyle(color);
 	}
 
-	public static IFormattableTextComponent createTranslatedPrefix(String text, TextFormatting color,
-			TextFormatting border, Object... args) {
+	public static MutableComponent createTranslatedPrefix(String text, ChatFormatting color, ChatFormatting border,
+			Object... args) {
 		return createText("[", border).append(createTranslatedText(text, color, args)).append(createText("] ", border));
 	}
 
-	public static IFormattableTextComponent createTranslatedText(String lang, TextFormatting color, Object... args) {
-		return new TranslationTextComponent(Objects.requireNonNull(lang), args).withStyle(color);
+	public static MutableComponent createTranslatedText(String lang, ChatFormatting color, Object... args) {
+		return new TranslatableComponent(Objects.requireNonNull(lang), args).withStyle(color);
 	}
 
 	private final Map<String, ModdedCommand> NAME_TO_COMMAND = new TreeMap<>();
@@ -55,8 +55,8 @@ public class ModdedCommand {
 
 	private boolean displayInHelp;
 	private List<String> aliases;
-	protected LiteralCommandNode<CommandSource> node;
-	private CommandDispatcher<CommandSource> dispatcher;
+	protected LiteralCommandNode<CommandSourceStack> node;
+	private CommandDispatcher<CommandSourceStack> dispatcher;
 	private boolean registered = false;
 
 	public ModdedCommand(String name) {
@@ -118,7 +118,7 @@ public class ModdedCommand {
 	/**
 	 * @return the command on which this {@link ModdedCommand} has been registered
 	 */
-	public CommandDispatcher<CommandSource> getDispatcher() {
+	public CommandDispatcher<CommandSourceStack> getDispatcher() {
 		return dispatcher;
 	}
 
@@ -139,7 +139,7 @@ public class ModdedCommand {
 	/**
 	 * @return the node
 	 */
-	public LiteralCommandNode<CommandSource> getNode() {
+	public LiteralCommandNode<CommandSourceStack> getNode() {
 		return node;
 	}
 
@@ -178,7 +178,8 @@ public class ModdedCommand {
 	 * @param command the argument builder
 	 * @return the same command argument builder modified
 	 */
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		return command;
 	}
 
@@ -188,10 +189,10 @@ public class ModdedCommand {
 	 * 
 	 * @return the command to execute
 	 */
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return defaultCommand != null ? defaultCommand.onNoArgument() : c -> {
-			c.getSource().sendFailure(new TranslationTextComponent("cmd.act.error.noargument")
-					.withStyle(TextFormatting.RED, TextFormatting.ITALIC));
+			c.getSource().sendFailure(new TranslatableComponent("cmd.act.error.noargument")
+					.withStyle(ChatFormatting.RED, ChatFormatting.ITALIC));
 			return 1;
 		};
 	}
@@ -207,15 +208,15 @@ public class ModdedCommand {
 	 * 
 	 * @param dispatcher the dispatcher
 	 */
-	public void register(CommandDispatcher<CommandSource> dispatcher) {
+	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		register();
 		this.dispatcher = dispatcher;
 		register(dispatcher.getRoot());
 	}
 
-	private void register(CommandNode<CommandSource> node) {
-		LiteralArgumentBuilder<CommandSource> bld;
-		Command<CommandSource> noArgument;
+	private void register(CommandNode<CommandSourceStack> node) {
+		LiteralArgumentBuilder<CommandSourceStack> bld;
+		Command<CommandSourceStack> noArgument;
 		for (String alias : aliases) {
 			noArgument = onNoArgument();
 			bld = onArgument(Commands.literal(alias));

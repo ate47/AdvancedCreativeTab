@@ -9,9 +9,9 @@ import fr.atesab.act.gui.GuiGiver;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.Hand;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.InteractionHand;
 
 public class ModdedCommandOpenGiver extends ModdedCommand {
 
@@ -21,7 +21,8 @@ public class ModdedCommandOpenGiver extends ModdedCommand {
 	}
 
 	@Override
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		return command.then(Commands.argument("giveroptions", StringArgumentType.greedyString()).executes(c -> {
 			GuiUtils.displayScreen(new GuiGiver(null, StringArgumentType.getString(c, "giveroptions")));
 			return 0;
@@ -29,10 +30,10 @@ public class ModdedCommandOpenGiver extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
 			GuiUtils.displayScreen(new GuiGiver(null,
-					ItemUtils.getGiveCode(Minecraft.getInstance().player.getItemInHand(Hand.MAIN_HAND))));
+					ItemUtils.getGiveCode(Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND))));
 			return 0;
 		};
 	}

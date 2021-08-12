@@ -4,31 +4,31 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	private ArrayList<String> values;
-	private TextFieldWidget[] tfs;
+	private EditBox[] tfs;
 	private Button next, last;
 	private GuiValueButton<Integer>[] btsDel, btsAdd;
 	private int elms;
 	private int page = 0;
 
-	public GuiStringArrayModifier(Screen parent, ITextComponent name, String[] values, Consumer<String[]> setter) {
+	public GuiStringArrayModifier(Screen parent, Component name, String[] values, Consumer<String[]> setter) {
 		super(parent, name, setter);
 		this.values = new ArrayList<String>();
 		for (String v : values)
@@ -37,96 +37,102 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 
 	@SuppressWarnings("unchecked")
 	private void defineMenu() {
-		children.clear();
-		buttons.clear();
-		addButton(new Button(width / 2 - 100, height - 21, 100, 20, new TranslationTextComponent("gui.done"), b -> {
+		clearWidgets();
+		addWidget(new Button(width / 2 - 100, height - 21, 100, 20, new TranslatableComponent("gui.done"), b -> {
 			String[] result = new String[values.size()];
 			for (int i = 0; i < result.length; i++)
 				result[i] = values.get(i).replaceAll("&", String.valueOf(ChatUtils.MODIFIER));
 			set(result);
 			mc.setScreen(parent);
 		}));
-		addButton(new Button(width / 2 + 1, height - 21, 99, 20, new TranslationTextComponent("gui.act.cancel"),
+		addWidget(new Button(width / 2 + 1, height - 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
 				b -> mc.setScreen(parent)));
-		addButton(last = new Button(width / 2 - 121, height - 21, 20, 20, new StringTextComponent("<-"), b -> {
+		addWidget(last = new Button(width / 2 - 121, height - 21, 20, 20, new TextComponent("<-"), b -> {
 			page--;
 			b.active = page != 0;
 			next.active = page + 1 <= values.size() / elms;
 		}) {
+
 			@Override
-			protected IFormattableTextComponent createNarrationMessage() {
-				return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.leftArrow"));
+			protected MutableComponent createNarrationMessage() {
+				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.leftArrow"));
 			}
+
 		});
-		addButton(next = new Button(width / 2 + 101, height - 21, 20, 20, new StringTextComponent("->"), b -> {
+		addWidget(next = new Button(width / 2 + 101, height - 21, 20, 20, new TextComponent("->"), b -> {
 			page++;
 			last.active = page != 0;
 			b.active = page + 1 <= values.size() / elms;
 		}) {
+
 			@Override
-			protected IFormattableTextComponent createNarrationMessage() {
-				return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.rightArrow"));
+			protected MutableComponent createNarrationMessage() {
+				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.rightArrow"));
 			}
 		});
 		last.active = page != 0;
 		next.active = page + 1 <= values.size() / elms;
-		tfs = new TextFieldWidget[values.size()];
+		tfs = new EditBox[values.size()];
 		btsDel = new GuiValueButton[values.size()];
 		btsAdd = new GuiValueButton[values.size() + 1];
+
 		int i;
 		for (i = 0; i < values.size(); i++) {
-			tfs[i] = new TextFieldWidget(font, width / 2 - 178, 21 + 21 * i % (elms * 21) + 2, 340, 16,
-					new StringTextComponent(""));
+			tfs[i] = new EditBox(font, width / 2 - 178, 21 + 21 * i % (elms * 21) + 2, 340, 16, new TextComponent(""));
 			tfs[i].setMaxLength(Integer.MAX_VALUE);
 			tfs[i].setValue(values.get(i));
-			btsDel[i] = addButton(new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20,
-					new StringTextComponent("-"), i, b -> {
-						values.remove(b.getValue().intValue());
-						defineMenu();
-					}) {
+			btsDel[i] =
 
-				@Override
-				protected IFormattableTextComponent createNarrationMessage() {
-					return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.delete"));
-				}
-			});
-			btsDel[i].setFGColor(TextFormatting.RED.getColor());
-			btsAdd[i] = addButton(new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20, 20,
-					new StringTextComponent("+"), i, b -> {
+					addWidget(new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20,
+							new TextComponent("-"), i, b -> {
+								values.remove(b.getValue().intValue());
+								defineMenu();
+							}) {
+
+						@Override
+						protected MutableComponent createNarrationMessage() {
+							return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.delete"));
+						}
+					});
+			btsDel[i].setFGColor(ChatFormatting.RED.getColor());
+			btsAdd[i] = addWidget(new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20, 20,
+					new TextComponent("+"), i, b -> {
 						values.add(b.getValue().intValue(), "");
 						defineMenu();
 					}) {
 
 				@Override
-				protected IFormattableTextComponent createNarrationMessage() {
-					return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.new"));
+				protected MutableComponent createNarrationMessage() {
+					return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.new"));
 				}
+
 			});
-			btsAdd[i].setFGColor(TextFormatting.GREEN.getColor());
-			children.add(tfs[i]);
+			btsAdd[i].setFGColor(ChatFormatting.GREEN.getColor());
+			addWidget(tfs[i]);
 		}
-		btsAdd[i] = addButton(new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
-				new StringTextComponent("+"), i, b -> {
+		btsAdd[i] = addWidget(new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
+				new TextComponent("+"), i, b -> {
 					values.add(b.getValue().intValue(), "");
 					defineMenu();
 				}) {
 
 			@Override
-			protected IFormattableTextComponent createNarrationMessage() {
-				return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.new"));
+			protected MutableComponent createNarrationMessage() {
+				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.new"));
 			}
+
 		});
-		btsAdd[i].setFGColor(TextFormatting.GREEN.getColor());
+		btsAdd[i].setFGColor(ChatFormatting.GREEN.getColor());
 
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
 		GuiUtils.color3f(1.0F, 1.0F, 1.0F);
 		for (int i = page * elms; i < (page + 1) * elms && i < tfs.length; i++) {
-			TextFieldWidget tf = tfs[i];
+			EditBox tf = tfs[i];
 			GuiUtils.drawRightString(font, i + " : ", tf.x, tf.y, Color.WHITE.getRGB(), tf.getHeight());
 			tf.render(matrixStack, mouseX, mouseY, partialTicks);
 		}

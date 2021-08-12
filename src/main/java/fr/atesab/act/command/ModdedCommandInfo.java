@@ -4,12 +4,12 @@ import com.mojang.brigadier.Command;
 
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
-import net.minecraft.command.CommandSource;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
 
 public class ModdedCommandInfo extends ModdedCommand {
 
@@ -19,43 +19,35 @@ public class ModdedCommandInfo extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
-			CommandSource src = c.getSource();
-			src.sendSuccess(new TranslationTextComponent("cmd.act.info.title").withStyle(TextFormatting.GOLD)
-					.append(new StringTextComponent(": ").withStyle(TextFormatting.DARK_GRAY))
-					.append(new StringTextComponent(ACTMod.MOD_NAME).withStyle(TextFormatting.WHITE)), false);
-			src.sendSuccess(
-					new TranslationTextComponent("cmd.act.info.version").withStyle(TextFormatting.GOLD)
-							.append(new StringTextComponent(": ").withStyle(TextFormatting.DARK_GRAY))
-							.append(new StringTextComponent(ACTMod.MOD_VERSION).withStyle(TextFormatting.WHITE)),
+			CommandSourceStack src = c.getSource();
+			src.sendSuccess(new TranslatableComponent("cmd.act.info.title").withStyle(ChatFormatting.GOLD)
+					.append(new TextComponent(": ").withStyle(ChatFormatting.DARK_GRAY))
+					.append(new TextComponent(ACTMod.MOD_NAME).withStyle(ChatFormatting.WHITE)), false);
+			src.sendSuccess(new TranslatableComponent("cmd.act.info.version").withStyle(ChatFormatting.GOLD)
+					.append(new TextComponent(": ").withStyle(ChatFormatting.DARK_GRAY))
+					.append(new TextComponent(ACTMod.MOD_VERSION).withStyle(ChatFormatting.WHITE)), false);
+			src.sendSuccess(new TranslatableComponent("cmd.act.info.authors").withStyle(ChatFormatting.GOLD)
+					.append(new TextComponent(": ").withStyle(ChatFormatting.DARK_GRAY))
+					.append(new TextComponent(ACTMod.MOD_AUTHORS).withStyle(ChatFormatting.WHITE)), false);
+			src.sendSuccess(new TranslatableComponent("cmd.act.info.licence").withStyle(ChatFormatting.GOLD)
+					.append(new TextComponent(": ").withStyle(ChatFormatting.DARK_GRAY))
+					.append(new TextComponent(ACTMod.MOD_LICENCE).withStyle(s -> s
+							.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+									new TranslatableComponent("cmd.act.info.link.open")
+											.withStyle(ChatFormatting.YELLOW)))
+							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ACTMod.MOD_LICENCE_LINK))
+							.withColor(ChatFormatting.WHITE))),
 					false);
-			src.sendSuccess(
-					new TranslationTextComponent("cmd.act.info.authors").withStyle(TextFormatting.GOLD)
-							.append(new StringTextComponent(": ").withStyle(TextFormatting.DARK_GRAY))
-							.append(new StringTextComponent(ACTMod.MOD_AUTHORS).withStyle(TextFormatting.WHITE)),
-					false);
-			src.sendSuccess(
-					new TranslationTextComponent("cmd.act.info.licence").withStyle(TextFormatting.GOLD)
-							.append(new StringTextComponent(": ")
-									.withStyle(TextFormatting.DARK_GRAY))
-							.append(new StringTextComponent(ACTMod.MOD_LICENCE).withStyle(s -> s
-									.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-											new TranslationTextComponent("cmd.act.info.link.open")
-													.withStyle(TextFormatting.YELLOW)))
-									.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ACTMod.MOD_LICENCE_LINK))
-									.withColor(TextFormatting.WHITE))),
-					false);
-			src.sendSuccess(
-					new TranslationTextComponent("cmd.act.info.link").withStyle(TextFormatting.GOLD)
-							.append(new StringTextComponent(": ")
-									.withStyle(TextFormatting.DARK_GRAY))
-							.append(new StringTextComponent("curseforge.com").withStyle(s -> s
-									.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-											new TranslationTextComponent("cmd.act.info.link.open")
-													.withStyle(TextFormatting.YELLOW)))
-									.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ACTMod.MOD_LINK))
-									.withColor(TextFormatting.BLUE))),
+			src.sendSuccess(new TranslatableComponent("cmd.act.info.link").withStyle(ChatFormatting.GOLD)
+					.append(new TextComponent(": ").withStyle(ChatFormatting.DARK_GRAY))
+					.append(new TextComponent("curseforge.com").withStyle(s -> s
+							.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+									new TranslatableComponent("cmd.act.info.link.open")
+											.withStyle(ChatFormatting.YELLOW)))
+							.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, ACTMod.MOD_LINK))
+							.withColor(ChatFormatting.BLUE))),
 					false);
 			return 5;
 		};

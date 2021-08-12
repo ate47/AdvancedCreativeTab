@@ -6,10 +6,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.arguments.ItemArgument;
-import net.minecraft.command.arguments.ItemInput;
-import net.minecraft.item.ItemStack;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemInput;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * A reader to read {@link ItemStack} from giveCode
@@ -48,7 +47,7 @@ public class ItemReader {
 		StackReference ref = new StackReference();
 		try {
 			dispatcher.execute(CMD + " " + giveCode, ref);
-		} catch (CommandSyntaxException | CommandException e) {
+		} catch (Exception e) {
 		}
 		return ref.stack;
 	}

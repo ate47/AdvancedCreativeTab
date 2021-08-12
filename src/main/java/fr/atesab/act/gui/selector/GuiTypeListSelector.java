@@ -6,11 +6,11 @@ import java.util.stream.Stream;
 
 import fr.atesab.act.gui.ItemStackButtonWidget;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
 
 public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
@@ -32,7 +32,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter) {
+	public GuiTypeListSelector(Screen parent, Component name, Function<ItemStack, Screen> setter) {
 		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		NonNullList<ItemStack> stacks = NonNullList.create();
 		Registry.ITEM.forEach(i -> // Item.REGISTRY
@@ -40,13 +40,13 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		stacks.forEach(stack -> addListElement(new TypeListElement(this, stack)));
 	}
 
-	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter,
+	public GuiTypeListSelector(Screen parent, Component name, Function<ItemStack, Screen> setter,
 			NonNullList<ItemStack> stacks) {
 		this(parent, name, setter, stacks.stream());
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiTypeListSelector(Screen parent, ITextComponent name, Function<ItemStack, Screen> setter,
+	public GuiTypeListSelector(Screen parent, Component name, Function<ItemStack, Screen> setter,
 			Stream<ItemStack> stacks) {
 		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		stacks.forEach(stack -> addListElement(new TypeListElement(this, stack)));

@@ -1,12 +1,12 @@
 package fr.atesab.act.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.AbstractButton;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemStackButtonWidget extends AbstractButton {
 	@FunctionalInterface
@@ -18,7 +18,7 @@ public class ItemStackButtonWidget extends AbstractButton {
 	 * an wrapper for the render Screen item tool tip method
 	 */
 	public interface ITooltipRenderer {
-		void renderTooltip1(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY);
+		void renderTooltip1(PoseStack matrixStack, ItemStack stack, int mouseX, int mouseY);
 	}
 
 	private ItemStack stack;
@@ -43,15 +43,19 @@ public class ItemStackButtonWidget extends AbstractButton {
 	}
 
 	@Override
-	public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTick) {
+	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTick) {
 		GuiUtils.drawItemStack(Minecraft.getInstance().getItemRenderer(), stack, x + 1, y + 1);
 		if (isHovered())
 			GuiUtils.drawRect(matrixStack, x, y, x + 18, y + 18, 0x55cccccc);
 	}
 
 	@Override
-	public void renderToolTip(MatrixStack matrixStack, int mouseX, int mouseY) {
+	public void renderToolTip(PoseStack matrixStack, int mouseX, int mouseY) {
 		parent.renderTooltip1(matrixStack, getStack(), mouseX, mouseY);
 		super.renderToolTip(matrixStack, mouseX, mouseY);
+	}
+
+	@Override
+	public void updateNarration(NarrationElementOutput p_169152_) {
 	}
 }

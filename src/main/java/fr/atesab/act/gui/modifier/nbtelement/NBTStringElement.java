@@ -12,28 +12,28 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class NBTStringElement extends NBTElement {
 	private String value;
-	private TextFieldWidget field;
+	private EditBox field;
 
 	public NBTStringElement(GuiListModifier<?> parent, String key, String value) {
 		super(parent, key, 200, 42);
 		this.value = value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&");
-		fieldList.add(field = new TextFieldWidget(font, 2, 2, 196, 16, new StringTextComponent("")));
-		buttonList.add(new Button(0, 21, 200, 20,
-				new TranslationTextComponent("gui.act.modifier.tag.editor.string.data"), b -> {
+		fieldList.add(field = new EditBox(font, 2, 2, 196, 16, new TextComponent("")));
+		buttonList.add(
+				new Button(0, 21, 200, 20, new TranslatableComponent("gui.act.modifier.tag.editor.string.data"), b -> {
 					// Create a selector to select category or root modifier
 					GuiButtonListSelector<Supplier<Screen>> root = new GuiButtonListSelector<>(parent,
-							new TranslationTextComponent("gui.act.modifier.tag.editor.string.data"), null,
+							new TranslatableComponent("gui.act.modifier.tag.editor.string.data"), null,
 							sup -> sup.get());
 					List<Tuple<String, Supplier<Screen>>> rootButtons = new ArrayList<>();
 					ACTMod.getStringModifier().keySet().stream().filter(k -> !k.isEmpty()).forEach(k -> {
@@ -42,7 +42,7 @@ public class NBTStringElement extends NBTElement {
 								new Tuple<String, Supplier<Screen>>(I18n.get("gui.act.modifier.string." + k), () -> {
 									// Create a selector to select between modifier in this category
 									GuiButtonListSelector<Supplier<Screen>> categorySelector = new GuiButtonListSelector<>(
-											root, new TranslationTextComponent("gui.act.modifier.string." + k), null,
+											root, new TranslatableComponent("gui.act.modifier.string." + k), null,
 											sup -> sup.get());
 									List<Tuple<String, Supplier<Screen>>> categorySelectorButtons = new ArrayList<>();
 									categoryModifiers.keySet().forEach(modKey -> {
@@ -84,8 +84,8 @@ public class NBTStringElement extends NBTElement {
 	}
 
 	@Override
-	public INBT get() {
-		return StringNBT.valueOf(value.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+	public Tag get() {
+		return StringTag.valueOf(value.replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 	}
 
 	@Override

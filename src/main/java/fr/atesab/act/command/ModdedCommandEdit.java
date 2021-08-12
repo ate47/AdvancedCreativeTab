@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
-import net.minecraft.command.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 public class ModdedCommandEdit extends ModdedCommand {
 
@@ -14,7 +14,7 @@ public class ModdedCommandEdit extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
 			ACTMod.openGiver();
 			return 0;

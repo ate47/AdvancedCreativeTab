@@ -9,17 +9,16 @@ import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import fr.atesab.act.gui.modifier.nbtelement.NBTIntegerElement;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.nbt.IntArrayNBT;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.network.chat.Component;
 
 @GuiNBTList
-public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> {
+public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayTag> {
 	private List<Integer> list;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTIntArrayModifier(ITextComponent title, Screen parent, Consumer<IntArrayNBT> setter,
-			IntArrayNBT array) {
+	public GuiNBTIntArrayModifier(Component title, Screen parent, Consumer<IntArrayTag> setter, IntArrayTag array) {
 		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = new ArrayList<>();
 		String k = "...";
@@ -36,8 +35,8 @@ public class GuiNBTIntArrayModifier extends GuiListModifier<IntArrayNBT> {
 	}
 
 	@Override
-	protected IntArrayNBT get() {
-		return new IntArrayNBT(list);
+	protected IntArrayTag get() {
+		return new IntArrayTag(list);
 	}
 
 }

@@ -2,7 +2,7 @@ package fr.atesab.act;
 
 import java.util.function.Consumer;
 
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
 
 public class StringModifier {
 	private String string;

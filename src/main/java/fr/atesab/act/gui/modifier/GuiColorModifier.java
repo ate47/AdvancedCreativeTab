@@ -5,23 +5,21 @@ import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.DyeItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.client.gui.widget.Slider;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fmlclient.gui.widget.Slider;
 
 public class GuiColorModifier extends GuiModifier<Integer> {
 	private final ResourceLocation PICKER = new ResourceLocation("textures/gui/picker.png");
@@ -30,7 +28,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	private boolean drag;
 	private boolean advanced = false;
 	private Button advButton;
-	private TextFieldWidget tfr, tfg, tfb, intColor, hexColor;
+	private EditBox tfr, tfg, tfb, intColor, hexColor;
 	private Slider r, g, b;
 	private int defaultColor;
 
@@ -39,7 +37,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	public GuiColorModifier(Screen parent, Consumer<Integer> setter, int color, int defaultColor) {
-		super(parent, new TranslationTextComponent("gui.act.modifier.meta.setColor"), setter);
+		super(parent, new TranslatableComponent("gui.act.modifier.meta.setColor"), setter);
 		this.color = color & ~0xff000000; // remove alpha
 		this.defaultColor = defaultColor;
 		try {
@@ -62,11 +60,11 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		if (!advanced) {
 			GuiUtils.color3f(1, 1, 1);
-			getMinecraft().getTextureManager().bind(PICKER);
+			getMinecraft().getTextureManager().bindForSetup(PICKER);
 			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200,
 					200);
 		} else {
@@ -111,37 +109,36 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 
 	@Override
 	public void init() {
-		addButton(new Button(width / 2 - 120, height / 2 + 81, 80, 20, new TranslationTextComponent("gui.done"), b -> {
+		addWidget(new Button(width / 2 - 120, height / 2 + 81, 80, 20, new TranslatableComponent("gui.done"), b -> {
 			set(color);
 			getMinecraft().setScreen(parent);
 		}));
-		addButton(advButton = new Button(width / 2 - 38, height / 2 + 81, 80, 20,
-				new TranslationTextComponent("gui.act.advanced"), b -> {
+		addWidget(advButton = new Button(width / 2 - 38, height / 2 + 81, 80, 20,
+				new TranslatableComponent("gui.act.advanced"), b -> {
 					advanced = !advanced;
 				}));
-		addButton(new Button(width / 2 + 43, height / 2 + 81, 79, 20, new TranslationTextComponent("gui.act.cancel"),
-				b -> {
+		addWidget(
+				new Button(width / 2 + 43, height / 2 + 81, 79, 20, new TranslatableComponent("gui.act.cancel"), b -> {
 					getMinecraft().setScreen(parent);
 				}));
 
-		addButton(r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, new TranslationTextComponent("gui.act.red"),
-				new StringTextComponent(""), 0, 255, color >> 16 & 0xFF, false, false, b -> {
+		addWidget(r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, new TranslatableComponent("gui.act.red"),
+				new TextComponent(""), 0, 255, color >> 16 & 0xFF, false, false, b -> {
 				}, s -> updateRed(s.getValueInt())));
-		tfr = new TextFieldWidget(font, r.x + r.getWidth() + 2, r.y + 1, 36, 18, new StringTextComponent(""));
+		tfr = new EditBox(font, r.x + r.getWidth() + 2, r.y + 1, 36, 18, new TextComponent(""));
 
-		addButton(
-				g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, new TranslationTextComponent("gui.act.green"),
-						new StringTextComponent(""), 0, 255, color >> 8 & 0xFF, false, false, b -> {
-						}, s -> updateGreen(s.getValueInt())));
-		tfg = new TextFieldWidget(font, g.x + g.getWidth() + 2, g.y + 1, 36, 18, new StringTextComponent(""));
+		addWidget(g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, new TranslatableComponent("gui.act.green"),
+				new TextComponent(""), 0, 255, color >> 8 & 0xFF, false, false, b -> {
+				}, s -> updateGreen(s.getValueInt())));
+		tfg = new EditBox(font, g.x + g.getWidth() + 2, g.y + 1, 36, 18, new TextComponent(""));
 
-		addButton(b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, new TranslationTextComponent("gui.act.blue"),
-				new StringTextComponent(""), 0, 255, color & 0xFF, false, false, b -> {
+		addWidget(b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, new TranslatableComponent("gui.act.blue"),
+				new TextComponent(""), 0, 255, color & 0xFF, false, false, b -> {
 				}, s -> updateBlue(s.getValueInt())));
-		tfb = new TextFieldWidget(font, b.x + b.getWidth() + 2, b.y + 1, 36, 18, new StringTextComponent(""));
+		tfb = new EditBox(font, b.x + b.getWidth() + 2, b.y + 1, 36, 18, new TextComponent(""));
 
-		intColor = new TextFieldWidget(font, width / 2 - 97, height / 2 + 28, 194, 18, new StringTextComponent(""));
-		hexColor = new TextFieldWidget(font, width / 2 - 97, height / 2 + 60, 194, 18, new StringTextComponent(""));
+		intColor = new EditBox(font, width / 2 - 97, height / 2 + 28, 194, 18, new TextComponent(""));
+		hexColor = new EditBox(font, width / 2 - 97, height / 2 + 60, 194, 18, new TextComponent(""));
 
 		tfr.setMaxLength(4);
 		tfg.setMaxLength(4);
@@ -270,7 +267,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	private void updateColor(int value) {
-		color = value == defaultColor ? value : MathHelper.clamp(value, 0, 0xffffff);
+		color = value == defaultColor ? value : value & 0xffffff;
 		int r = color >> 16 & 0xFF;
 		int g = color >> 8 & 0xFF;
 		int b = color >> 0 & 0xFF;
@@ -286,26 +283,26 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	private void setColor(int mouseX, int mouseY) {
-		int rx = MathHelper.clamp(mouseX - (width / 2 - 100), 0, 199);
-		int ry = MathHelper.clamp(MathHelper.clamp(mouseY - (height / 2 - 100), 0, 160) * 20 / 16, 0, 199);
+		int rx = GuiUtils.clamp(mouseX - (width / 2 - 100), 0, 199);
+		int ry = GuiUtils.clamp(GuiUtils.clamp(mouseY - (height / 2 - 100), 0, 160) * 20 / 16, 0, 199);
 		int[] data = new int[3];
 		pickerImage.getRaster().getPixel(rx, ry, data);
 		updateColor((data[0] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[2] & 0xFF) << 0);
 	}
 
 	private void updateRed(int v) {
-		v = MathHelper.clamp(v, 0, 255);
+		v &= 0xFF;
 		updateColor((v & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
 	}
 
 	private void updateGreen(int v) {
-		v = MathHelper.clamp(v, 0, 255);
+		v &= 0xFF;
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | (v & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
 
 	}
 
 	private void updateBlue(int v) {
-		v = MathHelper.clamp(v, 0, 255);
+		v &= 0xFF;
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | (v & 0xFF) << 0);
 	}
 }

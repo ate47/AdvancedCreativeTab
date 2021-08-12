@@ -1,8 +1,8 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ShortNBT;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.ShortTag;
 
 public class NBTShortElement extends NBTNumericElement<Short> {
 
@@ -15,10 +15,10 @@ public class NBTShortElement extends NBTNumericElement<Short> {
 	}
 
 	@Override
-	public INBT get(Short value) {
-		return ShortNBT.valueOf(value);
+	public Tag get(Short value) {
+		return ShortTag.valueOf(value);
 	}
-	
+
 	@Override
 	public void setNull() {
 		setValue((short) 0);

@@ -3,29 +3,29 @@ package fr.atesab.act.gui.modifier;
 import java.awt.Color;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class GuiStringModifier extends GuiModifier<String> {
-	private TextFieldWidget field;
+	private EditBox field;
 	private String value;
 
-	public GuiStringModifier(Screen parent, ITextComponent name, String value, Consumer<String> setter) {
+	public GuiStringModifier(Screen parent, Component name, String value, Consumer<String> setter) {
 		super(parent, name, setter);
 		this.value = value;
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		field.render(matrixStack, mouseX, mouseY, partialTicks);
 		GuiUtils.drawRightString(font, I18n.get("gui.act.text") + " : ", field.x, field.y, Color.ORANGE.getRGB(),
@@ -35,16 +35,16 @@ public class GuiStringModifier extends GuiModifier<String> {
 
 	@Override
 	public void init() {
-		field = new TextFieldWidget(font, width / 2 - 99, height / 2 - 20, 198, 18, new StringTextComponent(""));
+		field = new EditBox(font, width / 2 - 99, height / 2 - 20, 198, 18, new TextComponent(""));
 		field.setMaxLength(Integer.MAX_VALUE);
 		field.setValue(value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
 		field.setFocus(true);
 		field.setCanLoseFocus(false);
-		addButton(new Button(width / 2 - 100, height / 2, 200, 20, new TranslationTextComponent("gui.done"), b -> {
+		addWidget(new Button(width / 2 - 100, height / 2, 200, 20, new TranslatableComponent("gui.done"), b -> {
 			set(value = field.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
 			getMinecraft().setScreen(parent);
 		}));
-		addButton(new Button(width / 2 - 100, height / 2 + 21, 200, 20, new TranslationTextComponent("gui.act.cancel"),
+		addWidget(new Button(width / 2 - 100, height / 2 + 21, 200, 20, new TranslatableComponent("gui.act.cancel"),
 				b -> getMinecraft().setScreen(parent)));
 		super.init();
 	}

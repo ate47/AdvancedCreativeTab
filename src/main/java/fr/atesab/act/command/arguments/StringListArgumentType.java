@@ -16,8 +16,8 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import fr.atesab.act.command.ModdedCommand;
-import net.minecraft.command.CommandException;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandRuntimeException;
 
 public class StringListArgumentType implements ArgumentType<String[]> {
 	public static <E extends Enum<E>> StringListArgumentType enumList(Class<E> cls) {
@@ -41,8 +41,8 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 			for (E e : values)
 				if (e.name().equalsIgnoreCase(s))
 					return e;
-			throw new CommandException(
-					ModdedCommand.createTranslatedText("cmd.act.enumlistargument.invalid", TextFormatting.RED, s));
+			throw new CommandRuntimeException(
+					ModdedCommand.createTranslatedText("cmd.act.enumlistargument.invalid", ChatFormatting.RED, s));
 		});
 	}
 

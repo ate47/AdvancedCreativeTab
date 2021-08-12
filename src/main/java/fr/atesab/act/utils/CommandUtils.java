@@ -7,9 +7,9 @@ import java.util.Random;
 
 import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.network.play.NetworkPlayerInfo;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Registry;
 import net.minecraftforge.event.ForgeEventFactory;
 
 /**
@@ -26,30 +26,17 @@ public class CommandUtils {
 	}
 
 	/**
-	 * Get registry name of items
-	 * 
-	 * @return items' names
-	 * @since 2.0
-	 */
-	@SuppressWarnings("deprecation")
-	public static List<String> getItemList() {
-		List<String> items = new ArrayList<>();
-		Registry.ITEM.keySet().forEach(rl -> items.add(rl.toString()));
-		return items;
-	}
-
-	/**
 	 * Get all visible players in tab
 	 * 
 	 * @return players' names
 	 * @since 2.0
 	 */
 	public static List<String> getPlayerList() {
-		List<NetworkPlayerInfo> networkPlayerInfos = new ArrayList<>(
+		List<PlayerInfo> networkPlayerInfos = new ArrayList<>(
 				Minecraft.getInstance().player.connection.getOnlinePlayers());
 		networkPlayerInfos.sort((o1, o2) -> o1.getGameMode().getName().compareToIgnoreCase(o2.getGameMode().getName()));
 		List<String> players = new ArrayList<String>();
-		for (NetworkPlayerInfo info : networkPlayerInfos)
+		for (PlayerInfo info : networkPlayerInfos)
 			players.add(info.getGameMode().getName());
 		return players;
 	}
@@ -61,7 +48,7 @@ public class CommandUtils {
 	 * @param args    command arguments
 	 * @return List of string who match sorted by name
 	 * @since 2.0
-	 * @deprecated 
+	 * @deprecated
 	 */
 	@Deprecated
 	public static List<String> getTabCompletion(List<String> options, String[] args) {
@@ -84,7 +71,7 @@ public class CommandUtils {
 	 * @since 2.0
 	 */
 	public static void sendMessage(String message) {
-		ClientPlayerEntity p;
+		LocalPlayer p;
 		if ((p = Minecraft.getInstance().player) != null) {
 			if (ForgeEventFactory.onClientSendMessage(message).isEmpty())
 				return;

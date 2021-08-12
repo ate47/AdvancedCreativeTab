@@ -4,23 +4,23 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 /**
  * Boolean value button setter with color and text (for color blind)
  */
 public class GuiBooleanButton extends Button {
-	private static final ITextComponent YES = new TranslationTextComponent("gui.act.yes");
-	private static final ITextComponent NO = new TranslationTextComponent("gui.act.no");
+	private static final Component YES = new TranslatableComponent("gui.act.yes");
+	private static final Component NO = new TranslatableComponent("gui.act.no");
 	private Consumer<Boolean> setter;
 	private Supplier<Boolean> getter;
-	private ITextComponent textYes;
-	private ITextComponent textNo;
+	private Component textYes;
+	private Component textNo;
 
-	public GuiBooleanButton(int x, int y, int widthIn, int heightIn, ITextComponent buttonText,
-			Consumer<Boolean> setter, Supplier<Boolean> getter) {
+	public GuiBooleanButton(int x, int y, int widthIn, int heightIn, Component buttonText, Consumer<Boolean> setter,
+			Supplier<Boolean> getter) {
 		super(x, y, widthIn, heightIn, buttonText, GuiUtils.EMPTY_PRESS);
 		this.setter = setter;
 		this.getter = getter;
@@ -29,8 +29,7 @@ public class GuiBooleanButton extends Button {
 		updateDisplay();
 	}
 
-	public GuiBooleanButton(int x, int y, ITextComponent buttonText, Consumer<Boolean> setter,
-			Supplier<Boolean> getter) {
+	public GuiBooleanButton(int x, int y, Component buttonText, Consumer<Boolean> setter, Supplier<Boolean> getter) {
 		super(x, y, 200, 20, buttonText, GuiUtils.EMPTY_PRESS);
 		this.setter = setter;
 		this.getter = getter;

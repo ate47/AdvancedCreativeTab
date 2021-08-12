@@ -11,27 +11,27 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
 
 import fr.atesab.act.command.arguments.StringListArgumentType;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 
 public class ModdedCommandHelp extends ModdedCommand {
 	public static enum CommandClickOption {
 		doCommand, suggestCommand;
 	}
 
-	private final TextFormatting titleColor;
-	private final TextFormatting commandColor;
-	private final TextFormatting textColor;
+	private final ChatFormatting titleColor;
+	private final ChatFormatting commandColor;
+	private final ChatFormatting textColor;
 	private final String title;
 	private final ModdedCommand mainCommand;
 
-	public ModdedCommandHelp(ModdedCommand mainCommand, String title, TextFormatting titleColor,
-			TextFormatting commandColor, TextFormatting textColor) {
+	public ModdedCommandHelp(ModdedCommand mainCommand, String title, ChatFormatting titleColor,
+			ChatFormatting commandColor, ChatFormatting textColor) {
 		super("help", "cmd.act.help.cmd", CommandClickOption.suggestCommand);
 		this.title = title;
 		this.mainCommand = mainCommand;
@@ -50,7 +50,8 @@ public class ModdedCommandHelp extends ModdedCommand {
 	}
 
 	@Override
-	protected LiteralArgumentBuilder<CommandSource> onArgument(LiteralArgumentBuilder<CommandSource> command) {
+	protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
+			LiteralArgumentBuilder<CommandSourceStack> command) {
 		// show command help
 		return command
 				.then(Commands
@@ -60,7 +61,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 							int count = 0;
 							for (String commandName : StringListArgumentType.getStringList(c, "commandforhelp")) {
 								ModdedCommand cmd = mainCommand.getSubCommandsMap().get(commandName);
-								CommandSource src = c.getSource();
+								CommandSourceStack src = c.getSource();
 								String parentName = mainCommand.getGlobalName();
 								if (cmd != null) {
 									count += 3;
@@ -72,14 +73,14 @@ public class ModdedCommandHelp extends ModdedCommand {
 											createTranslatedText("cmd.act.aliases",
 													titleColor)
 															.append(createText(": ",
-																	TextFormatting.DARK_GRAY))
+																	ChatFormatting.DARK_GRAY))
 															.append(createText(
 																	cmd.getAliases().stream()
 																			.filter(s -> !s.equals(cmd.getName()))
 																			.collect(Collectors.joining(", ")),
 																	textColor)), // appendSibling
 											false);
-									Map<CommandNode<CommandSource>, String> usages = getDispatcher()
+									Map<CommandNode<CommandSourceStack>, String> usages = getDispatcher()
 											.getSmartUsage(cmd.getNode(), src);
 									if (usages.isEmpty()) { // no argument
 										showCommand(cmd, src, "/" + parentName + " " + cmd.getName(), "", false);
@@ -93,7 +94,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 								} else {
 									src.sendFailure(createText(
 											I18n.get("cmd.act.mc.invalid", "/" + parentName + " " + getName()),
-											TextFormatting.RED));
+											ChatFormatting.RED));
 									return count + 1;
 								}
 							}
@@ -102,13 +103,13 @@ public class ModdedCommandHelp extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		// show command list
 		return c -> {
-			CommandSource src = c.getSource();
+			CommandSourceStack src = c.getSource();
 			int count = 1;
 			src.sendSuccess(createText("-- " + I18n.get("cmd.act.help", title) + " --", titleColor), false);
-			Map<CommandNode<CommandSource>, String> usages;
+			Map<CommandNode<CommandSourceStack>, String> usages;
 			String parentName = mainCommand.getGlobalName();
 			for (ModdedCommand command : mainCommand.getSubCommands()) {
 				if (command.isDisplayInHelp()) {
@@ -127,9 +128,9 @@ public class ModdedCommandHelp extends ModdedCommand {
 		};
 	}
 
-	private void showCommand(ModdedCommand command, CommandSource src, String name, String usage,
+	private void showCommand(ModdedCommand command, CommandSourceStack src, String name, String usage,
 			boolean showDescription) {
-		IFormattableTextComponent component;
+		MutableComponent component;
 
 		if (usage.isEmpty())
 			component = createText(name, commandColor);
@@ -145,7 +146,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 					createTranslatedText("cmd.act.help.click", titleColor)))
 					.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, name + " ")));
 		if (showDescription)
-			src.sendSuccess(component.append(createText(": ", TextFormatting.DARK_GRAY))
+			src.sendSuccess(component.append(createText(": ", ChatFormatting.DARK_GRAY))
 					.append(createTranslatedText(command.getDescriptionTranslationKey(), textColor)), false);
 		else
 			src.sendSuccess(component, false);

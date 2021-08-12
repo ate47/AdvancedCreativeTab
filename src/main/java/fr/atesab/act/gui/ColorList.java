@@ -11,15 +11,15 @@ import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.ChatFormatting;
 
 public class ColorList {
 	private Screen parent;
 	private Minecraft mc;
-	private FontRenderer fontRenderer;
+	private Font fontRenderer;
 	private List<Integer> list;
 	private String title;
 	private int maxElement;
@@ -59,10 +59,10 @@ public class ColorList {
 			int y = offsetY + (16) * (i / sizeX);
 			if (GuiUtils.isHover(x, y, 15, 15, mouseX, mouseY)) {
 				List<String> text = Arrays.asList(
-						TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.get("gui.act.leftClick")
-								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.get("gui.act.edit"),
-						TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.get("gui.act.rightClick")
-								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.get("gui.act.delete"));
+						ChatFormatting.GOLD + "[" + ChatFormatting.YELLOW + I18n.get("gui.act.leftClick")
+								+ ChatFormatting.GOLD + "] " + ChatFormatting.YELLOW + I18n.get("gui.act.edit"),
+						ChatFormatting.GOLD + "[" + ChatFormatting.YELLOW + I18n.get("gui.act.rightClick")
+								+ ChatFormatting.GOLD + "] " + ChatFormatting.YELLOW + I18n.get("gui.act.delete"));
 				int width = text.stream().mapToInt(fontRenderer::width).max().getAsInt(),
 						height = text.size() * (fontRenderer.lineHeight + 1);
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX, mouseY, width, height, parent.width,

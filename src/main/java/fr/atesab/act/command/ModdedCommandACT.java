@@ -2,7 +2,7 @@ package fr.atesab.act.command;
 
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.gui.GuiMenu;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
 
 public class ModdedCommandACT extends ModdedCommand {
 	public final ModdedCommandOpenGiver SC_OPEN_GIVER;
@@ -21,7 +21,7 @@ public class ModdedCommandACT extends ModdedCommand {
 		super(ACTMod.MOD_ID);
 		registerDefaultSubCommand(
 				SC_HELP = new ModdedCommandHelp(this, ACTMod.MOD_LITTLE_NAME + " v" + ACTMod.MOD_VERSION,
-						TextFormatting.YELLOW, TextFormatting.GOLD, TextFormatting.WHITE));
+						ChatFormatting.YELLOW, ChatFormatting.GOLD, ChatFormatting.WHITE));
 		registerSubCommand(SC_EDIT = new ModdedCommandEdit());
 		registerSubCommand(SC_ENCHANT = new ModdedCommandEnchant());
 		registerSubCommand(SC_FORMAT = new ModdedCommandFormat());

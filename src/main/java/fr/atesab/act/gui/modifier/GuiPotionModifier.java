@@ -6,35 +6,36 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils.PotionInformation;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
-import net.minecraft.potion.Potion;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Registry;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
 
 public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 	private static class CustomPotionListElement extends ListElement {
-		private TextFieldWidget duration, amplifier;
-		private Effect potion;
+		private EditBox duration, amplifier;
+		private MobEffect potion;
 		private int durationTime, amplifierValue;
 		private boolean ambient, showIcon, showParticles;
 		private boolean errDur = false, errAmp = false;
 		private Button type;
 
 		@SuppressWarnings("deprecation")
-		public CustomPotionListElement(GuiPotionModifier parent, EffectInstance potionEffect) {
+		public CustomPotionListElement(GuiPotionModifier parent, MobEffectInstance potionEffect) {
 			super(400, 50);
 			int l = 5 + Math.max(font.width(I18n.get("gui.act.modifier.meta.potion.duration") + " : "),
 					font.width(I18n.get("gui.act.modifier.meta.potion.amplifier") + " : "));
@@ -45,39 +46,38 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			showIcon = potionEffect.showIcon();
 			showParticles = potionEffect.isVisible();
 
-			duration = new TextFieldWidget(font, l, 1, 150 - l, 18, new StringTextComponent(""));
+			duration = new EditBox(font, l, 1, 150 - l, 18, new TextComponent(""));
 			duration.setValue(String.valueOf(durationTime));
-			amplifier = new TextFieldWidget(font, l, 22, 150 - l, 18, new StringTextComponent(""));
+			amplifier = new EditBox(font, l, 22, 150 - l, 18, new TextComponent(""));
 			amplifier.setValue(String.valueOf(amplifierValue));
 			buttonList.add(type = new Button(153, 0, 200, 20,
-					new TranslationTextComponent("gui.act.modifier.meta.potion.type"), b -> {
-						List<Tuple<String, Effect>> pots = new ArrayList<>();
+					new TranslatableComponent("gui.act.modifier.meta.potion.type"), b -> {
+						List<Tuple<String, MobEffect>> pots = new ArrayList<>();
 						// Potion.REGISTRY
 						Registry.MOB_EFFECT
 								.forEach(pot -> pots.add(new Tuple<>(I18n.get(pot.getDescriptionId()), pot)));
-						mc.setScreen(new GuiButtonListSelector<Effect>(parent,
-								new TranslationTextComponent("gui.act.modifier.meta.potion.type"), pots, pot -> {
+						mc.setScreen(new GuiButtonListSelector<MobEffect>(parent,
+								new TranslatableComponent("gui.act.modifier.meta.potion.type"), pots, pot -> {
 									potion = pot;
 									setButtonText();
 									return null;
 								}));
 					}));
 			buttonList.add(new GuiBooleanButton(153, 21, 100, 20,
-					new TranslationTextComponent("gui.act.modifier.meta.potion.ambient"), b -> ambient = b,
+					new TranslatableComponent("gui.act.modifier.meta.potion.ambient"), b -> ambient = b,
 					() -> ambient));
 			buttonList.add(new GuiBooleanButton(255, 21, 99, 20,
-					new TranslationTextComponent("gui.act.modifier.meta.potion.showParticles"), b -> showParticles = b,
+					new TranslatableComponent("gui.act.modifier.meta.potion.showParticles"), b -> showParticles = b,
 					() -> showParticles));
 			buttonList.add(new RemoveElementButton(parent, 355, 0, 20, 20, this));
 			buttonList.add(new AddElementButton(parent, 377, 0, 20, 20, this, parent.supplier));
-			buttonList.add(
-					new AddElementButton(parent, 355, 21, 43, 20, new TranslationTextComponent("gui.act.give.copy"),
-							this, () -> new CustomPotionListElement(parent, getEffect())));
+			buttonList.add(new AddElementButton(parent, 355, 21, 43, 20, new TranslatableComponent("gui.act.give.copy"),
+					this, () -> new CustomPotionListElement(parent, getEffect())));
 			setButtonText();
 		}
 
 		@Override
-		public void draw(MatrixStack stack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		public void draw(PoseStack stack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(stack, amplifier, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawRelative(stack, duration, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.potion.duration") + " : ", duration,
@@ -87,8 +87,8 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			super.draw(stack, offsetX, offsetY, mouseX, mouseY, partialTicks);
 		}
 
-		public EffectInstance getEffect() {
-			return new EffectInstance(potion, durationTime, amplifierValue, ambient, showParticles, showIcon);
+		public MobEffectInstance getEffect() {
+			return new MobEffectInstance(potion, durationTime, amplifierValue, ambient, showParticles, showIcon);
 		}
 
 		@Override
@@ -129,9 +129,8 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		}
 
 		private void setButtonText() {
-			type.setMessage(new TranslationTextComponent("gui.act.modifier.meta.potion.type").append(" (")
-					.append(potion == null ? new StringTextComponent("null")
-							: new TranslationTextComponent(potion.getDescriptionId()))
+			type.setMessage(new TranslatableComponent("gui.act.modifier.meta.potion.type").append(" (").append(
+					potion == null ? new TextComponent("null") : new TranslatableComponent(potion.getDescriptionId()))
 					.append(")"));
 		}
 
@@ -173,15 +172,15 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		public MainPotionListElement(GuiPotionModifier parent) {
 			super(400, 29);
 			this.parent = parent;
-			buttonList.add(new Button(0, 0, 200, 20, new TranslationTextComponent("gui.act.modifier.meta.setColor"),
+			buttonList.add(new Button(0, 0, 200, 20, new TranslatableComponent("gui.act.modifier.meta.setColor"),
 					b -> mc.setScreen(
 							new GuiColorModifier(parent, i -> parent.customColor = i, parent.customColor, -1))));
-			buttonList.add(type = new Button(201, 0, 199, 20, new StringTextComponent(""), b -> {
+			buttonList.add(type = new Button(201, 0, 199, 20, new TextComponent(""), b -> {
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
 				// PotionType.REGISTRY
 				Registry.POTION.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
 				mc.setScreen(new GuiButtonListSelector<Potion>(parent,
-						new TranslationTextComponent("gui.act.modifier.meta.potion.type"), pots, pot -> {
+						new TranslatableComponent("gui.act.modifier.meta.potion.type"), pots, pot -> {
 							parent.main = pot;
 							defineButton();
 							return null;
@@ -191,7 +190,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		}
 
 		private void defineButton() {
-			type.setMessage(new TranslationTextComponent("gui.act.modifier.meta.potion.type").append(" (")
+			type.setMessage(new TranslatableComponent("gui.act.modifier.meta.potion.type").append(" (")
 					.append(getPotionName(parent.main)).append(")"));
 		}
 
@@ -202,11 +201,11 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 	private Potion main;
 
 	private final Supplier<ListElement> supplier = () -> new CustomPotionListElement(this,
-			new EffectInstance(Effects.MOVEMENT_SPEED));
+			new MobEffectInstance(MobEffects.MOVEMENT_SPEED));
 
 	@SuppressWarnings("unchecked")
 	public GuiPotionModifier(Screen parent, Consumer<PotionInformation> setter, PotionInformation info) {
-		super(parent, new TranslationTextComponent("gui.act.modifier.meta.potion"), new ArrayList<>(), setter,
+		super(parent, new TranslatableComponent("gui.act.modifier.meta.potion"), new ArrayList<>(), setter,
 				new Tuple[0]);
 		this.customColor = info.getCustomColor();
 		this.main = info.getMain();
@@ -217,7 +216,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
 	@Override
 	protected PotionInformation get() {
-		List<EffectInstance> customEffects = new ArrayList<>();
+		List<MobEffectInstance> customEffects = new ArrayList<>();
 		getElements().stream().filter(le -> le instanceof CustomPotionListElement)
 				.map(le -> (CustomPotionListElement) le).forEach(cpl -> customEffects.add(cpl.getEffect()));
 		return new PotionInformation(customColor, main, customEffects);

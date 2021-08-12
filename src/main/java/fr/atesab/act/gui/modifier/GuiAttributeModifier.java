@@ -6,29 +6,29 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
-import fr.atesab.act.utils.Tuple;
 import fr.atesab.act.utils.ItemUtils.AttributeData;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import fr.atesab.act.utils.Tuple;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 
 public class GuiAttributeModifier extends GuiListModifier<List<AttributeData>> {
 
 	static class AttributeListElement extends ListElement {
-		private TextFieldWidget amount;
+		private EditBox amount;
 		private boolean errAmount = false;
 		private double amountValue;
 		private AttributeData data;
@@ -41,42 +41,42 @@ public class GuiAttributeModifier extends GuiListModifier<List<AttributeData>> {
 			super(400, 50);
 			this.data = data;
 			int l = 5 + font.width(I18n.get("gui.act.modifier.attr.amount") + " : ");
-			amount = new TextFieldWidget(font, 202 + l, 1, 154 - l, 18, new StringTextComponent(""));
+			amount = new EditBox(font, 202 + l, 1, 154 - l, 18, new TextComponent(""));
 			amount.setMaxLength(8);
 			amount.setValue(String.valueOf(amountValue = data.getModifier().getAmount()));
 			operationValue = data.getModifier().getOperation().toValue();
-			buttonList.add(slotButton = new Button(2, 0, 198, 20, new StringTextComponent(""), b -> {
-				List<Tuple<String, EquipmentSlotType>> slots = new ArrayList<>();
+			buttonList.add(slotButton = new Button(2, 0, 198, 20, new TextComponent(""), b -> {
+				List<Tuple<String, EquipmentSlot>> slots = new ArrayList<>();
 				slots.add(new Tuple<>(I18n.get("gui.act.none"), null));
-				for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+				for (EquipmentSlot slot : EquipmentSlot.values()) {
 					String s = I18n.get("item.modifiers." + slot.getName());
 					slots.add(new Tuple<>(s.endsWith(":") ? s.substring(0, s.length() - 1) : s, slot));
 				}
 				mc.setScreen(new GuiButtonListSelector<>(parent,
-						new TranslationTextComponent("gui.act.modifier.attr.slot"), slots, s -> {
+						new TranslatableComponent("gui.act.modifier.attr.slot"), slots, s -> {
 							data.setSlot(s);
 							defineButtonText();
 							return null;
 						}));
 			}));
-			buttonList.add(typeButton = new Button(2, 21, 198, 20, new StringTextComponent(""), b -> {
+			buttonList.add(typeButton = new Button(2, 21, 198, 20, new TextComponent(""), b -> {
 				List<Tuple<String, Attribute>> attributes = new ArrayList<>();
 				ACTMod.getAttributes().forEach(
 						atr -> attributes.add(new Tuple<String, Attribute>(I18n.get(atr.getDescriptionId()), atr)));
 				mc.setScreen(new GuiButtonListSelector<Attribute>(parent,
-						new TranslationTextComponent("gui.act.modifier.attr.type"), attributes, atr -> {
+						new TranslatableComponent("gui.act.modifier.attr.type"), attributes, atr -> {
 							data.setAttribute(atr);
 							defineButtonText();
 							return null;
 						}));
 			}));
-			buttonList.add(operationButton = new Button(202, 21, 157, 20, new StringTextComponent(""), b -> {
+			buttonList.add(operationButton = new Button(202, 21, 157, 20, new TextComponent(""), b -> {
 				List<Tuple<String, Integer>> operations = new ArrayList<>();
 				operations.add(new Tuple<>(I18n.get("gui.act.modifier.attr.operation.0") + " (0)", 0));
 				operations.add(new Tuple<>(I18n.get("gui.act.modifier.attr.operation.1") + " (1)", 1));
 				operations.add(new Tuple<>(I18n.get("gui.act.modifier.attr.operation.2") + " (2)", 2));
 				mc.setScreen(new GuiButtonListSelector<>(parent,
-						new TranslationTextComponent("gui.act.modifier.attr.operation"), operations, i -> {
+						new TranslatableComponent("gui.act.modifier.attr.operation"), operations, i -> {
 							AttributeListElement.this.operationValue = i;
 							defineButtonText();
 							return null;
@@ -84,9 +84,8 @@ public class GuiAttributeModifier extends GuiListModifier<List<AttributeData>> {
 			}));
 			buttonList.add(new RemoveElementButton(parent, 359, 0, 20, 20, this));
 			buttonList.add(new AddElementButton(parent, 381, 0, 20, 20, this, parent.supplier));
-			buttonList.add(
-					new AddElementButton(parent, 359, 21, 43, 20, new TranslationTextComponent("gui.act.give.copy"),
-							this, () -> new AttributeListElement(parent, getData())));
+			buttonList.add(new AddElementButton(parent, 359, 21, 43, 20, new TranslatableComponent("gui.act.give.copy"),
+					this, () -> new AttributeListElement(parent, getData())));
 			defineButtonText();
 		}
 
@@ -94,18 +93,17 @@ public class GuiAttributeModifier extends GuiListModifier<List<AttributeData>> {
 
 			String s = (data.getSlot() == null ? I18n.get("gui.act.none")
 					: I18n.get("item.modifiers." + data.getSlot().getName()));
-			slotButton.setMessage(new TranslationTextComponent("gui.act.modifier.attr.slot").append(" - ")
+			slotButton.setMessage(new TranslatableComponent("gui.act.modifier.attr.slot").append(" - ")
 					.append((s.endsWith(":") ? s.substring(0, s.length() - 1) : s)));
-			typeButton.setMessage(new TranslationTextComponent("gui.act.modifier.attr.type").append(" - ")
-					.append(new TranslationTextComponent(data.getModifier().getName())));
-			operationButton.setMessage(new TranslationTextComponent("gui.act.modifier.attr.operation").append(" - ")
-					.append(new TranslationTextComponent("gui.act.modifier.attr.operation." + operationValue))
-					.append(" (").append(String.valueOf(operationValue)).append(")"));
+			typeButton.setMessage(new TranslatableComponent("gui.act.modifier.attr.type").append(" - ")
+					.append(new TranslatableComponent(data.getModifier().getName())));
+			operationButton.setMessage(new TranslatableComponent("gui.act.modifier.attr.operation").append(" - ")
+					.append(new TranslatableComponent("gui.act.modifier.attr.operation." + operationValue)).append(" (")
+					.append(String.valueOf(operationValue)).append(")"));
 		}
 
 		@Override
-		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-				float partialTicks) {
+		public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(matrixStack, amount, offsetX, offsetY, mouseX, mouseY, partialTicks);
 			GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.attr.amount") + " : ", amount,
 					(errAmount ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
@@ -173,11 +171,11 @@ public class GuiAttributeModifier extends GuiListModifier<List<AttributeData>> {
 	}
 
 	private final Supplier<ListElement> supplier = () -> new AttributeListElement(this,
-			ItemUtils.AttributeModifierBuilder.ARMOR.buildData(EquipmentSlotType.MAINHAND, 0, Operation.ADDITION));
+			ItemUtils.AttributeModifierBuilder.ARMOR.buildData(EquipmentSlot.MAINHAND, 0, Operation.ADDITION));
 
 	@SuppressWarnings("unchecked")
 	public GuiAttributeModifier(Screen parent, List<AttributeData> attributes, Consumer<List<AttributeData>> setter) {
-		super(parent, new TranslationTextComponent("gui.act.modifier.attr"), new ArrayList<>(), setter, new Tuple[0]);
+		super(parent, new TranslatableComponent("gui.act.modifier.attr"), new ArrayList<>(), setter, new Tuple[0]);
 		attributes.forEach(attribute -> addListElement(new AttributeListElement(this, attribute)));
 		addListElement(new AddElementList(this, supplier));
 	}

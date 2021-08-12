@@ -2,21 +2,21 @@ package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class NBTTagElement extends NBTElement {
-	private CompoundNBT value;
+	private CompoundTag value;
 
-	public NBTTagElement(GuiListModifier<?> parent, String key, CompoundNBT value) {
+	public NBTTagElement(GuiListModifier<?> parent, String key, CompoundTag value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(new Button(0, 0, 200, 20, new TranslationTextComponent("gui.act.modifier.tag.editor.tag"), b -> {
-			mc.setScreen(new GuiNBTModifier(new StringTextComponent(parent.getStringTitle() + key + "/"), parent,
+		buttonList.add(new Button(0, 0, 200, 20, new TranslatableComponent("gui.act.modifier.tag.editor.tag"), b -> {
+			mc.setScreen(new GuiNBTModifier(new TextComponent(parent.getStringTitle() + key + "/"), parent,
 					tag -> NBTTagElement.this.value = tag, value.copy()));
 		}));
 	}
@@ -27,7 +27,7 @@ public class NBTTagElement extends NBTElement {
 	}
 
 	@Override
-	public INBT get() {
+	public Tag get() {
 		return value.copy();
 	}
 

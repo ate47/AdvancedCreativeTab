@@ -1,24 +1,24 @@
 package fr.atesab.act.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.gui.ItemStackButtonWidget.ITooltipRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 
 public class GuiACT extends Screen implements ITooltipRenderer {
 	public static void playClick() {
-		Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 	}
 
 	protected Screen parent;
 	protected Minecraft mc;
 
-	public GuiACT(Screen parent, ITextComponent name) {
+	public GuiACT(Screen parent, Component name) {
 		super(name);
 		this.parent = parent;
 		mc = Minecraft.getInstance();
@@ -49,7 +49,7 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 	}
 
 	@Override
-	public void renderTooltip1(MatrixStack matrixStack, ItemStack stack, int mouseX, int mouseY) {
+	public void renderTooltip1(PoseStack matrixStack, ItemStack stack, int mouseX, int mouseY) {
 		super.renderTooltip(matrixStack, stack, mouseX, mouseY);
 	}
 }

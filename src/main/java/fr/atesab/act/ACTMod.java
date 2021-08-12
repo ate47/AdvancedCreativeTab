@@ -15,12 +15,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.glfw.GLFW;
-
 import com.google.common.collect.Maps;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.StringReader;
@@ -29,6 +26,10 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import fr.atesab.act.command.ModdedCommand;
 import fr.atesab.act.command.ModdedCommandACT;
@@ -47,40 +48,37 @@ import fr.atesab.act.utils.CommandUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.block.Blocks;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.CreativeScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.SuggestionProviders;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponentUtils;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
-import net.minecraft.world.GameType;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.synchronization.SuggestionProviders;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ClientChatEvent;
@@ -91,28 +89,28 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.client.gui.screen.ModListScreen;
-import net.minecraftforge.fml.client.gui.widget.ModListWidget;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
+import net.minecraftforge.fmlclient.ConfigGuiHandler.ConfigGuiFactory;
+import net.minecraftforge.fmlclient.gui.screen.ModListScreen;
+import net.minecraftforge.fmlclient.gui.widget.ModListWidget;
+import net.minecraftforge.fmlclient.registry.ClientRegistry;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @OnlyIn(Dist.CLIENT)
 @Mod(ACTMod.MOD_ID)
 public class ACTMod {
 	public enum ACTState {
-		RELEASE(null), BETA(TextFormatting.GOLD), ALPHA(TextFormatting.DARK_RED);
+		RELEASE(null), BETA(ChatFormatting.GOLD), ALPHA(ChatFormatting.DARK_RED);
 
-		private TextFormatting color;
+		private ChatFormatting color;
 
-		private ACTState(TextFormatting color) {
+		private ACTState(ChatFormatting color) {
 			this.color = color;
 		}
 
@@ -120,7 +118,7 @@ public class ACTMod {
 		 * @return the color in the warning
 		 * @see #isShow()
 		 */
-		public TextFormatting getColor() {
+		public ChatFormatting getColor() {
 			return color;
 		}
 
@@ -158,24 +156,24 @@ public class ACTMod {
 	public static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
 	public static final String TEMPLATE_TAG_NAME = "TemplateData";
 	public static final Random RANDOM = new Random();
-	private static final MatrixStack STACK = new MatrixStack();
+	private static final PoseStack STACK = new PoseStack();
 	@SuppressWarnings("unchecked")
 	public static final String[] DEFAULT_CUSTOM_ITEMS = {
 			ItemUtils
 					.getGiveCode(
-							ItemUtils.buildStack(Blocks.PINK_WOOL, 42, TextFormatting.LIGHT_PURPLE + "Pink verity",
-									new String[] { "" + TextFormatting.GOLD + TextFormatting.BOLD + "42 is life",
-											"" + TextFormatting.GOLD + TextFormatting.BOLD + "wait what ?" },
+							ItemUtils.buildStack(Blocks.PINK_WOOL, 42, ChatFormatting.LIGHT_PURPLE + "Pink verity",
+									new String[] { "" + ChatFormatting.GOLD + ChatFormatting.BOLD + "42 is life",
+											"" + ChatFormatting.GOLD + ChatFormatting.BOLD + "wait what ?" },
 									new Tuple[0])) };
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
-	private static KeyBinding giver, menu, edit;
+	private static KeyMapping giver, menu, edit;
 	private static List<ItemStack> templates = new ArrayList<>();
 	private static HashSet<Attribute> attributes = new HashSet<>();
 	private static Map<String, Map<String, Consumer<StringModifier>>> stringModifier = new HashMap<>();
 	private static Configuration config;
-	private static CommandDispatcher<CommandSource> dispatcher = new CommandDispatcher<>();
+	private static CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
 	private static Set<String> commandSet = new HashSet<>();
-	private static CommandDispatcher<ISuggestionProvider> suggestionProvider;
+	private static CommandDispatcher<SharedSuggestionProvider> SharedSuggestionProvider;
 
 	/**
 	 * @return if the tool tip is disabled
@@ -211,7 +209,7 @@ public class ACTMod {
 	/**
 	 * @return the {@link CommandDispatcher} of the act API
 	 */
-	public static CommandDispatcher<CommandSource> getDispatcher() {
+	public static CommandDispatcher<CommandSourceStack> getDispatcher() {
 		return dispatcher;
 	}
 
@@ -250,8 +248,8 @@ public class ACTMod {
 	public static Stream<ItemStack> getTemplates() {
 		return templates.stream().map(is -> {
 			String lang = ItemUtils.getCustomTag(is, TEMPLATE_TAG_NAME + "Lang", null);
-			ITextComponent display = (lang != null ? new TranslationTextComponent(lang) : is.getDisplayName());
-			display.copy().withStyle(TextFormatting.AQUA);
+			Component display = (lang != null ? new TranslatableComponent(lang) : is.getDisplayName());
+			display.copy().withStyle(ChatFormatting.AQUA);
 			return is.copy().setHoverName(display);
 		});
 	}
@@ -264,7 +262,7 @@ public class ACTMod {
 	 * @return if this key is pressed
 	 */
 	public static boolean isKeyDown(int key) {
-		return InputMappings.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), key);
+		return InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), key);
 	}
 
 	/**
@@ -276,7 +274,7 @@ public class ACTMod {
 	 */
 	public static void openGiver() {
 		Minecraft mc = Minecraft.getInstance();
-		final int slot = mc.player.inventory.selected;
+		final int slot = mc.player.getInventory().selected;
 		GuiUtils.displayScreen(new GuiItemStackModifier(null, mc.player.getMainHandItem().copy(),
 				is -> ItemUtils.give(is, 36 + slot)));
 	}
@@ -377,7 +375,7 @@ public class ACTMod {
 	 * @param y        the x location
 	 * @param color    the text color
 	 */
-	public static void drawString(FontRenderer renderer, String str, int x, int y, int color) {
+	public static void drawString(Font renderer, String str, int x, int y, int color) {
 		renderer.draw(STACK, str, x, y, color);
 	}
 
@@ -397,9 +395,9 @@ public class ACTMod {
 				if (info != null) {
 					Optional<? extends ModContainer> op = ModList.get().getModContainerById(info.getModId());
 					if (op.isPresent()) {
-						boolean value = op.get().getCustomExtension(ExtensionPoint.CONFIGGUIFACTORY).isPresent();
+						boolean value = op.get().getCustomExtension(ConfigGuiFactory.class).isPresent();
 						String config = I18n.get("fml.menu.mods.config");
-						for (IGuiEventListener b : screen.children())
+						for (Object b : screen.children())
 							if (b instanceof Button && ((Button) b).getMessage().getString().equals(config))
 								((Button) b).active = value;
 					}
@@ -426,14 +424,15 @@ public class ACTMod {
 	private void commonSetup(FMLCommonSetupEvent ev) {
 
 		ModList.get().getModContainerById(MOD_ID).ifPresent(con -> {
-			con.registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY, () -> (mc, parent) -> new GuiMenu(parent));
+			con.registerExtensionPoint(ConfigGuiFactory.class,
+					() -> new ConfigGuiFactory((mc, parent) -> new GuiMenu(parent)));
 		});
 
 		commandSetup();
 
-		ClientRegistry.registerKeyBinding(ACTMod.giver = new KeyBinding("key.act.giver", GLFW.GLFW_KEY_Y, MOD_NAME));
-		ClientRegistry.registerKeyBinding(ACTMod.menu = new KeyBinding("key.act.menu", GLFW.GLFW_KEY_N, MOD_NAME));
-		ClientRegistry.registerKeyBinding(ACTMod.edit = new KeyBinding("key.act.edit", GLFW.GLFW_KEY_H, MOD_NAME));
+		ClientRegistry.registerKeyBinding(ACTMod.giver = new KeyMapping("key.act.giver", GLFW.GLFW_KEY_Y, MOD_NAME));
+		ClientRegistry.registerKeyBinding(ACTMod.menu = new KeyMapping("key.act.menu", GLFW.GLFW_KEY_N, MOD_NAME));
+		ClientRegistry.registerKeyBinding(ACTMod.edit = new KeyMapping("key.act.edit", GLFW.GLFW_KEY_H, MOD_NAME));
 
 		// register attributes
 		for (Field f : Attributes.class.getDeclaredFields())
@@ -471,7 +470,7 @@ public class ACTMod {
 				ADVANCED_CREATIVE_TAB.addSubitem(i);
 			else {
 				NonNullList<ItemStack> sub = NonNullList.create();
-				i.fillItemCategory(ItemGroup.TAB_SEARCH, sub);
+				i.fillItemCategory(CreativeModeTab.TAB_SEARCH, sub);
 				if (sub.stream().noneMatch(is -> is.getItem().equals(i) && (is.getTag() == null || is.getTag().isEmpty()
 						|| !(is.getTag().size() == 1 && is.getTag().contains("damage")))))
 					ADVANCED_CREATIVE_TAB.addSubitem(i);
@@ -504,7 +503,7 @@ public class ACTMod {
 		attributes.forEach(at -> registerStringModifier(at.getDescriptionId(), "attributes", // getName
 				sm -> sm.setString(at.getRegistryName().toString()))); // getName
 
-		for (EquipmentSlotType slot : EquipmentSlotType.values())
+		for (EquipmentSlot slot : EquipmentSlot.values())
 			registerStringModifier("item.modifiers." + slot.getName(), "attributes.slot",
 					sm -> sm.setString(slot.getName()));
 
@@ -518,7 +517,7 @@ public class ACTMod {
 		registerStringModifier("gui.act.modifier.string.nbt", "", sm -> {
 			try {
 				sm.setNextScreen(new GuiNBTModifier(sm.getNextScreen(), nbt -> sm.setString(nbt.toString()),
-						JsonToNBT.parseTag(sm.getString())));
+						TagParser.parseTag(sm.getString())));
 			} catch (Exception e) {
 			}
 		});
@@ -536,7 +535,7 @@ public class ACTMod {
 			List<Tuple<String, String>> btn = new ArrayList<>();
 			plr.forEach(pn -> btn.add(new Tuple<String, String>(pn, pn)));
 			sm.setNextScreen(new GuiButtonListSelector<String>(sm.getNextScreen(),
-					new TranslationTextComponent("gui.act.modifier.string.players"), btn, s -> {
+					new TranslatableComponent("gui.act.modifier.string.players"), btn, s -> {
 						sm.setString(s);
 						return null;
 					}));
@@ -562,17 +561,17 @@ public class ACTMod {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void createSuggestion(CommandNode<CommandSource> dispatcher,
-			CommandNode<ISuggestionProvider> rootCommandNode, CommandSource player,
-			Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> suggestions) {
-		for (CommandNode<CommandSource> child : dispatcher.getChildren()) {
-			ArgumentBuilder<ISuggestionProvider, ?> argumentbuilder = (ArgumentBuilder) child.createBuilder();
+	private void createSuggestion(CommandNode<CommandSourceStack> dispatcher,
+			CommandNode<SharedSuggestionProvider> rootCommandNode, CommandSourceStack player,
+			Map<CommandNode<CommandSourceStack>, CommandNode<SharedSuggestionProvider>> suggestions) {
+		for (CommandNode<CommandSourceStack> child : dispatcher.getChildren()) {
+			ArgumentBuilder<SharedSuggestionProvider, ?> argumentbuilder = (ArgumentBuilder) child.createBuilder();
 			argumentbuilder.requires((ctx) -> true);
 			if (argumentbuilder.getCommand() != null)
 				argumentbuilder.executes((ctx) -> 0);
 
 			if (argumentbuilder instanceof RequiredArgumentBuilder) {
-				RequiredArgumentBuilder<ISuggestionProvider, ?> requiredargumentbuilder = (RequiredArgumentBuilder) argumentbuilder;
+				RequiredArgumentBuilder<SharedSuggestionProvider, ?> requiredargumentbuilder = (RequiredArgumentBuilder) argumentbuilder;
 				if (requiredargumentbuilder.getSuggestionsProvider() != null) {
 					requiredargumentbuilder
 							.suggests(SuggestionProviders.safelySwap(requiredargumentbuilder.getSuggestionsProvider()));
@@ -583,7 +582,7 @@ public class ACTMod {
 				argumentbuilder.redirect(suggestions.get(argumentbuilder.getRedirect()));
 			}
 
-			CommandNode<ISuggestionProvider> commandnode1 = argumentbuilder.build();
+			CommandNode<SharedSuggestionProvider> commandnode1 = argumentbuilder.build();
 			suggestions.put(child, commandnode1);
 			rootCommandNode.addChild(commandnode1);
 			if (!child.getChildren().isEmpty()) {
@@ -610,12 +609,12 @@ public class ACTMod {
 	private void injectSuggestions() {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player != null && mc.player.connection != null) {
-			CommandDispatcher<ISuggestionProvider> current = mc.player.connection.getCommands();
-			if (current != suggestionProvider) {
-				suggestionProvider = current;
+			CommandDispatcher<SharedSuggestionProvider> current = mc.player.connection.getCommands();
+			if (current != SharedSuggestionProvider) {
+				SharedSuggestionProvider = current;
 				if (current != null) {
-					Map<CommandNode<CommandSource>, CommandNode<ISuggestionProvider>> map = Maps.newHashMap();
-					RootCommandNode<ISuggestionProvider> root = suggestionProvider.getRoot();
+					Map<CommandNode<CommandSourceStack>, CommandNode<SharedSuggestionProvider>> map = Maps.newHashMap();
+					RootCommandNode<SharedSuggestionProvider> root = SharedSuggestionProvider.getRoot();
 					map.put(dispatcher.getRoot(), root);
 					createSuggestion(dispatcher.getRoot(), root, mc.player.createCommandSourceStack(), map);
 				}
@@ -643,18 +642,16 @@ public class ACTMod {
 		StringReader reader = new StringReader(msg);
 		if (reader.canRead())
 			reader.skip(); // remove the '/'
-		CommandSource source = Minecraft.getInstance().player.createCommandSourceStack();
+		CommandSourceStack source = Minecraft.getInstance().player.createCommandSourceStack();
 
 		try {
-			ParseResults<CommandSource> parse = dispatcher.parse(reader, source);
+			ParseResults<CommandSourceStack> parse = dispatcher.parse(reader, source);
 			dispatcher.execute(parse);
-		} catch (CommandException e) {
-			source.sendFailure(e.getComponent());
 		} catch (CommandSyntaxException e) {
-			source.sendFailure(TextComponentUtils.fromMessage(e.getRawMessage()));
+			source.sendFailure(ComponentUtils.fromMessage(e.getRawMessage()));
 			if (e.getInput() != null && e.getCursor() >= 0) {
 				int messageSize = Math.min(e.getInput().length(), e.getCursor());
-				IFormattableTextComponent error = (new StringTextComponent("")).withStyle(TextFormatting.GRAY)
+				MutableComponent error = (new TextComponent("")).withStyle(ChatFormatting.GRAY)
 						.withStyle(s -> s.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, msg)));
 				if (messageSize > 10) {
 					error.append("...");
@@ -662,17 +659,17 @@ public class ACTMod {
 
 				error.append(e.getInput().substring(Math.max(0, messageSize - 10), messageSize));
 				if (messageSize < e.getInput().length()) {
-					ITextComponent itextcomponent2 = (new StringTextComponent(e.getInput().substring(messageSize)))
-							.withStyle(new TextFormatting[] { TextFormatting.RED, TextFormatting.UNDERLINE });
-					error.append(itextcomponent2);
+					MutableComponent Component2 = (new TextComponent(e.getInput().substring(messageSize)))
+							.withStyle(new ChatFormatting[] { ChatFormatting.RED, ChatFormatting.UNDERLINE });
+					error.append(Component2);
 				}
 
-				error.append((new TranslationTextComponent("command.context.here"))
-						.withStyle(new TextFormatting[] { TextFormatting.RED, TextFormatting.ITALIC }));
+				error.append((new TranslatableComponent("command.context.here"))
+						.withStyle(new ChatFormatting[] { ChatFormatting.RED, ChatFormatting.ITALIC }));
 				source.sendFailure(error);
 			}
 		} catch (Exception e) {
-			IFormattableTextComponent error = new StringTextComponent(
+			MutableComponent error = new TextComponent(
 					e.getMessage() == null ? e.getClass().getName() : e.getMessage());
 			if (LOGGER.isDebugEnabled()) {
 				StackTraceElement[] trace = e.getStackTrace();
@@ -683,7 +680,7 @@ public class ACTMod {
 				}
 			}
 
-			source.sendFailure((new TranslationTextComponent("command.failed")).withStyle((style) -> {
+			source.sendFailure((new TranslatableComponent("command.failed")).withStyle((style) -> {
 				style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, error));
 				return style;
 			}));
@@ -730,20 +727,20 @@ public class ACTMod {
 			;
 		} else if (mc.screen instanceof GuiMenu) {
 			ev.getToolTip().add(ModdedCommand
-					.createPrefix(I18n.get("gui.act.leftClick"), TextFormatting.YELLOW, TextFormatting.GOLD)
+					.createPrefix(I18n.get("gui.act.leftClick"), ChatFormatting.YELLOW, ChatFormatting.GOLD)
 					.append(ModdedCommand.createText(
 							I18n.get(isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) ? "gui.act.give.copy" : "gui.act.give.editor"),
-							TextFormatting.YELLOW))); // appendSibling
+							ChatFormatting.YELLOW))); // appendSibling
 			if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
 				ev.getToolTip()
 						.add(ModdedCommand
-								.createPrefix(I18n.get("gui.act.rightClick"), TextFormatting.YELLOW,
-										TextFormatting.GOLD)
-								.append(ModdedCommand.createText(I18n.get("gui.act.delete"), TextFormatting.YELLOW))); // appendSibling
+								.createPrefix(I18n.get("gui.act.rightClick"), ChatFormatting.YELLOW,
+										ChatFormatting.GOLD)
+								.append(ModdedCommand.createText(I18n.get("gui.act.delete"), ChatFormatting.YELLOW))); // appendSibling
 			else if (mc.player != null && mc.player.isCreative())
 				ev.getToolTip().add(ModdedCommand
-						.createPrefix(I18n.get("gui.act.rightClick"), TextFormatting.YELLOW, TextFormatting.GOLD)
-						.append(ModdedCommand.createText(I18n.get("gui.act.give.give"), TextFormatting.YELLOW))); // appendSibling
+						.createPrefix(I18n.get("gui.act.rightClick"), ChatFormatting.YELLOW, ChatFormatting.GOLD)
+						.append(ModdedCommand.createText(I18n.get("gui.act.give.give"), ChatFormatting.YELLOW))); // appendSibling
 		}
 
 		// remove if not in advanced game mode
@@ -751,63 +748,63 @@ public class ACTMod {
 			return;
 
 		if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-			CompoundNBT compound = ev.getItemStack().getTag();
+			CompoundTag compound = ev.getItemStack().getTag();
 			String s = (!ev.getFlags().isAdvanced() ? ev.getItemStack().getItem().getRegistryName().toString() : "");
-			if (!(mc.screen != null && mc.screen instanceof CreativeScreen
-					&& ((CreativeScreen) mc.screen).getSelectedTab() == ItemGroup.TAB_SEARCH.getId())
+			if (!(mc.screen != null && mc.screen instanceof CreativeModeInventoryScreen
+					&& ((CreativeModeInventoryScreen) mc.screen).getSelectedTab() == CreativeModeTab.TAB_SEARCH.getId())
 					&& ev.getItemStack().getItem().getCreativeTabs() != null)
-				s += TextFormatting.WHITE + (s.isEmpty() ? "" : " ")
+				s += ChatFormatting.WHITE + (s.isEmpty() ? "" : " ")
 						+ ev.getItemStack().getItem().getCreativeTabs().stream().filter(Objects::nonNull)
 								.map(i -> i.getDisplayName().getString()).collect(Collectors.joining(", "));
 			if (!s.isEmpty())
-				ev.getToolTip().add(new StringTextComponent(s));
+				ev.getToolTip().add(new TextComponent(s));
 			if (compound != null && compound.contains("CustomPotionColor", 99))
 				ev.getToolTip()
 						.add(ModdedCommand.createText(
 								I18n.get("item.color",
-										TextFormatting.YELLOW
+										ChatFormatting.YELLOW
 												+ String.format("#%06X", compound.getInt("CustomPotionColor"))),
-								TextFormatting.GOLD));
+								ChatFormatting.GOLD));
 			if (!ev.getFlags().isAdvanced()) {
 				if (ev.getToolTip().size() != 0)
 					ev.getToolTip().set(0,
-							new StringTextComponent("").append(ev.getToolTip().get(0))
+							new TextComponent("").append(ev.getToolTip().get(0))
 									.append(" (#" + Item.getId(ev.getItemStack().getItem())
 											+ (ev.getItemStack().getDamageValue() != 0 && !ev.getItemStack().isDamaged()
 													? "/" + ev.getItemStack().getDamageValue()
 													: "")
 											+ ")") // appendText
-									.withStyle(TextFormatting.WHITE));
+									.withStyle(ChatFormatting.WHITE));
 				if (compound != null && compound.contains("display", 10)
 						&& compound.getCompound("display").contains("color", 99))
 					ev.getToolTip()
 							.add(ModdedCommand.createText(
 									I18n.get("item.color",
-											TextFormatting.YELLOW + String.format("#%06X",
+											ChatFormatting.YELLOW + String.format("#%06X",
 													compound.getCompound("display").getInt("color"))),
-									TextFormatting.GOLD));
+									ChatFormatting.GOLD));
 				if (ev.getItemStack().isDamaged()) {
 					int dmg = Math.abs(ev.getItemStack().getDamageValue() - ev.getItemStack().getMaxDamage()) + 1;
 					double maxdmg = (double) (ev.getItemStack().getMaxDamage() + 1);
 					ev.getToolTip()
-							.add(ModdedCommand.createText("RepairCost: ", TextFormatting.YELLOW)
+							.add(ModdedCommand.createText("RepairCost: ", ChatFormatting.YELLOW)
 									.append(ModdedCommand.createText(String.valueOf(dmg),
-											dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
-													: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
-															: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
-																	: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
+											dmg < (int) (.1D * maxdmg) ? ChatFormatting.DARK_GREEN
+													: (dmg < (int) (0.25D * maxdmg) ? ChatFormatting.GREEN
+															: (dmg < (int) (0.5D * maxdmg) ? ChatFormatting.GOLD
+																	: (dmg < (int) (0.75D * maxdmg) ? ChatFormatting.RED
 																			: (dmg < (int) (1D * maxdmg)
-																					? TextFormatting.DARK_RED
-																					: TextFormatting.DARK_GREEN))))))); // appendSibling
+																					? ChatFormatting.DARK_RED
+																					: ChatFormatting.DARK_GREEN))))))); // appendSibling
 					ev.getToolTip().add(ModdedCommand.createText(I18n.get("item.durability",
-							(dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
-									: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
-											: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
-													: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
-															: (dmg < (int) (1D * maxdmg) ? TextFormatting.DARK_RED
-																	: TextFormatting.DARK_GREEN))))).toString()
+							(dmg < (int) (.1D * maxdmg) ? ChatFormatting.DARK_GREEN
+									: (dmg < (int) (0.25D * maxdmg) ? ChatFormatting.GREEN
+											: (dmg < (int) (0.5D * maxdmg) ? ChatFormatting.GOLD
+													: (dmg < (int) (0.75D * maxdmg) ? ChatFormatting.RED
+															: (dmg < (int) (1D * maxdmg) ? ChatFormatting.DARK_RED
+																	: ChatFormatting.DARK_GREEN))))).toString()
 									+ dmg,
-							(ev.getItemStack().getMaxDamage() + 1)), TextFormatting.YELLOW));
+							(ev.getItemStack().getMaxDamage() + 1)), ChatFormatting.YELLOW));
 				}
 			}
 			if (compound != null && compound.size() != 0) {
@@ -815,25 +812,25 @@ public class ACTMod {
 					int dmg = ev.getItemStack().getTag().getInt("RepairCost");
 					double maxdmg = 31;
 					ev.getToolTip()
-							.add(ModdedCommand.createText("RepairCost: ", TextFormatting.YELLOW)
+							.add(ModdedCommand.createText("RepairCost: ", ChatFormatting.YELLOW)
 									.append(ModdedCommand.createText(String.valueOf(dmg),
-											dmg < (int) (.1D * maxdmg) ? TextFormatting.DARK_GREEN
-													: (dmg < (int) (0.25D * maxdmg) ? TextFormatting.GREEN
-															: (dmg < (int) (0.5D * maxdmg) ? TextFormatting.GOLD
-																	: (dmg < (int) (0.75D * maxdmg) ? TextFormatting.RED
+											dmg < (int) (.1D * maxdmg) ? ChatFormatting.DARK_GREEN
+													: (dmg < (int) (0.25D * maxdmg) ? ChatFormatting.GREEN
+															: (dmg < (int) (0.5D * maxdmg) ? ChatFormatting.GOLD
+																	: (dmg < (int) (0.75D * maxdmg) ? ChatFormatting.RED
 																			: (dmg < (int) (1D * maxdmg)
-																					? TextFormatting.DARK_RED
-																					: TextFormatting.DARK_GREEN))))))); // appendSibling
+																					? ChatFormatting.DARK_RED
+																					: ChatFormatting.DARK_GREEN))))))); // appendSibling
 				}
 
-				IFormattableTextComponent tags = ModdedCommand
-						.createText(I18n.get("gui.act.tags") + "(" + compound.size() + "): ", TextFormatting.GOLD);
+				MutableComponent tags = ModdedCommand
+						.createText(I18n.get("gui.act.tags") + "(" + compound.size() + "): ", ChatFormatting.GOLD);
 				int count = 0;
 				for (String tag : compound.getAllKeys()) {
 					if (count != 0)
-						tags.append(ModdedCommand.createText(", ", TextFormatting.GOLD)); // appendSibling
+						tags.append(ModdedCommand.createText(", ", ChatFormatting.GOLD)); // appendSibling
 
-					tags.append(ModdedCommand.createText("" + tag, TextFormatting.YELLOW)); // appendSibling
+					tags.append(ModdedCommand.createText("" + tag, ChatFormatting.YELLOW)); // appendSibling
 					count++;
 				}
 
@@ -844,9 +841,9 @@ public class ACTMod {
 					if (isKeyDown(giver.getKey().getValue()))
 						mc.setScreen(new GuiGiver(mc.screen, ev.getItemStack()));
 					ev.getToolTip().add(ModdedCommand
-							.createPrefix(giver.getKey().getDisplayName().getString(), TextFormatting.YELLOW,
-									TextFormatting.GOLD)
-							.append(ModdedCommand.createTranslatedText("cmd.act.opengiver", TextFormatting.YELLOW))); // appendSibling
+							.createPrefix(giver.getKey().getDisplayName().getString(), ChatFormatting.YELLOW,
+									ChatFormatting.GOLD)
+							.append(ModdedCommand.createTranslatedText("cmd.act.opengiver", ChatFormatting.YELLOW))); // appendSibling
 				}
 				if (menu.getKey().getValue() != 0) {
 					if (isKeyDown(menu.getKey().getValue())) {
@@ -856,15 +853,15 @@ public class ACTMod {
 					}
 					ev.getToolTip()
 							.add(ModdedCommand
-									.createPrefix(menu.getKey().getDisplayName().getString(), TextFormatting.YELLOW,
-											TextFormatting.GOLD)
-									.append(ModdedCommand.createTranslatedText("gui.act.save", TextFormatting.YELLOW)));
+									.createPrefix(menu.getKey().getDisplayName().getString(), ChatFormatting.YELLOW,
+											ChatFormatting.GOLD)
+									.append(ModdedCommand.createTranslatedText("gui.act.save", ChatFormatting.YELLOW)));
 				}
 			}
 		}
 		if (!isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
-			ev.getToolTip().add(new StringTextComponent("SHIFT ").withStyle(TextFormatting.YELLOW)
-					.append(new TranslationTextComponent("gui.act.shift")).withStyle(TextFormatting.GOLD));
+			ev.getToolTip().add(new TextComponent("SHIFT ").withStyle(ChatFormatting.YELLOW)
+					.append(new TranslatableComponent("gui.act.shift")).withStyle(ChatFormatting.GOLD));
 
 	}
 

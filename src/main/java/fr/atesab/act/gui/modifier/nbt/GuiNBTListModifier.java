@@ -8,26 +8,26 @@ import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
 
 @GuiNBTList
-public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
-	private ListNBT list;
+public class GuiNBTListModifier extends GuiListModifier<ListTag> {
+	private ListTag list;
 
 	@SuppressWarnings("unchecked")
-	public GuiNBTListModifier(ITextComponent title, Screen parent, Consumer<ListNBT> setter, ListNBT list) {
+	public GuiNBTListModifier(Component title, Screen parent, Consumer<ListTag> setter, ListTag list) {
 		super(parent, title, new ArrayList<>(), setter, new Tuple[0]);
 		this.list = list.copy();
 		String k = "...";
-		for (INBT base : list) {
+		for (Tag base : list) {
 			addListElement(NBTElement.getElementByBase(this, k, base));
 		}
 		addListElement(new AddElementList(this, () -> {
 			if (this.list.getElementType() != 0) {
-				INBT base = GuiNBTModifier.getDefaultElement(this.list.getElementType());
+				Tag base = GuiNBTModifier.getDefaultElement(this.list.getElementType());
 				if (base != null)
 					addListElement(getElements().size() - 1, NBTElement.getElementByBase(this, k, base));
 			} else
@@ -47,8 +47,8 @@ public class GuiNBTListModifier extends GuiListModifier<ListNBT> {
 	}
 
 	@Override
-	protected ListNBT get() {
-		ListNBT list = new ListNBT();
+	protected ListTag get() {
+		ListTag list = new ListTag();
 		getElements().stream().filter(le -> le instanceof NBTElement).forEach(le -> list.add(((NBTElement) le).get()));
 		return list;
 	}

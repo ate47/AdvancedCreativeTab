@@ -8,23 +8,25 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	/**
@@ -33,10 +35,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class AddElementButton extends RunElementButton {
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
 				Supplier<ListElement> builder) {
-			this(parent, x, y, widthIn, heightIn, new StringTextComponent("+"), element, builder);
+			this(parent, x, y, widthIn, heightIn, new TextComponent("+"), element, builder);
 		}
 
-		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ITextComponent text,
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, Component text,
 				ListElement element, Function<Integer, ListElement> builder) {
 			super(x, y, widthIn, heightIn, text, () -> {
 				for (int i = 0; i < parent.elements.size(); i++)
@@ -47,17 +49,17 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 						break;
 					}
 			}, null);
-			setFGColor(TextFormatting.GREEN.getColor());
+			setFGColor(ChatFormatting.GREEN.getColor());
 		}
 
-		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ITextComponent text,
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, Component text,
 				ListElement element, Supplier<ListElement> builder) {
 			this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
 		}
 
 		@Override
-		protected IFormattableTextComponent createNarrationMessage() {
-			return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.new"));
+		protected MutableComponent createNarrationMessage() {
+			return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.new"));
 		}
 
 	}
@@ -84,7 +86,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class ButtonElementList extends ListElement {
 		private Runnable right;
 
-		public ButtonElementList(int sizeX, int sizeY, int buttonSizeX, int buttonSizeY, ITextComponent buttonText,
+		public ButtonElementList(int sizeX, int sizeY, int buttonSizeX, int buttonSizeY, Component buttonText,
 				Runnable leftAction, Runnable rightAction) {
 			super(sizeX, sizeY);
 			buttonList.add(new Button(0, 0, buttonSizeX, buttonSizeY, buttonText, b -> {
@@ -107,10 +109,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	 * a element of the list
 	 */
 	public static abstract class ListElement {
-		protected FontRenderer font;
+		protected Font font;
 		protected Minecraft mc;
-		protected List<Widget> buttonList = new ArrayList<>();
-		protected List<TextFieldWidget> fieldList = new ArrayList<>();
+		protected List<AbstractWidget> buttonList = new ArrayList<>();
+		protected List<EditBox> fieldList = new ArrayList<>();
 		private int sizeX;
 		private int sizeY;
 
@@ -122,23 +124,22 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		public boolean charTyped(char key, int modifiers) {
-			for (TextFieldWidget field : fieldList)
+			for (EditBox field : fieldList)
 				if (field.isVisible() && field.charTyped(key, modifiers))
 					return true;
 			return false;
 		}
 
-		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-				float partialTicks) {
+		public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			buttonList.forEach(
 					b -> GuiUtils.drawRelative(matrixStack, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
-			fieldList.stream().filter(TextFieldWidget::isVisible).forEach(
+			fieldList.stream().filter(EditBox::isVisible).forEach(
 					tf -> GuiUtils.drawRelative(matrixStack, tf, offsetX, offsetY, mouseX, mouseY, partialTicks));
 		}
 
-		public void drawNext(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+		public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
 				float partialTicks) {
-			buttonList.stream().filter(Widget::isHovered).forEach(
+			buttonList.stream().filter(AbstractWidget::isHovered).forEach(
 					b -> GuiUtils.drawRelativeToolTip(matrixStack, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
 		}
 
@@ -160,14 +161,14 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		 * @return true if an element in this element is focused
 		 */
 		public boolean isFocused() {
-			for (TextFieldWidget field : fieldList)
+			for (EditBox field : fieldList)
 				if (field.isFocused())
 					return true;
 			return false;
 		}
 
 		public boolean keyPressed(int key, int scanCode, int modifiers) {
-			for (TextFieldWidget field : fieldList)
+			for (EditBox field : fieldList)
 				if (field.isVisible() && field.keyPressed(key, scanCode, modifiers))
 					return true;
 			return false;
@@ -201,7 +202,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 						otherActionPerformed(b, mouseButton);
 				}
 			});
-			fieldList.stream().filter(TextFieldWidget::isVisible).forEach(tf -> {
+			fieldList.stream().filter(EditBox::isVisible).forEach(tf -> {
 				if (mouseButton == 1 && GuiUtils.isHover(tf, mouseX, mouseY)) {
 					tf.setValue("");
 					tf.setFocus(true);
@@ -222,7 +223,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		public void update() {
-			fieldList.stream().filter(TextFieldWidget::isVisible).forEach(TextFieldWidget::tick);
+			fieldList.stream().filter(EditBox::isVisible).forEach(EditBox::tick);
 		}
 	}
 
@@ -232,11 +233,11 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RemoveElementButton extends RunElementButton {
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
 				ListElement element) {
-			super(x, y, widthIn, heightIn, new StringTextComponent("-"), () -> {
+			super(x, y, widthIn, heightIn, new TextComponent("-"), () -> {
 				parent.elements.remove(element);
 				parent.needRedefine = true;
 			}, null);
-			setFGColor(TextFormatting.RED.getColor());
+			setFGColor(ChatFormatting.RED.getColor());
 		}
 
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, ListElement element) {
@@ -244,8 +245,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 
 		@Override
-		protected IFormattableTextComponent createNarrationMessage() {
-			return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.delete"));
+		protected MutableComponent createNarrationMessage() {
+			return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.delete"));
 		}
 	}
 
@@ -256,7 +257,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		private Runnable left;
 		private Runnable right;
 
-		public RunElementButton(int x, int y, int widthIn, int heightIn, ITextComponent text, Runnable left,
+		public RunElementButton(int x, int y, int widthIn, int heightIn, Component text, Runnable left,
 				Runnable right) {
 			super(x, y, widthIn, heightIn, text, b -> {
 			});
@@ -287,7 +288,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 	private Button lastPage, nextPage;
 
-	private TextFieldWidget search;
+	private EditBox search;
 
 	protected Tuple<String, Tuple<Runnable, Runnable>>[] buttons;
 
@@ -298,7 +299,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 	private boolean justStart = true;
 
-	public GuiListModifier(Screen parent, ITextComponent name, List<ListElement> elements, Consumer<T> setter,
+	public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
 			boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		super(parent, name, setter);
 		this.elements = elements;
@@ -307,15 +308,15 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this.cancelButton = cancelButton;
 		this.setter = setter;
 		this.parent = parent;
-		search = new TextFieldWidget(Minecraft.getInstance().font, 0, 0, 0, 0, new StringTextComponent(""));
+		search = new EditBox(Minecraft.getInstance().font, 0, 0, 0, 0, new TextComponent(""));
 	}
 
-	public GuiListModifier(Screen parent, ITextComponent name, List<ListElement> elements, Consumer<T> setter,
+	public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
 			boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		this(parent, name, elements, setter, doneButton, true, buttons);
 	}
 
-	public GuiListModifier(Screen parent, ITextComponent name, List<ListElement> elements, Consumer<T> setter,
+	public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
 			Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
 		this(parent, name, elements, setter, true, buttons);
 	}
@@ -440,37 +441,39 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		int dl = width / 2 - d;
 		int dr = width / 2 + d;
 		if (doneButton)
-			addButton(new Button(dl, height - 21, 99, 20, new TranslationTextComponent("gui.done"), b -> {
+			addWidget(new Button(dl, height - 21, 99, 20, new TranslatableComponent("gui.done"), b -> {
 				set(get());
 				getMinecraft().setScreen(parent);
 			}));
 		int i;
 		for (i = 0; i < buttons.length; i++)
-			addButton(new GuiValueButton<Tuple<Runnable, Runnable>>(dl + 100 * (i + l), height - 21, 99, 20,
-					new StringTextComponent(buttons[i].a), buttons[i].b, b -> {
+			addWidget(new GuiValueButton<Tuple<Runnable, Runnable>>(dl + 100 * (i + l), height - 21, 99, 20,
+					new TextComponent(buttons[i].a), buttons[i].b, b -> {
 						b.getValue().a.run();
 					}));
 		if (cancelButton)
-			addButton(new Button(dl + 100 * (i + l), height - 21, 99, 20,
-					new TranslationTextComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
-		addButton(lastPage = new Button(dl - 21, height - 21, 20, 20, new StringTextComponent("<-"), b -> {
+			addWidget(new Button(dl + 100 * (i + l), height - 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
+					b -> getMinecraft().setScreen(parent)));
+		addWidget(lastPage = new Button(dl - 21, height - 21, 20, 20, new TextComponent("<-"), b -> {
 			page--;
 			define();
 		}) {
 			@Override
-			protected IFormattableTextComponent createNarrationMessage() {
-				return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.leftArrow"));
+			protected MutableComponent createNarrationMessage() {
+				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.leftArrow"));
 			}
 		});
-		addButton(nextPage = new Button(dr, height - 21, 20, 20, new StringTextComponent("->"), b -> {
+		addWidget(nextPage = new Button(dr, height - 21, 20, 20, new TextComponent("->"), b -> {
 			page++;
 			define();
 		}) {
+
 			@Override
-			protected IFormattableTextComponent createNarrationMessage() {
-				return new TranslationTextComponent("gui.narrate.button", I18n.get("gui.act.rightArrow"));
+			protected MutableComponent createNarrationMessage() {
+				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.rightArrow"));
 			}
 		});
+
 		int m = font.width(I18n.get("gui.act.search") + " : ");
 		int n = Math.min(600, width - 20);
 		search.x = (width - n) / 2 + 6 + m;
@@ -478,8 +481,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		search.setWidth(n - 18 - m);
 		search.setHeight(18);
 		elements.forEach(ListElement::init);
+
 		define();
 		super.init();
+
 	}
 
 	public boolean isNoAdaptativeSize() {
@@ -526,7 +531,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 				page = 0;
 				define();
 			} else
-				children.stream()
+				children().stream()
 						.filter(button -> button instanceof GuiValueButton
 								&& GuiUtils.isHover(((Button) button), (int) mouseX, (int) mouseY))
 						.map(b -> (GuiValueButton<Tuple<Runnable, Runnable>>) b).forEach(b -> b.getValue().b.run());
@@ -544,7 +549,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		for (int i = 0; i < visibleElements.length; i++) {
 			int currentSize = dSize;

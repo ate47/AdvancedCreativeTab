@@ -5,41 +5,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Integer>>> {
 
 	static class EnchListElement extends ListElement {
 		private Enchantment enchantment;
 		private int level;
-		private TextFieldWidget textField;
+		private EditBox textField;
 		private boolean err = false;
 
 		public EnchListElement(Enchantment enchantment, int level) {
 			super(200, 21);
 			this.enchantment = enchantment;
 			this.level = level;
-			this.textField = new TextFieldWidget(font, 112, 1, 46, 18, new StringTextComponent(""));
+			this.textField = new EditBox(font, 112, 1, 46, 18, new TextComponent(""));
 			textField.setMaxLength(6);
 			textField.setValue(String.valueOf(level == 0 ? "" : level));
-			buttonList.add(new Button(160, 0, 40, 20, new TranslationTextComponent("gui.act.modifier.ench.max"), b -> {
+			buttonList.add(new Button(160, 0, 40, 20, new TranslatableComponent("gui.act.modifier.ench.max"), b -> {
 				textField.setValue(String.valueOf(enchantment.getMaxLevel()));
 			}));
 		}
 
 		@Override
-		public void draw(MatrixStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-				float partialTicks) {
+		public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(matrixStack, textField, offsetX, offsetY, mouseY, mouseY, partialTicks);
 			GuiUtils.drawRightString(font, I18n.get(enchantment.getDescriptionId()) + " : ", offsetX + textField.x,
 					offsetY + textField.y, (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
@@ -95,7 +94,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 	@SuppressWarnings("unchecked")
 	public GuiEnchModifier(Screen parent, List<Tuple<Enchantment, Integer>> ench,
 			Consumer<List<Tuple<Enchantment, Integer>>> setter) {
-		super(parent, new TranslationTextComponent("gui.act.modifier.ench"), new ArrayList<>(), setter, null);
+		super(parent, new TranslatableComponent("gui.act.modifier.ench"), new ArrayList<>(), setter, null);
 		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("gui.act.modifier.ench.max"),
 				new Tuple<>(
 						() -> getElements().stream().map(le -> (EnchListElement) le)

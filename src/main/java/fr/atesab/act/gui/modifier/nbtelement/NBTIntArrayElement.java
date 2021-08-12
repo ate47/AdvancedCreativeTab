@@ -2,24 +2,23 @@ package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTIntArrayModifier;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.IntArrayNBT;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class NBTIntArrayElement extends NBTElement {
-	private IntArrayNBT value;
+	private IntArrayTag value;
 
-	public NBTIntArrayElement(GuiListModifier<?> parent, String key, IntArrayNBT value) {
+	public NBTIntArrayElement(GuiListModifier<?> parent, String key, IntArrayTag value) {
 		super(parent, key, 200, 21);
 		this.value = value;
-		buttonList.add(
-				new Button(0, 0, 200, 20, new TranslationTextComponent("gui.act.modifier.tag.editor.intArray"), b -> {
-					mc.setScreen(
-							new GuiNBTIntArrayModifier(new StringTextComponent(parent.getStringTitle() + key + "/"),
-									parent, tag -> NBTIntArrayElement.this.value = tag, value.copy()));
+		buttonList
+				.add(new Button(0, 0, 200, 20, new TranslatableComponent("gui.act.modifier.tag.editor.intArray"), b -> {
+					mc.setScreen(new GuiNBTIntArrayModifier(new TextComponent(parent.getStringTitle() + key + "/"),
+							parent, tag -> NBTIntArrayElement.this.value = tag, value.copy()));
 				}));
 	}
 
@@ -29,7 +28,7 @@ public class NBTIntArrayElement extends NBTElement {
 	}
 
 	@Override
-	public INBT get() {
+	public Tag get() {
 		return value.copy();
 	}
 

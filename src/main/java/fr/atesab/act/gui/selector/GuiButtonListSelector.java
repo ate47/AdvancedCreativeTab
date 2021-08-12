@@ -6,10 +6,10 @@ import java.util.function.Function;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 
@@ -18,7 +18,7 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 
 		public SelectorListElement(GuiButtonListSelector<T> parent, Tuple<String, T> element) {
 			super(201, 21);
-			buttonList.add(button = new GuiValueButton<T>(0, 0, new StringTextComponent(element.a), element.b,
+			buttonList.add(button = new GuiValueButton<T>(0, 0, new TextComponent(element.a), element.b,
 					b -> parent.select(b.getValue())));
 		}
 
@@ -30,7 +30,7 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public GuiButtonListSelector(Screen parent, ITextComponent name, List<Tuple<String, T>> elements,
+	public GuiButtonListSelector(Screen parent, Component name, List<Tuple<String, T>> elements,
 			Function<T, Screen> setter) {
 		super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
 		if (elements != null)

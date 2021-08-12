@@ -4,8 +4,8 @@ import com.mojang.brigadier.Command;
 
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import net.minecraft.client.Minecraft;
-import net.minecraft.command.CommandSource;
-import net.minecraft.world.GameType;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.level.GameType;
 
 public class ModdedCommandGamemodeQuick extends ModdedCommand {
 	private GameType gamemode;
@@ -21,7 +21,7 @@ public class ModdedCommandGamemodeQuick extends ModdedCommand {
 	}
 
 	@Override
-	protected Command<CommandSource> onNoArgument() {
+	protected Command<CommandSourceStack> onNoArgument() {
 		return c -> {
 			Minecraft.getInstance().player.chat("/gamemode " + gamemode.getName());
 			return 0;
