@@ -16,13 +16,14 @@ public class GuiConfig extends GuiACT {
 
 	@Override
 	protected void init() {
-		addWidget(new GuiBooleanButton(width / 2 - 100, height / 2 - 24, 200, 20,
+		addRenderableWidget(new GuiBooleanButton(width / 2 - 100, height / 2 - 24, 200, 20,
 				new TranslatableComponent("gui.act.disableToolTip"), ACTMod::setDoesDisableToolTip,
 				ACTMod::doesDisableToolTip));
-		addWidget(new Button(width / 2 - 100, height / 2, 200, 20, new TranslatableComponent("gui.done"), b -> {
-			ACTMod.saveConfigs();
-			mc.setScreen(parent);
-		}));
+		addRenderableWidget(
+				new Button(width / 2 - 100, height / 2, 200, 20, new TranslatableComponent("gui.done"), b -> {
+					ACTMod.saveConfigs();
+					mc.setScreen(parent);
+				}));
 		super.init();
 	}
 

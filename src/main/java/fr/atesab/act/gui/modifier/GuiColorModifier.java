@@ -63,7 +63,6 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		if (!advanced) {
-			GuiUtils.color3f(1, 1, 1);
 			getMinecraft().getTextureManager().bindForSetup(PICKER);
 			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200,
 					200);
@@ -109,32 +108,36 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 
 	@Override
 	public void init() {
-		addWidget(new Button(width / 2 - 120, height / 2 + 81, 80, 20, new TranslatableComponent("gui.done"), b -> {
-			set(color);
-			getMinecraft().setScreen(parent);
-		}));
-		addWidget(advButton = new Button(width / 2 - 38, height / 2 + 81, 80, 20,
+		addRenderableWidget(
+				new Button(width / 2 - 120, height / 2 + 81, 80, 20, new TranslatableComponent("gui.done"), b -> {
+					set(color);
+					getMinecraft().setScreen(parent);
+				}));
+		addRenderableWidget(advButton = new Button(width / 2 - 38, height / 2 + 81, 80, 20,
 				new TranslatableComponent("gui.act.advanced"), b -> {
 					advanced = !advanced;
 				}));
-		addWidget(
+		addRenderableWidget(
 				new Button(width / 2 + 43, height / 2 + 81, 79, 20, new TranslatableComponent("gui.act.cancel"), b -> {
 					getMinecraft().setScreen(parent);
 				}));
 
-		addWidget(r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, new TranslatableComponent("gui.act.red"),
-				new TextComponent(""), 0, 255, color >> 16 & 0xFF, false, false, b -> {
-				}, s -> updateRed(s.getValueInt())));
+		addRenderableWidget(
+				r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, new TranslatableComponent("gui.act.red"),
+						new TextComponent(""), 0, 255, color >> 16 & 0xFF, false, false, b -> {
+						}, s -> updateRed(s.getValueInt())));
 		tfr = new EditBox(font, r.x + r.getWidth() + 2, r.y + 1, 36, 18, new TextComponent(""));
 
-		addWidget(g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, new TranslatableComponent("gui.act.green"),
-				new TextComponent(""), 0, 255, color >> 8 & 0xFF, false, false, b -> {
-				}, s -> updateGreen(s.getValueInt())));
+		addRenderableWidget(
+				g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, new TranslatableComponent("gui.act.green"),
+						new TextComponent(""), 0, 255, color >> 8 & 0xFF, false, false, b -> {
+						}, s -> updateGreen(s.getValueInt())));
 		tfg = new EditBox(font, g.x + g.getWidth() + 2, g.y + 1, 36, 18, new TextComponent(""));
 
-		addWidget(b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, new TranslatableComponent("gui.act.blue"),
-				new TextComponent(""), 0, 255, color & 0xFF, false, false, b -> {
-				}, s -> updateBlue(s.getValueInt())));
+		addRenderableWidget(
+				b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, new TranslatableComponent("gui.act.blue"),
+						new TextComponent(""), 0, 255, color & 0xFF, false, false, b -> {
+						}, s -> updateBlue(s.getValueInt())));
 		tfb = new EditBox(font, b.x + b.getWidth() + 2, b.y + 1, 36, 18, new TextComponent(""));
 
 		intColor = new EditBox(font, width / 2 - 97, height / 2 + 28, 194, 18, new TextComponent(""));

@@ -1,11 +1,9 @@
 package fr.atesab.act.gui.modifier;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import fr.atesab.act.gui.GuiValueButton;
 import fr.atesab.act.utils.ChatUtils;
@@ -38,16 +36,17 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	@SuppressWarnings("unchecked")
 	private void defineMenu() {
 		clearWidgets();
-		addWidget(new Button(width / 2 - 100, height - 21, 100, 20, new TranslatableComponent("gui.done"), b -> {
-			String[] result = new String[values.size()];
-			for (int i = 0; i < result.length; i++)
-				result[i] = values.get(i).replaceAll("&", String.valueOf(ChatUtils.MODIFIER));
-			set(result);
-			mc.setScreen(parent);
-		}));
-		addWidget(new Button(width / 2 + 1, height - 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
+		addRenderableWidget(
+				new Button(width / 2 - 100, height - 21, 100, 20, new TranslatableComponent("gui.done"), b -> {
+					String[] result = new String[values.size()];
+					for (int i = 0; i < result.length; i++)
+						result[i] = values.get(i).replaceAll("&", String.valueOf(ChatUtils.MODIFIER));
+					set(result);
+					mc.setScreen(parent);
+				}));
+		addRenderableWidget(new Button(width / 2 + 1, height - 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
 				b -> mc.setScreen(parent)));
-		addWidget(last = new Button(width / 2 - 121, height - 21, 20, 20, new TextComponent("<-"), b -> {
+		addRenderableWidget(last = new Button(width / 2 - 121, height - 21, 20, 20, new TextComponent("<-"), b -> {
 			page--;
 			b.active = page != 0;
 			next.active = page + 1 <= values.size() / elms;
@@ -59,7 +58,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			}
 
 		});
-		addWidget(next = new Button(width / 2 + 101, height - 21, 20, 20, new TextComponent("->"), b -> {
+		addRenderableWidget(next = new Button(width / 2 + 101, height - 21, 20, 20, new TextComponent("->"), b -> {
 			page++;
 			last.active = page != 0;
 			b.active = page + 1 <= values.size() / elms;
@@ -83,7 +82,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			tfs[i].setValue(values.get(i));
 			btsDel[i] =
 
-					addWidget(new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20,
+					addRenderableWidget(new GuiValueButton<Integer>(width / 2 + 165, 21 + 21 * i % (elms * 21), 20, 20,
 							new TextComponent("-"), i, b -> {
 								values.remove(b.getValue().intValue());
 								defineMenu();
@@ -95,8 +94,8 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 						}
 					});
 			btsDel[i].setFGColor(ChatFormatting.RED.getColor());
-			btsAdd[i] = addWidget(new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20, 20,
-					new TextComponent("+"), i, b -> {
+			btsAdd[i] = addRenderableWidget(new GuiValueButton<Integer>(width / 2 + 187, 21 + 21 * i % (elms * 21), 20,
+					20, new TextComponent("+"), i, b -> {
 						values.add(b.getValue().intValue(), "");
 						defineMenu();
 					}) {
@@ -110,7 +109,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			btsAdd[i].setFGColor(ChatFormatting.GREEN.getColor());
 			addWidget(tfs[i]);
 		}
-		btsAdd[i] = addWidget(new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
+		btsAdd[i] = addRenderableWidget(new GuiValueButton<Integer>(width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
 				new TextComponent("+"), i, b -> {
 					values.add(b.getValue().intValue(), "");
 					defineMenu();
@@ -130,10 +129,9 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		GuiUtils.color3f(1.0F, 1.0F, 1.0F);
 		for (int i = page * elms; i < (page + 1) * elms && i < tfs.length; i++) {
 			EditBox tf = tfs[i];
-			GuiUtils.drawRightString(font, i + " : ", tf.x, tf.y, Color.WHITE.getRGB(), tf.getHeight());
+			GuiUtils.drawRightString(font, i + " : ", tf.x, tf.y, ChatFormatting.WHITE.getColor(), tf.getHeight());
 			tf.render(matrixStack, mouseX, mouseY, partialTicks);
 		}
 	}

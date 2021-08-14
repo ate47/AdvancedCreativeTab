@@ -215,28 +215,30 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundTag> {
 			colors.y = height / 2 - 42;
 			fadeColors.x = width / 2 + 100;
 			fadeColors.y = height / 2 - 42;
-			addWidget(type = new Button(width / 2 - 200, height / 2 - 42, 199, 20, new TextComponent(""), b -> {
-				List<Tuple<String, Shape>> elements = new ArrayList<>(Shape.values().length);
-				for (Shape s : Shape.values())
-					elements.add(new Tuple<>(I18n.get("item.minecraft.firework_star.shape." + s.getName()), s));
-				mc.setScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this,
-						new TranslatableComponent("gui.act.modifier.meta.explosion.shape"), elements, s -> {
-							exp.type(s);
-							defineButton();
-							return null;
-						}));
-			}));
-			addWidget(new GuiBooleanButton(width / 2 - 200, height / 2 - 21, 199, 20,
+			addRenderableWidget(
+					type = new Button(width / 2 - 200, height / 2 - 42, 199, 20, new TextComponent(""), b -> {
+						List<Tuple<String, Shape>> elements = new ArrayList<>(Shape.values().length);
+						for (Shape s : Shape.values())
+							elements.add(new Tuple<>(I18n.get("item.minecraft.firework_star.shape." + s.getName()), s));
+						mc.setScreen(new GuiButtonListSelector<Shape>(GuiExplosionModifier.this,
+								new TranslatableComponent("gui.act.modifier.meta.explosion.shape"), elements, s -> {
+									exp.type(s);
+									defineButton();
+									return null;
+								}));
+					}));
+			addRenderableWidget(new GuiBooleanButton(width / 2 - 200, height / 2 - 21, 199, 20,
 					new TranslatableComponent("item.minecraft.firework_star.trail"), exp::trail, exp::isTrail));
-			addWidget(new GuiBooleanButton(width / 2 - 200, height / 2, 199, 20,
+			addRenderableWidget(new GuiBooleanButton(width / 2 - 200, height / 2, 199, 20,
 					new TranslatableComponent("item.minecraft.firework_star.flicker"), exp::flicker, exp::isFlicker));
 
-			addWidget(new Button(width / 2 - 100, height / 2 + 21, 99, 20, new TranslatableComponent("gui.done"), b -> {
-				set(exp.colors(colors.getColors()).fadeColors(fadeColors.getColors()));
-				getMinecraft().setScreen(parent);
-			}));
-			addWidget(new Button(width / 2 - 200, height / 2 + 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
-					b -> getMinecraft().setScreen(parent)));
+			addRenderableWidget(
+					new Button(width / 2 - 100, height / 2 + 21, 99, 20, new TranslatableComponent("gui.done"), b -> {
+						set(exp.colors(colors.getColors()).fadeColors(fadeColors.getColors()));
+						getMinecraft().setScreen(parent);
+					}));
+			addRenderableWidget(new Button(width / 2 - 200, height / 2 + 21, 99, 20,
+					new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
 			defineButton();
 			super.init();
 		}

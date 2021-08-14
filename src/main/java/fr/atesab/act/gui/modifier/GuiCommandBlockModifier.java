@@ -58,11 +58,11 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 		command = new EditBox(font, width / 2 - 148 + l, height / 2 + 2, 296 - l, 16, new TextComponent(""));
 		name.setMaxLength(Integer.MAX_VALUE);
 		command.setMaxLength(Integer.MAX_VALUE);
-		auto = addWidget(new Button(width / 2 + 1, height / 2 + 21, 149, 20,
+		auto = addRenderableWidget(new Button(width / 2 + 1, height / 2 + 21, 149, 20,
 				new TranslatableComponent("advMode.mode.redstoneTriggered"), b -> {
 					autoValue = !autoValue;
 				}));
-		addWidget(new Button(width / 2 - 150, height / 2 + 21, 150, 20,
+		addRenderableWidget(new Button(width / 2 - 150, height / 2 + 21, 150, 20,
 				new TranslatableComponent("gui.act.modifier.type"), b -> {
 					setData();
 					NonNullList<ItemStack> potionType = NonNullList.create();
@@ -76,13 +76,14 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 								return null;
 							}, potionType));
 				}));
-		addWidget(new Button(width / 2 + 1, height / 2 + 42, 149, 20, new TranslatableComponent("gui.act.cancel"),
-				b -> getMinecraft().setScreen(parent)));
-		addWidget(new Button(width / 2 - 150, height / 2 + 42, 150, 20, new TranslatableComponent("gui.done"), b -> {
-			setData();
-			set(stack);
-			getMinecraft().setScreen(parent);
-		}));
+		addRenderableWidget(new Button(width / 2 + 1, height / 2 + 42, 149, 20,
+				new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
+		addRenderableWidget(
+				new Button(width / 2 - 150, height / 2 + 42, 150, 20, new TranslatableComponent("gui.done"), b -> {
+					setData();
+					set(stack);
+					getMinecraft().setScreen(parent);
+				}));
 		loadData();
 		super.init();
 	}
@@ -100,7 +101,6 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 		GuiUtils.drawItemStack(itemRenderer, this, stack, width / 2 - 10, name.y - 20);
 		if (GuiUtils.isHover(width / 2 - 10, name.y - 20, 20, 20, mouseX, mouseY))
 			renderTooltip(matrixStack, stack, mouseX, mouseY);
-		GuiUtils.color3f(1.0F, 1.0F, 1.0F);
 	}
 
 	@Override

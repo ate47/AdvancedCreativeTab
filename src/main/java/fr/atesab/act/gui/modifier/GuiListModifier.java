@@ -441,20 +441,20 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		int dl = width / 2 - d;
 		int dr = width / 2 + d;
 		if (doneButton)
-			addWidget(new Button(dl, height - 21, 99, 20, new TranslatableComponent("gui.done"), b -> {
+			addRenderableWidget(new Button(dl, height - 21, 99, 20, new TranslatableComponent("gui.done"), b -> {
 				set(get());
 				getMinecraft().setScreen(parent);
 			}));
 		int i;
 		for (i = 0; i < buttons.length; i++)
-			addWidget(new GuiValueButton<Tuple<Runnable, Runnable>>(dl + 100 * (i + l), height - 21, 99, 20,
+			addRenderableWidget(new GuiValueButton<Tuple<Runnable, Runnable>>(dl + 100 * (i + l), height - 21, 99, 20,
 					new TextComponent(buttons[i].a), buttons[i].b, b -> {
 						b.getValue().a.run();
 					}));
 		if (cancelButton)
-			addWidget(new Button(dl + 100 * (i + l), height - 21, 99, 20, new TranslatableComponent("gui.act.cancel"),
-					b -> getMinecraft().setScreen(parent)));
-		addWidget(lastPage = new Button(dl - 21, height - 21, 20, 20, new TextComponent("<-"), b -> {
+			addRenderableWidget(new Button(dl + 100 * (i + l), height - 21, 99, 20,
+					new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
+		addRenderableWidget(lastPage = new Button(dl - 21, height - 21, 20, 20, new TextComponent("<-"), b -> {
 			page--;
 			define();
 		}) {
@@ -463,7 +463,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 				return new TranslatableComponent("gui.narrate.button", I18n.get("gui.act.leftArrow"));
 			}
 		});
-		addWidget(nextPage = new Button(dr, height - 21, 20, 20, new TextComponent("->"), b -> {
+		addRenderableWidget(nextPage = new Button(dr, height - 21, 20, 20, new TextComponent("->"), b -> {
 			page++;
 			define();
 		}) {
@@ -559,8 +559,6 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 				currentSize += le.getSizeY() + paddingTop;
 			}
 		}
-		GuiUtils.color3f(0, 1, 1);
-
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
 		search.render(matrixStack, mouseX, mouseY, partialTicks);
 		GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
@@ -576,7 +574,6 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 					currentSize += le.getSizeY() + paddingTop;
 				}
 			}
-		GuiUtils.color3f(1, 1, 1);
 	}
 
 	public void setNoAdaptativeSize(boolean noAdaptativeSize) {

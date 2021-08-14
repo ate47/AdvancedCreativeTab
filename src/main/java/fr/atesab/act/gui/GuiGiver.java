@@ -89,26 +89,26 @@ public class GuiGiver extends GuiModifier<String> {
 		boolean flag2 = deleteButton; // deleteCancel
 		int s1 = flag2 ? 120 : 180;
 		int s2 = 120;
-		addWidget(giveButton = new Button(width / 2 - 180, height / 2 + 21, s1, 20,
+		addRenderableWidget(giveButton = new Button(width / 2 - 180, height / 2 + 21, s1, 20,
 				new TranslatableComponent("gui.act.give.give"), b -> ItemUtils.give(currentItemStack)));
-		addWidget(new Button(width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20,
+		addRenderableWidget(new Button(width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20,
 				new TranslatableComponent("gui.act.give.copy"), b -> GuiUtils.addToClipboard(code.getValue())));
-		addWidget(new Button(width / 2 - 180 + (flag2 ? 2 * s1 + 1 : 0), height / 2 + 21 + (flag2 ? 0 : 21),
+		addRenderableWidget(new Button(width / 2 - 180 + (flag2 ? 2 * s1 + 1 : 0), height / 2 + 21 + (flag2 ? 0 : 21),
 				(flag2 ? s1 - 1 : s2), 20, new TranslatableComponent("gui.act.give.editor"), b -> {
 					getMinecraft().setScreen(
 							new GuiItemStackModifier(this, currentItemStack, itemStack -> setCurrent(itemStack)));
 				}));
-		doneButton = addWidget(new Button(width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
+		doneButton = addRenderableWidget(new Button(width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
 				new TranslatableComponent("gui.done"), b -> {
 					if (setter != null && currentItemStack != null)
 						setter.accept(code.getValue());
 					getMinecraft().setScreen(parent);
 				}));
 		if (setter != null)
-			addWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
+			addRenderableWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
 					new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
 		else
-			saveButton = addWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
+			saveButton = addRenderableWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
 					new TranslatableComponent("gui.act.save"), b -> {
 						if (parent instanceof GuiMenu)
 							((GuiMenu) parent).get();
@@ -116,8 +116,8 @@ public class GuiGiver extends GuiModifier<String> {
 						getMinecraft().setScreen(new GuiMenu(parent));
 					}));
 		if (deleteButton)
-			addWidget(new Button(width / 2 - 180, height / 2 + 42, s2, 20, new TranslatableComponent("gui.act.delete"),
-					b -> {
+			addRenderableWidget(new Button(width / 2 - 180, height / 2 + 42, s2, 20,
+					new TranslatableComponent("gui.act.delete"), b -> {
 						setter.accept(null);
 						getMinecraft().setScreen(parent);
 					}));

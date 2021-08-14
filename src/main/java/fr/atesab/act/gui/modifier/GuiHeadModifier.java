@@ -101,11 +101,11 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 		name.setMaxLength(16);
 		link.setMaxLength(Integer.MAX_VALUE);
 		uuid.setMaxLength(Integer.MAX_VALUE);
-		addWidget(new Button(width / 2 - 180, height / 2, 180, 20,
+		addRenderableWidget(new Button(width / 2 - 180, height / 2, 180, 20,
 				new TranslatableComponent("gui.act.modifier.head.me"), b -> {
 					name.setValue(getMinecraft().getUser().getName());
 				}));
-		addWidget(save = new Button(width / 2 + 1, height / 2, 179, 20,
+		addRenderableWidget(save = new Button(width / 2 + 1, height / 2, 179, 20,
 				new TranslatableComponent("gui.act.modifier.head.saveSkin"), b -> {
 					if (!(saveThread != null && saveThread.isAlive()))
 						(saveThread = new Thread(() -> {
@@ -136,7 +136,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 							}
 						})).start();
 				}));
-		addWidget(loadName = new Button(width / 2 - 180, height / 2 + 21, 180, 20,
+		addRenderableWidget(loadName = new Button(width / 2 - 180, height / 2 + 21, 180, 20,
 				new TranslatableComponent("gui.act.modifier.head.load.name"), b -> {
 					try {
 						err.set(ChatFormatting.GOLD + I18n.get("gui.act.modifier.head.loading") + "...");
@@ -151,7 +151,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 						err.set(s);
 					}
 				}));
-		addWidget(loadLink = new Button(width / 2 + 1, height / 2 + 21, 179, 20,
+		addRenderableWidget(loadLink = new Button(width / 2 + 1, height / 2 + 21, 179, 20,
 				new TranslatableComponent("gui.act.modifier.head.load.link"), b -> {
 					err.set(ChatFormatting.GOLD + I18n.get("gui.act.modifier.head.loading") + "...");
 					ItemUtils.getHead(stack, uuid.getValue(), link.getValue(),
@@ -159,12 +159,13 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 					loadHead();
 				}));
 		if (setter != null)
-			addWidget(new Button(width / 2 - 180, height / 2 + 42, 180, 20, new TranslatableComponent("gui.act.cancel"),
-					b -> getMinecraft().setScreen(parent)));
-		addWidget(new Button(width / 2 + 1, height / 2 + 42, 179, 20, new TranslatableComponent("gui.done"), b -> {
-			set(stack);
-			getMinecraft().setScreen(parent);
-		}));
+			addRenderableWidget(new Button(width / 2 - 180, height / 2 + 42, 180, 20,
+					new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
+		addRenderableWidget(
+				new Button(width / 2 + 1, height / 2 + 42, 179, 20, new TranslatableComponent("gui.done"), b -> {
+					set(stack);
+					getMinecraft().setScreen(parent);
+				}));
 		loadHead();
 		super.init();
 	}

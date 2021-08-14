@@ -25,12 +25,14 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fmlclient.EarlyLoaderGUI;
 
 /**
  * A set of tools to help to draw, show and modify {@link Screen}
@@ -113,7 +115,6 @@ public class GuiUtils {
 	 * 
 	 * @since 2.0
 	 */
-	@SuppressWarnings("deprecation")
 	public static void drawBox(int x, int y, int width, int height, float zLevel) {
 		zLevel -= 50F;
 		drawGradientRect(x - 3, y - 4, x + width + 3, y - 3, -267386864, -267386864, zLevel);
@@ -133,9 +134,11 @@ public class GuiUtils {
 	 * @param r red
 	 * @param g green
 	 * @param b blue
+	 * @deprecated will be removed in next version
 	 */
+	@Deprecated
 	public static void color3f(float r, float g, float b) {
-		GL11.glColor3f(r, g, b);
+		GL11.glColor4f(r, g, b, 1.0f);
 	}
 
 	/**
@@ -463,18 +466,69 @@ public class GuiUtils {
 	 */
 	public static void drawScaledCustomSizeModalRect(int x, int y, float u, float v, int uWidth, int vHeight, int width,
 			int height, float tileWidth, float tileHeight) {
+		drawScaledCustomSizeModalRect(x, y, u, v, uWidth, vHeight, width, height, tileWidth, tileHeight, 0xffffff);
+	}
+
+	/**
+	 * Draws a scaled, textured, tiled modal rect at z = 0. This method isn't used
+	 * anywhere in vanilla code.
+	 * 
+	 * @param x          x location
+	 * @param y          y location
+	 * @param u          x uv location
+	 * @param v          y uv location
+	 * @param uWidth     uv width
+	 * @param vHeight    uv height
+	 * @param width      width
+	 * @param height     height
+	 * @param tileWidth  tile width
+	 * @param tileHeight tile height
+	 * @param color      tile color
+	 */
+	public static void drawScaledCustomSizeModalRect(int x, int y, float u, float v, int uWidth, int vHeight, int width,
+			int height, float tileWidth, float tileHeight, int color) {
+		drawScaledCustomSizeModalRect(x, y, u, v, uWidth, vHeight, width, height, tileWidth, tileHeight, color, false);
+	}
+
+	/**
+	 * Draws a scaled, textured, tiled modal rect at z = 0. This method isn't used
+	 * anywhere in vanilla code.
+	 * 
+	 * @param x          x location
+	 * @param y          y location
+	 * @param u          x uv location
+	 * @param v          y uv location
+	 * @param uWidth     uv width
+	 * @param vHeight    uv height
+	 * @param width      width
+	 * @param height     height
+	 * @param tileWidth  tile width
+	 * @param tileHeight tile height
+	 * @param color      tile color
+	 * @param useAlpha   use the alpha of the color
+	 */
+	public static void drawScaledCustomSizeModalRect(int x, int y, float u, float v, int uWidth, int vHeight, int width,
+			int height, float tileWidth, float tileHeight, int color, boolean useAlpha) {
 		float scaleX = 1.0F / tileWidth;
 		float scaleY = 1.0F / tileHeight;
+		int red = (color >> 16) & 0xFF;
+		int green = (color >> 8) & 0xFF;
+		int blue = color & 0xFF;
+		int alpha = useAlpha ? (color >> 24) : 0xff;
 		Tesselator tesselator = Tesselator.getInstance();
 		BufferBuilder bufferbuilder = tesselator.getBuilder();
-		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 		bufferbuilder.vertex((double) x, (double) (y + height), 0.0D)
-				.uv((float) (u * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
+				.uv((float) (u * scaleX), (float) ((v + (float) vHeight) * scaleY)).color(red, green, blue, alpha)
+				.endVertex();
 		bufferbuilder.vertex((double) (x + width), (double) (y + height), 0.0D)
-				.uv((float) ((u + (float) uWidth) * scaleX), (float) ((v + (float) vHeight) * scaleY)).endVertex();
+				.uv((float) ((u + (float) uWidth) * scaleX), (float) ((v + (float) vHeight) * scaleY))
+				.color(red, green, blue, alpha).endVertex();
 		bufferbuilder.vertex((double) (x + width), (double) y, 0.0D)
-				.uv((float) ((u + (float) uWidth) * scaleX), (float) (v * scaleY)).endVertex();
-		bufferbuilder.vertex((double) x, (double) y, 0.0D).uv((float) (u * scaleX), (float) (v * scaleY)).endVertex();
+				.uv((float) ((u + (float) uWidth) * scaleX), (float) (v * scaleY)).color(red, green, blue, alpha)
+				.endVertex();
+		bufferbuilder.vertex((double) x, (double) y, 0.0D).uv((float) (u * scaleX), (float) (v * scaleY))
+				.color(red, green, blue, alpha).endVertex();
 		tesselator.end();
 	}
 

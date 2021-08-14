@@ -40,12 +40,13 @@ public class GuiStringModifier extends GuiModifier<String> {
 		field.setValue(value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
 		field.setFocus(true);
 		field.setCanLoseFocus(false);
-		addWidget(new Button(width / 2 - 100, height / 2, 200, 20, new TranslatableComponent("gui.done"), b -> {
-			set(value = field.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
-			getMinecraft().setScreen(parent);
-		}));
-		addWidget(new Button(width / 2 - 100, height / 2 + 21, 200, 20, new TranslatableComponent("gui.act.cancel"),
-				b -> getMinecraft().setScreen(parent)));
+		addRenderableWidget(
+				new Button(width / 2 - 100, height / 2, 200, 20, new TranslatableComponent("gui.done"), b -> {
+					set(value = field.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+					getMinecraft().setScreen(parent);
+				}));
+		addRenderableWidget(new Button(width / 2 - 100, height / 2 + 21, 200, 20,
+				new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
 		super.init();
 	}
 
