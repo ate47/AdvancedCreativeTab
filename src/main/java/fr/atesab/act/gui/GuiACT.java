@@ -9,7 +9,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import org.lwjgl.glfw.GLFW;
 
 import fr.atesab.act.gui.ItemStackButtonWidget.ITooltipRenderer;
-import fr.atesab.act.gui.act.ACTDevInfo;
 import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -20,6 +19,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 
 public class GuiACT extends Screen implements ITooltipRenderer {
+	public record ACTDevInfo(String title, String... elements) {
+	}
+
 	private static boolean devMode = false;
 
 	public static void playClick() {
@@ -80,17 +82,17 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 			generateDev(entries, mouseX, mouseY); // fetch from the menu
 
 			// render
-			var lines = entries.stream().mapToInt(dev -> 1 + dev.getElements().length).sum();
-			var w = entries.stream().mapToInt(dev -> Math.max(font.width(dev.getTitle()),
-					Arrays.stream(dev.getElements()).mapToInt(font::width).max().orElse(0))).max().getAsInt();
+			var lines = entries.stream().mapToInt(dev -> 1 + dev.elements().length).sum();
+			var w = entries.stream().mapToInt(dev -> Math.max(font.width(dev.title()),
+					Arrays.stream(dev.elements()).mapToInt(font::width).max().orElse(0))).max().getAsInt();
 			var x = width - w - 4;
 			var y = 4;
 			GuiUtils.drawGradientRect(stack, x - 4, 0, width, y + lines * (font.lineHeight + 2) + 4, 0x44000000,
 					0x44000000, getZLevel());
 			for (var dev : entries) {
-				GuiUtils.drawCenterString(font, dev.getTitle(), x + w / 2, y, ChatFormatting.RED.getColor());
+				GuiUtils.drawCenterString(font, dev.title(), x + w / 2, y, ChatFormatting.RED.getColor());
 				y += font.lineHeight + 2;
-				for (var element : dev.getElements()) {
+				for (var element : dev.elements()) {
 					GuiUtils.drawString(font, element, x, y, 0xFFFFFFFF, font.lineHeight);
 					y += font.lineHeight + 2;
 				}
