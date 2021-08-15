@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 import fr.atesab.act.gui.ItemStackButtonWidget.ITooltipRenderer;
 import fr.atesab.act.utils.GuiUtils;
+import fr.atesab.act.utils.ReflectionUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -78,9 +79,10 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 		if (devMode) {
 			var entries = new ArrayList<ACTDevInfo>();
 			entries.add(new ACTDevInfo(ChatFormatting.BOLD + "ACT Dev")); // header
-			entries.add(new ACTDevInfo("Menu", this.getClass().getSimpleName())); // menu name
+			entries.add(new ACTDevInfo("Menu", ReflectionUtils.superClassTo(this.getClass(), GuiACT.class).stream()
+					.map(Class::getSimpleName).toArray(String[]::new))); // menu name
 			generateDev(entries, mouseX, mouseY); // fetch from the menu
-
+			entries.add(new ACTDevInfo("Mouse X/Y", mouseX + "/" + mouseY));
 			// render
 			var lines = entries.stream().mapToInt(dev -> 1 + dev.elements().length).sum();
 			var w = entries.stream().mapToInt(dev -> Math.max(font.width(dev.title()),

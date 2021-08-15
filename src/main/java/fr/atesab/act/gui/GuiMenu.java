@@ -1,6 +1,7 @@
 package fr.atesab.act.gui;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -138,6 +139,12 @@ public class GuiMenu extends GuiListModifier<Object> {
 	public void onClose() {
 		get();
 		super.onClose();
+	}
+
+	@Override
+	protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
+		entries.add(new ACTDevInfo(ACTMod.MOD_ID + " " + ACTMod.MOD_VERSION, ACTMod.MOD_STATE.name()));
+		super.generateDev(entries, mouseX, mouseY);
 	}
 
 }

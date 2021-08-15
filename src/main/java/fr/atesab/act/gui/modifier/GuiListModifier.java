@@ -595,4 +595,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			lel.forEach(ListElement::update);
 		super.tick();
 	}
+
+	@Override
+	protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
+		entries.add(new ACTDevInfo("List", this.elements.size() + "e", page + "/" + maxPage));
+		super.generateDev(entries, mouseX, mouseY);
+	}
 }
