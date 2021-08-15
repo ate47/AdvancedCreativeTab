@@ -87,7 +87,6 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 			var y = 4;
 			GuiUtils.drawGradientRect(stack, x - 4, 0, width, y + lines * (font.lineHeight + 2) + 4, 0x44000000,
 					0x44000000, getZLevel());
-			y += font.lineHeight + 2;
 			for (var dev : entries) {
 				GuiUtils.drawCenterString(font, dev.getTitle(), x + w / 2, y, ChatFormatting.RED.getColor());
 				y += font.lineHeight + 2;
