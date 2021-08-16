@@ -32,12 +32,15 @@ public class ReflectionUtils {
     public static List<Class<?>> superClassTo(Class<?> current, Class<?> end) {
         var stack = new ArrayList<Class<?>>();
 
+        if (end == null || end == Object.class)
+            return stack;
+
         var c = current;
 
         do {
-            stack.add(current);
+            stack.add(c);
             c = c.getSuperclass();
-        } while (c != Object.class || c != end);
+        } while (c != Object.class && c != end);
 
         return stack;
     }
