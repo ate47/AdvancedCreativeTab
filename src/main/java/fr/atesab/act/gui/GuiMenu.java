@@ -143,7 +143,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 
 	@Override
 	protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
-		entries.add(new ACTDevInfo(ACTMod.MOD_ID + " " + ACTMod.MOD_VERSION, ACTMod.MOD_STATE.name()));
+		entries.add(devInfo(ACTMod.MOD_ID, ACTMod.MOD_VERSION + " " + ACTMod.MOD_STATE.name(), ACTMod.MOD_LICENCE));
 		super.generateDev(entries, mouseX, mouseY);
 	}
 

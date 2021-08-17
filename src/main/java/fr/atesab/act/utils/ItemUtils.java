@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.OptionalInt;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -278,17 +279,17 @@ public class ItemUtils {
 	 * @since 2.0
 	 */
 	public static final class PotionInformation {
-		private int customColor;
+		private OptionalInt customColor;
 		private List<MobEffectInstance> customEffects;
 		private Potion main;
 
-		public PotionInformation(int customColor, Potion main, List<MobEffectInstance> customEffects) {
+		public PotionInformation(OptionalInt customColor, Potion main, List<MobEffectInstance> customEffects) {
 			this.customColor = customColor;
 			this.main = main;
 			this.customEffects = customEffects;
 		}
 
-		public int getCustomColor() {
+		public OptionalInt getCustomColor() {
 			return customColor;
 		}
 
@@ -300,7 +301,7 @@ public class ItemUtils {
 			return main;
 		}
 
-		public PotionInformation customColor(int customColor) {
+		public PotionInformation customColor(OptionalInt customColor) {
 			this.customColor = customColor;
 			return this;
 		}
@@ -811,7 +812,8 @@ public class ItemUtils {
 		CompoundTag tag = stack.getTag();
 		List<MobEffectInstance> customEffects = PotionUtils.getCustomEffects(tag);
 		return new PotionInformation(
-				tag != null && tag.contains("CustomPotionColor") ? tag.getInt("CustomPotionColor") : -1,
+				(tag != null && tag.contains("CustomPotionColor") ? OptionalInt.of(tag.getInt("CustomPotionColor"))
+						: OptionalInt.empty()),
 				PotionUtils.getPotion(tag), customEffects);
 	}
 
@@ -1104,10 +1106,10 @@ public class ItemUtils {
 		if (stack.getTag() == null)
 			stack.setTag(new CompoundTag());
 		CompoundTag display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
-		if (color == 10511680 && display.contains("color"))
-			display.remove("color");
-		else
+		if (color != 10511680)
 			display.putInt("color", color);
+		else if (display.contains("color"))
+			display.remove("color");
 		return stack;
 	}
 
@@ -1221,8 +1223,8 @@ public class ItemUtils {
 		});
 		CompoundTag tag = stack.getOrCreateTag();
 		tag.putString("Potion", info.getMain().getRegistryName().toString());
-		if (info.customColor != -1)
-			tag.putInt("CustomPotionColor", info.customColor);
+		if (info.customColor.isPresent())
+			tag.putInt("CustomPotionColor", info.customColor.getAsInt());
 		else if (tag.contains("CustomPotionColor"))
 			tag.remove("CustomPotionColor");
 		tag.put("CustomPotionEffects", nbttaglist);

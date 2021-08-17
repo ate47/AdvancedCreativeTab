@@ -70,10 +70,10 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 
 	@Override
 	public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-		GuiUtils.drawGradientRect(offsetX - 2, offsetY - (6 + font.lineHeight), offsetX + getSizeX() - 1, offsetY - 2,
-				0x88dddddd, 0x88aaaaaa, parent.getZLevel());
-		GuiUtils.drawGradientRect(offsetX - 2, offsetY - 2, offsetX + getSizeX() - 1, offsetY + getSizeY() + 2,
-				0x88000000, 0x88000000, parent.getZLevel());
+		GuiUtils.drawGradientRect(matrixStack, offsetX - 2, offsetY - (6 + font.lineHeight), offsetX + getSizeX() - 1,
+				offsetY - 2, 0x88dddddd, 0x88aaaaaa, parent.getZLevel());
+		GuiUtils.drawGradientRect(matrixStack, offsetX - 2, offsetY - 2, offsetX + getSizeX() - 1,
+				offsetY + getSizeY() + 2, 0x88000000, 0x88000000, parent.getZLevel());
 		String s = getType();
 		if (!isList(parent))
 			s = key + " (" + s + ")";
@@ -116,34 +116,21 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 	 * @since 2.1
 	 */
 	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, Tag base) {
-		switch (base.getId()) {
-			case 0:
-				return new NBTTagElement(parent, key, new CompoundTag());
-			case 1:
-				return new NBTByteElement(parent, key, ((ByteTag) base).getAsByte());
-			case 2:
-				return new NBTShortElement(parent, key, ((ShortTag) base).getAsShort());
-			case 3:
-				return new NBTIntegerElement(parent, key, ((IntTag) base).getAsInt());
-			case 4:
-				return new NBTLongElement(parent, key, ((LongTag) base).getAsLong());
-			case 5:
-				return new NBTFloatElement(parent, key, ((FloatTag) base).getAsFloat());
-			case 6:
-				return new NBTDoubleElement(parent, key, ((DoubleTag) base).getAsDouble());
-			case 8:
-				return new NBTStringElement(parent, key, ((StringTag) base).getAsString());
-			case 9:
-				return new NBTListElement(parent, key, ((ListTag) base));
-			case 10:
-				return new NBTTagElement(parent, key, (CompoundTag) base);
-			case 11:
-				return new NBTIntArrayElement(parent, key, (IntArrayTag) base);
-			case 12:
-				return new NBTLongArrayElement(parent, key, (LongArrayTag) base);
-			default:
-				return new NBTUnknownElement(parent, key, base);
-		}
+		return switch (base.getId()) {
+			case Tag.TAG_END -> new NBTTagElement(parent, key, new CompoundTag());
+			case Tag.TAG_BYTE -> new NBTByteElement(parent, key, ((ByteTag) base).getAsByte());
+			case Tag.TAG_SHORT -> new NBTShortElement(parent, key, ((ShortTag) base).getAsShort());
+			case Tag.TAG_INT -> new NBTIntegerElement(parent, key, ((IntTag) base).getAsInt());
+			case Tag.TAG_LONG -> new NBTLongElement(parent, key, ((LongTag) base).getAsLong());
+			case Tag.TAG_FLOAT -> new NBTFloatElement(parent, key, ((FloatTag) base).getAsFloat());
+			case Tag.TAG_DOUBLE -> new NBTDoubleElement(parent, key, ((DoubleTag) base).getAsDouble());
+			case Tag.TAG_STRING -> new NBTStringElement(parent, key, ((StringTag) base).getAsString());
+			case Tag.TAG_LIST -> new NBTListElement(parent, key, ((ListTag) base));
+			case Tag.TAG_COMPOUND -> new NBTTagElement(parent, key, (CompoundTag) base);
+			case Tag.TAG_INT_ARRAY -> new NBTIntArrayElement(parent, key, (IntArrayTag) base);
+			case Tag.TAG_LONG_ARRAY -> new NBTLongArrayElement(parent, key, (LongArrayTag) base);
+			default -> new NBTUnknownElement(parent, key, base);
+		};
 	}
 
 	/**

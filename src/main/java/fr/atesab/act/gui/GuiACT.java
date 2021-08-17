@@ -20,7 +20,11 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 
 public class GuiACT extends Screen implements ITooltipRenderer {
-	public record ACTDevInfo(String title, String... elements) {
+	public record ACTDevInfo(String title, String[] elements) {
+	}
+
+	protected static ACTDevInfo devInfo(String title, String... elements) {
+		return new ACTDevInfo(title, elements);
 	}
 
 	private static boolean devMode = false;
@@ -61,6 +65,10 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 		return getBlitOffset();
 	}
 
+	public void setZLever(float zLevel) {
+		super.setBlitOffset((int) zLevel);
+	}
+
 	@Override
 	public Minecraft getMinecraft() {
 		return mc;
@@ -78,11 +86,13 @@ public class GuiACT extends Screen implements ITooltipRenderer {
 	public void render(PoseStack stack, int mouseX, int mouseY, float delta) {
 		if (devMode) {
 			var entries = new ArrayList<ACTDevInfo>();
-			entries.add(new ACTDevInfo(ChatFormatting.BOLD + "ACT Dev")); // header
-			entries.add(new ACTDevInfo("Menu", ReflectionUtils.superClassTo(this.getClass(), GuiACT.class).stream()
+			entries.add(devInfo(ChatFormatting.BOLD + "ACT Dev")); // header
+			entries.add(devInfo("Menu", ReflectionUtils.superClassTo(this.getClass(), GuiACT.class).stream()
 					.map(Class::getSimpleName).toArray(String[]::new))); // menu name
 			generateDev(entries, mouseX, mouseY); // fetch from the menu
-			entries.add(new ACTDevInfo("Mouse X/Y", mouseX + "/" + mouseY));
+			entries.add(devInfo("Mouse", "LX/LY: " + (mouseX + "/" + mouseY),
+					"CX/CY: " + (mouseX - width / 2) + "/" + (mouseY - height / 2),
+					"RX/RY: " + (mouseX - width) + "/" + (mouseY - height)));
 			// render
 			var lines = entries.stream().mapToInt(dev -> 1 + dev.elements().length).sum();
 			var w = entries.stream().mapToInt(dev -> Math.max(font.width(dev.title()),

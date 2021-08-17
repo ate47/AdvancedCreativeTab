@@ -1,17 +1,23 @@
 package fr.atesab.act.gui.modifier;
 
-import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 
-import javax.imageio.ImageIO;
-
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import fr.atesab.act.ACTMod;
 import fr.atesab.act.utils.GuiUtils;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -19,33 +25,119 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fmlclient.gui.widget.Slider;
+import net.minecraft.world.item.Items;
 
-public class GuiColorModifier extends GuiModifier<Integer> {
-	private final ResourceLocation PICKER = new ResourceLocation("textures/gui/picker.png");
-	private BufferedImage pickerImage;
+public class GuiColorModifier extends GuiModifier<OptionalInt> {
+
+	private enum DragState {
+		HL, S, NONE;
+	}
+
+	private static final int PICKER_SIZE_Y = 200;
+	private static final int PICKER_S_SIZE_X = 20;
+	private static final int PICKER_HL_SIZE_X = 200;
+	private static final ResourceLocation PICKER_S_RESOURCE = new ResourceLocation(ACTMod.MOD_ID, "picker_hl");
+	private static final ResourceLocation PICKER_HL_RESOURCE = new ResourceLocation(ACTMod.MOD_ID, "picker_s");
+	private static final DynamicTexture PICKER_IMAGE_S = new DynamicTexture(
+			new NativeImage(NativeImage.Format.RGBA, PICKER_S_SIZE_X, PICKER_SIZE_Y, false));
+	private static final DynamicTexture PICKER_IMAGE_HL = new DynamicTexture(
+			new NativeImage(NativeImage.Format.RGBA, PICKER_HL_SIZE_X, PICKER_SIZE_Y, false));
+	private static final ItemStack RANDOM_PICKER = Util.make(new ItemStack(Items.POTION), it -> {
+		it.getOrCreateTag();
+	});
+	private static final int RANDOM_PICKER_FREQUENCY = 3600;
+
+	private static ItemStack updatePicker() {
+		var tag = RANDOM_PICKER.getTag();
+		tag.putInt("CustomPotionColor", GuiUtils.getTimeColor(RANDOM_PICKER_FREQUENCY, 100, 50));
+		RANDOM_PICKER.setTag(tag);
+		return RANDOM_PICKER;
+	}
+
+	private static int pickerHue;
+	private static int pickerSaturation;
+	private static int pickerLightness;
+
+	private static void setPickerState(int hue, int saturation, int lightness) {
+		// regen PICKER_IMAGE_S
+		if (!(hue == pickerHue && lightness == pickerLightness)) {
+			pickerHue = hue;
+			pickerLightness = lightness;
+
+			var pixels = PICKER_IMAGE_S.getPixels();
+
+			for (var y = 0; y < pixels.getHeight(); y++) { // saturation
+				var color = GuiUtils.fromHSL(hue, y * 100 / pixels.getHeight(), lightness);
+				for (var x = 0; x < pixels.getWidth(); x++)
+					pixels.setPixelRGBA(x, y, GuiUtils.blueToRed(color));
+			}
+
+			PICKER_IMAGE_S.upload();
+		}
+
+		// regen PICKER_IMAGE_HL
+		if (saturation != pickerSaturation) {
+			pickerSaturation = saturation;
+
+			var pixels = PICKER_IMAGE_HL.getPixels();
+
+			for (var x = 0; x < pixels.getWidth(); x++) // hue
+				for (var y = 0; y < pixels.getHeight(); y++) // lightness
+					pixels.setPixelRGBA(x, y, GuiUtils.blueToRed(
+							GuiUtils.fromHSL(x * 360 / pixels.getWidth(), saturation, y * 100 / pixels.getHeight())));
+
+			PICKER_IMAGE_HL.upload();
+		}
+
+	}
+
+	public static void registerPickerImage() {
+		TextureManager tm = Minecraft.getInstance().getTextureManager();
+		setPickerState(0, 0, 100);
+		tm.register(PICKER_S_RESOURCE, PICKER_IMAGE_S);
+		tm.register(PICKER_HL_RESOURCE, PICKER_IMAGE_HL);
+	}
+
+	private int oldAlphaLayer;
+	private boolean transparentAsDefault;
 	private int color;
-	private boolean drag;
+	private DragState drag = DragState.NONE;
 	private boolean advanced = false;
 	private Button advButton;
-	private EditBox tfr, tfg, tfb, intColor, hexColor;
-	private Slider r, g, b;
+	private EditBox tfr, tfg, tfb, tfh, tfs, tfl, intColor, hexColor;
 	private int defaultColor;
+	private int localHue;
+	private int localSaturation;
+	private int localLightness;
 
 	public GuiColorModifier(Screen parent, Consumer<Integer> setter, int color) {
-		this(parent, setter, color, 0xa06540);
+		this(parent, cd -> setter.accept(cd.getAsInt()), OptionalInt.of(color), 0xa06540, false);
 	}
 
 	public GuiColorModifier(Screen parent, Consumer<Integer> setter, int color, int defaultColor) {
+		this(parent, cd -> setter.accept(cd.getAsInt()), OptionalInt.of(color), defaultColor, false);
+	}
+
+	public GuiColorModifier(Screen parent, Consumer<OptionalInt> setter, OptionalInt color,
+			boolean transparentAsDefault) {
+		this(parent, setter, color, color.orElse(0), transparentAsDefault);
+	}
+
+	private GuiColorModifier(Screen parent, Consumer<OptionalInt> setter, OptionalInt color, int defaultColor,
+			boolean transparentAsDefault) {
 		super(parent, new TranslatableComponent("gui.act.modifier.meta.setColor"), setter);
-		this.color = color & ~0xff000000; // remove alpha
+		var rgba = color.orElse(defaultColor);
+		this.color = rgba & 0xFFFFFF; // remove alpha
+		this.oldAlphaLayer = rgba & 0xFF000000;
+		if (transparentAsDefault && !color.isPresent())
+			this.color |= 0xFF000000;
 		this.defaultColor = defaultColor;
-		try {
-			pickerImage = ImageIO
-					.read(Minecraft.getInstance().getResourceManager().getResource(PICKER).getInputStream());
-		} catch (Exception e) {
-			pickerImage = new BufferedImage(200, 200, BufferedImage.TYPE_INT_ARGB);
-		}
+		this.transparentAsDefault = transparentAsDefault;
+		var hsl = GuiUtils.hslFromRGBA(rgba, pickerHue, pickerSaturation);
+		var fullblack = (rgba & 0xFFFFFF) == 0;
+		localHue = hsl.hue();
+		localSaturation = fullblack ? 100 : hsl.saturation();
+		localLightness = hsl.lightness();
 	}
 
 	@Override
@@ -53,101 +145,167 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		tfr.tick();
 		tfg.tick();
 		tfb.tick();
+		tfh.tick();
+		tfs.tick();
+		tfl.tick();
 		hexColor.tick();
 		intColor.tick();
-		advButton.setFGColor((r.visible = g.visible = b.visible = advanced) ? 0xffffffff : 0xffaaaaaa);
 		super.tick();
 	}
 
 	@Override
 	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		renderBackground(matrixStack);
-		if (!advanced) {
-			getMinecraft().getTextureManager().bindForSetup(PICKER);
-			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 100, height / 2 - 80, 0, 0, 200, 200, 200, 160, 200,
-					200);
-		} else {
-			GuiUtils.drawRect(matrixStack, width / 2 - 100, height / 2 - 80, width / 2 + 100, height / 2 + 80,
-					0x99000000);
-		}
-		if (advanced) {
-			GuiUtils.drawString(font, I18n.get("gui.act.red") + ":", r.x + 1, r.y - 10, 0xffffffff, 10);
-			tfr.render(matrixStack, mouseX, mouseY, partialTicks);
-			GuiUtils.drawString(font, I18n.get("gui.act.green") + ":", g.x + 1, g.y - 10, 0xffffffff, 10);
-			tfg.render(matrixStack, mouseX, mouseY, partialTicks);
-			GuiUtils.drawString(font, I18n.get("gui.act.blue") + ":", b.x + 1, b.y - 10, 0xffffffff, 10);
-			tfb.render(matrixStack, mouseX, mouseY, partialTicks);
-			GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.intColor") + ":", intColor.x - 1,
-					intColor.y - 11, 0xffffffff, 10);
-			GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.hexColor") + ":", hexColor.x - 1,
-					hexColor.y - 11, 0xffffffff, 10);
+		// allow multiple color modifiers
+		setPickerState(localHue, localSaturation, localLightness);
 
+		renderBackground(matrixStack);
+
+		if (!advanced) {
+			// S PICKER
+			RenderSystem.setShader(GameRenderer::getPositionTexShader);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.setShaderTexture(0, PICKER_S_RESOURCE);
+			GuiUtils.drawScaledCustomSizeModalRect(width / 2 + 180, height / 2 - 76, 0, 0, PICKER_S_SIZE_X,
+					PICKER_SIZE_Y, 20, 76 * 2, PICKER_S_SIZE_X, PICKER_SIZE_Y);
+
+			// - S Index
+			var saturationDelta = pickerSaturation * 76 * 2 / 100;
+			GuiUtils.drawRect(matrixStack, width / 2 + 178, height / 2 - 76 + saturationDelta - 2, width / 2 + 178 + 22,
+					height / 2 - 76 + saturationDelta + 2, 0xff222222);
+			GuiUtils.drawRect(matrixStack, width / 2 + 180, height / 2 - 76 + saturationDelta - 1, width / 2 + 180 + 20,
+					height / 2 - 76 + saturationDelta + 1, 0xff999999);
+
+			// HL Picker
+			RenderSystem.setShader(GameRenderer::getPositionTexShader);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.setShaderTexture(0, PICKER_HL_RESOURCE);
+			GuiUtils.drawScaledCustomSizeModalRect(width / 2 - 158, height / 2 - 76, 0, 0, PICKER_HL_SIZE_X,
+					PICKER_SIZE_Y, 158 + 176, 76 * 2, PICKER_HL_SIZE_X, PICKER_SIZE_Y);
+
+			// - HL Index
+			var hueDelta = pickerHue * (158 + 176) / 360;
+			var lightnessDelta = pickerLightness * (76 * 2) / 100;
+			GuiUtils.drawRect(matrixStack, width / 2 - 158 + hueDelta - 5, height / 2 - 76 + lightnessDelta - 2,
+					width / 2 - 158 + hueDelta - 5 + 10, height / 2 - 76 + lightnessDelta - 2 + 4, 0xff222222);
+			GuiUtils.drawRect(matrixStack, width / 2 - 158 + hueDelta - 2, height / 2 - 76 + lightnessDelta - 5,
+					width / 2 - 158 + hueDelta - 2 + 4, height / 2 - 76 + lightnessDelta - 5 + 10, 0xff222222);
+
+			GuiUtils.drawRect(matrixStack, width / 2 - 158 + hueDelta - 4, height / 2 - 76 + lightnessDelta - 1,
+					width / 2 - 158 + hueDelta - 4 + 8, height / 2 - 76 + lightnessDelta - 1 + 2, 0xff999999);
+			GuiUtils.drawRect(matrixStack, width / 2 - 158 + hueDelta - 1, height / 2 - 76 + lightnessDelta - 4,
+					width / 2 - 158 + hueDelta - 1 + 2, height / 2 - 76 + lightnessDelta - 4 + 8, 0xff999999);
+		} else {
+			GuiUtils.drawRect(matrixStack, width / 2 - 158, height / 2 - 76, width / 2 + 200, height / 2 + 76,
+					0x88000000);
+			GuiUtils.drawRightString(font, I18n.get("gui.act.red") + ": ", tfr, 0xffffffff);
+			GuiUtils.drawRightString(font, I18n.get("gui.act.green") + ": ", tfg, 0xffffffff);
+			GuiUtils.drawRightString(font, I18n.get("gui.act.blue") + ": ", tfb, 0xffffffff);
+
+			GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.setColor.hue") + ": ", tfh, 0xffffffff);
+			GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.setColor.lightness") + ": ", tfl,
+					0xffffffff);
+			GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.setColor.saturation") + ": ", tfs,
+					0xffffffff);
+
+			GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.intColor") + ":", intColor.x,
+					intColor.y - 4 - 10, 0xffffffff, 10);
+			GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.hexColor") + ":", hexColor.x,
+					hexColor.y - 4 - 10, 0xffffffff, 10);
+
+			tfr.render(matrixStack, mouseX, mouseY, partialTicks);
+			tfg.render(matrixStack, mouseX, mouseY, partialTicks);
+			tfb.render(matrixStack, mouseX, mouseY, partialTicks);
+			tfh.render(matrixStack, mouseX, mouseY, partialTicks);
+			tfl.render(matrixStack, mouseX, mouseY, partialTicks);
+			tfs.render(matrixStack, mouseX, mouseY, partialTicks);
 			intColor.render(matrixStack, mouseX, mouseY, partialTicks);
 			hexColor.render(matrixStack, mouseX, mouseY, partialTicks);
 		}
-		if (color >= 0)
-			GuiUtils.drawRect(matrixStack, width / 2 - 120, height / 2 - 100, width / 2 + 120, height / 2 - 80,
-					color + 0xff000000);
+		if ((color & 0xFF000000) == 0)
+			GuiUtils.drawRect(matrixStack, width / 2 - 158, height / 2 - 100, width / 2 + 176, height / 2 - 80,
+					color | 0xff000000);
+
 		Runnable show = () -> {
 		};
-		for (int i = 0; i < DyeColor.values().length; ++i) {
-			int x = width / 2 - 120 + (i % 2) * 220;
-			int y = height / 2 - 80 + (i / 2) * 20;
-			GuiUtils.drawRect(matrixStack, x, y, x + 20, y + 20, 0xff000000 | DyeColor.values()[i].getFireworkColor());
-			if (GuiUtils.isHover(x, y, 20, 20, mouseX, mouseY)) {
-				final int j = i;
-				show = () -> GuiUtils.drawTextBox(font, mouseX, mouseY, width, height, getZLevel(),
-						I18n.get("item.minecraft.firework_star." + DyeColor.values()[j].getName()));
+		for (var i = 0; i < DyeColor.values().length; ++i) {
+			var color = DyeColor.values()[i];
+			var x = width / 2 - 200 + (i % 2) * 19;
+			var y = height / 2 - 76 + (i / 2) * 19;
+			GuiUtils.drawRect(matrixStack, x, y, x + 19, y + 19, 0xff000000 | color.getFireworkColor());
+			if (GuiUtils.isHover(x, y, 19, 19, mouseX, mouseY)) {
+				show = () -> GuiUtils.drawTextBox(matrixStack, font, mouseX, mouseY, width, height, getZLevel(),
+						I18n.get("item.minecraft.firework_star." + color.getName()));
 			}
-			GuiUtils.drawItemStack(itemRenderer, this, new ItemStack(DyeItem.byColor(DyeColor.values()[i])), x + 2,
-					y + 2);
+			GuiUtils.drawItemStack(itemRenderer, this, new ItemStack(DyeItem.byColor(color)), x + (19 - 16) / 2,
+					y + (19 - 16) / 2);
 		}
+
+		// random
+		GuiUtils.drawHoverableRect(matrixStack, width / 2 - 200, height / 2 - 100, width / 2 - 162, height / 2 - 80,
+				0xFF444444, GuiUtils.getTimeColor(RANDOM_PICKER_FREQUENCY, 50, 15), mouseX, mouseY);
+		GuiUtils.drawItemStack(itemRenderer, this, updatePicker(), width / 2 - 200 + 38 / 2 - 16 / 2,
+				height / 2 - 100 + 20 / 2 - 16 / 2);
+		if (GuiUtils.isHover(width / 2 - 200, height / 2 - 100, 38, 20, mouseX, mouseY)) {
+			show = () -> GuiUtils.drawTextBox(matrixStack, font, mouseX, mouseY, width, height, getZLevel(),
+					I18n.get("gui.act.modifier.meta.setColor.random"));
+		}
+
+		// delete
+		GuiUtils.drawHoverableRect(matrixStack, width / 2 + 180, height / 2 - 100, width / 2 + 200, height / 2 - 80,
+				0xFFDD4444, 0xFFFF4444, mouseX, mouseY);
+		GuiUtils.drawCenterString(font, "x", width / 2 + 190, height / 2 - 100, 0xFFFFFFFF, 20);
+
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
+		setZLever(getZLevel() + 75);
 		show.run();
+		setZLever(getZLevel() - 75);
+	}
+
+	private void complete() {
+		set((color & 0xFF000000) != 0 ? OptionalInt.empty() : OptionalInt.of(color | oldAlphaLayer));
 	}
 
 	@Override
 	public void init() {
 		addRenderableWidget(
-				new Button(width / 2 - 120, height / 2 + 81, 80, 20, new TranslatableComponent("gui.done"), b -> {
-					set(color);
+				new Button(width / 2 - 200, height / 2 + 80, 130, 20, new TranslatableComponent("gui.done"), b -> {
+					complete();
 					getMinecraft().setScreen(parent);
 				}));
-		addRenderableWidget(advButton = new Button(width / 2 - 38, height / 2 + 81, 80, 20,
+		advButton = addRenderableWidget(new Button(width / 2 - 66, height / 2 + 80, 132, 20,
 				new TranslatableComponent("gui.act.advanced"), b -> {
-					advanced = !advanced;
+					advanced ^= true;
+					advButton.setMessage(new TranslatableComponent(
+							advanced ? "gui.act.modifier.meta.setColor.picker" : "gui.act.advanced"));
 				}));
 		addRenderableWidget(
-				new Button(width / 2 + 43, height / 2 + 81, 79, 20, new TranslatableComponent("gui.act.cancel"), b -> {
+				new Button(width / 2 + 70, height / 2 + 80, 130, 20, new TranslatableComponent("gui.act.cancel"), b -> {
 					getMinecraft().setScreen(parent);
 				}));
 
-		addRenderableWidget(
-				r = new Slider(width / 2 - 99, height / 2 - 70, 158, 20, new TranslatableComponent("gui.act.red"),
-						new TextComponent(""), 0, 255, color >> 16 & 0xFF, false, false, b -> {
-						}, s -> updateRed(s.getValueInt())));
-		tfr = new EditBox(font, r.x + r.getWidth() + 2, r.y + 1, 36, 18, new TextComponent(""));
+		var advWidth = 158 + 200;
+		var midAdv = width / 2 + (-158 + 200) / 2;
+		tfr = new EditBox(font, midAdv - 56, height / 2 - 54, 56, 18, new TextComponent(""));
+		tfg = new EditBox(font, midAdv - 56, height / 2 - 26, 56, 18, new TextComponent(""));
+		tfb = new EditBox(font, midAdv - 56, height / 2 + 2, 56, 18, new TextComponent(""));
 
-		addRenderableWidget(
-				g = new Slider(width / 2 - 99, height / 2 - 38, 158, 20, new TranslatableComponent("gui.act.green"),
-						new TextComponent(""), 0, 255, color >> 8 & 0xFF, false, false, b -> {
-						}, s -> updateGreen(s.getValueInt())));
-		tfg = new EditBox(font, g.x + g.getWidth() + 2, g.y + 1, 36, 18, new TextComponent(""));
+		var rightAdv = width / 2 + 200;
+		tfh = new EditBox(font, rightAdv - 56, height / 2 - 54, 56, 18, new TextComponent(""));
+		tfl = new EditBox(font, rightAdv - 56, height / 2 - 26, 56, 18, new TextComponent(""));
+		tfs = new EditBox(font, rightAdv - 56, height / 2 + 2, 56, 18, new TextComponent(""));
 
-		addRenderableWidget(
-				b = new Slider(width / 2 - 99, height / 2 - 3, 158, 20, new TranslatableComponent("gui.act.blue"),
-						new TextComponent(""), 0, 255, color & 0xFF, false, false, b -> {
-						}, s -> updateBlue(s.getValueInt())));
-		tfb = new EditBox(font, b.x + b.getWidth() + 2, b.y + 1, 36, 18, new TextComponent(""));
-
-		intColor = new EditBox(font, width / 2 - 97, height / 2 + 28, 194, 18, new TextComponent(""));
-		hexColor = new EditBox(font, width / 2 - 97, height / 2 + 60, 194, 18, new TextComponent(""));
+		var intHexWidth = (advWidth - 4 - 4) / 2;
+		intColor = new EditBox(font, midAdv - intHexWidth, height / 2 + 40, intHexWidth, 18, new TextComponent(""));
+		hexColor = new EditBox(font, midAdv + 4, height / 2 + 40, intHexWidth, 18, new TextComponent(""));
 
 		tfr.setMaxLength(4);
 		tfg.setMaxLength(4);
 		tfb.setMaxLength(4);
-		r.visible = g.visible = b.visible = false;
-		updateColor(color);
+		tfh.setMaxLength(4);
+		tfl.setMaxLength(4);
+		tfs.setMaxLength(4);
+
+		updateColor(color); // sync picker color
 		super.init();
 	}
 
@@ -157,6 +315,9 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			tfr.charTyped(key, modifiers);
 			tfg.charTyped(key, modifiers);
 			tfb.charTyped(key, modifiers);
+			tfh.charTyped(key, modifiers);
+			tfl.charTyped(key, modifiers);
+			tfs.charTyped(key, modifiers);
 			hexColor.charTyped(key, modifiers);
 			intColor.charTyped(key, modifiers);
 			if (tfr.isFocused())
@@ -172,6 +333,21 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			else if (tfb.isFocused())
 				try {
 					updateBlue(tfb.getValue().isEmpty() ? 0 : Integer.valueOf(tfb.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfh.isFocused())
+				try {
+					updateHue(tfh.getValue().isEmpty() ? 0 : Integer.valueOf(tfh.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfs.isFocused())
+				try {
+					updateSaturation(tfs.getValue().isEmpty() ? 0 : Integer.valueOf(tfs.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfl.isFocused())
+				try {
+					updateLightness(tfl.getValue().isEmpty() ? 0 : Integer.valueOf(tfl.getValue()));
 				} catch (Exception e) {
 				}
 			else if (hexColor.isFocused())
@@ -195,6 +371,9 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			tfr.keyPressed(key, scanCode, modifiers);
 			tfg.keyPressed(key, scanCode, modifiers);
 			tfb.keyPressed(key, scanCode, modifiers);
+			tfh.keyPressed(key, scanCode, modifiers);
+			tfl.keyPressed(key, scanCode, modifiers);
+			tfs.keyPressed(key, scanCode, modifiers);
 			hexColor.keyPressed(key, scanCode, modifiers);
 			intColor.keyPressed(key, scanCode, modifiers);
 			if (tfr.isFocused())
@@ -210,6 +389,21 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			else if (tfb.isFocused())
 				try {
 					updateBlue(tfb.getValue().isEmpty() ? 0 : Integer.valueOf(tfb.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfh.isFocused())
+				try {
+					updateHue(tfh.getValue().isEmpty() ? 0 : Integer.valueOf(tfh.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfs.isFocused())
+				try {
+					updateSaturation(tfs.getValue().isEmpty() ? 0 : Integer.valueOf(tfs.getValue()));
+				} catch (Exception e) {
+				}
+			else if (tfl.isFocused())
+				try {
+					updateLightness(tfl.getValue().isEmpty() ? 0 : Integer.valueOf(tfl.getValue()));
 				} catch (Exception e) {
 				}
 			else if (hexColor.isFocused())
@@ -231,81 +425,165 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		if (advanced) {
 			if (mouseButton == 1) {
-				if (GuiUtils.isHover(tfr, (int) mouseX, (int) mouseY))
+				if (GuiUtils.isHover(tfr, (int) mouseX, (int) mouseY)) {
 					tfr.setValue("");
-				else if (GuiUtils.isHover(tfg, (int) mouseX, (int) mouseY))
+					return true;
+				} else if (GuiUtils.isHover(tfg, (int) mouseX, (int) mouseY)) {
 					tfg.setValue("");
-				else if (GuiUtils.isHover(tfb, (int) mouseX, (int) mouseY))
+					return true;
+				} else if (GuiUtils.isHover(tfb, (int) mouseX, (int) mouseY)) {
 					tfb.setValue("");
-				else if (GuiUtils.isHover(intColor, (int) mouseX, (int) mouseY))
+					return true;
+				} else if (GuiUtils.isHover(tfh, (int) mouseX, (int) mouseY)) {
+					tfh.setValue("");
+					return true;
+				} else if (GuiUtils.isHover(tfl, (int) mouseX, (int) mouseY)) {
+					tfl.setValue("");
+					return true;
+				} else if (GuiUtils.isHover(tfs, (int) mouseX, (int) mouseY)) {
+					tfs.setValue("");
+					return true;
+				} else if (GuiUtils.isHover(intColor, (int) mouseX, (int) mouseY)) {
 					intColor.setValue("");
-				else if (GuiUtils.isHover(hexColor, (int) mouseX, (int) mouseY))
+					return true;
+				} else if (GuiUtils.isHover(hexColor, (int) mouseX, (int) mouseY)) {
 					hexColor.setValue("#");
+					return true;
+				}
 			}
 			tfr.mouseClicked(mouseX, mouseY, mouseButton);
 			tfg.mouseClicked(mouseX, mouseY, mouseButton);
 			tfb.mouseClicked(mouseX, mouseY, mouseButton);
+			tfh.mouseClicked(mouseX, mouseY, mouseButton);
+			tfl.mouseClicked(mouseX, mouseY, mouseButton);
+			tfs.mouseClicked(mouseX, mouseY, mouseButton);
 			intColor.mouseClicked(mouseX, mouseY, mouseButton);
 			hexColor.mouseClicked(mouseX, mouseY, mouseButton);
 		}
-		drag = false;
-		if (!advanced && GuiUtils.isHover(width / 2 - 100, height / 2 - 80, 200, 160, (int) mouseX, (int) mouseY)) {
-			setColor((int) mouseX, (int) mouseY);
-			drag = true;
-		} else if (GuiUtils.isHover(width / 2 - 120, height / 2 - 100, 240, 20, (int) mouseX, (int) mouseY))
-			updateColor(defaultColor);
-		else
-			for (int i = 0; i < DyeColor.values().length; ++i)
-				if (GuiUtils.isHover(width / 2 - 120 + (i % 2) * 220, height / 2 - 80 + (i / 2) * 20, 20, 20,
-						(int) mouseX, (int) mouseY))
-					updateColor(DyeColor.values()[i].getFireworkColor());
+		drag = DragState.NONE;
+		if (mouseButton == 0) {
+			if (!advanced && GuiUtils.isHover(width / 2 - 158, height / 2 - 76, 158 + 176, 76 * 2, (int) mouseX,
+					(int) mouseY)) {
+				setColor((int) mouseX, (int) mouseY, DragState.HL);
+			} else if (!advanced
+					&& GuiUtils.isHover(width / 2 + 180, height / 2 - 76, 20, 76 * 2, (int) mouseX, (int) mouseY)) {
+				setColor((int) mouseX, (int) mouseY, DragState.S);
+			} else if (GuiUtils.isHover(width / 2 + 180, height / 2 - 100, 20, 20, (int) mouseX, (int) mouseY)) {
+				if (transparentAsDefault) {
+					color |= 0xFF000000;
+				} else {
+					oldAlphaLayer = defaultColor & 0xFF000000;
+					updateColor(defaultColor & 0xFFFFFF);
+				}
+				playClick();
+				return true;
+			} else if (GuiUtils.isHover(width / 2 - 200, height / 2 - 100, 38, 20, (int) mouseX, (int) mouseY)) {
+				updateColor(GuiUtils.getRandomColor() & 0xffffff);
+				playClick();
+				return true;
+			} else
+				for (int i = 0; i < DyeColor.values().length; ++i)
+					if (GuiUtils.isHover(width / 2 - 200 + (i % 2) * 19, height / 2 - 76 + (i / 2) * 19, 19, 19,
+							(int) mouseX, (int) mouseY)) {
+						updateColor(DyeColor.values()[i].getFireworkColor());
+						playClick();
+						return true;
+					}
+		}
 		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int clickedMouseButton, double dx, double dy) {
-		if (drag)
-			setColor((int) mouseX, (int) mouseY);
+		setColor((int) mouseX, (int) mouseY, drag);
 		return super.mouseDragged(mouseX, mouseY, clickedMouseButton, dx, dy);
 	}
 
-	private void updateColor(int value) {
-		color = value == defaultColor ? value : value & 0xffffff;
-		int r = color >> 16 & 0xFF;
-		int g = color >> 8 & 0xFF;
-		int b = color >> 0 & 0xFF;
-		this.r.setValue(r);
-		this.g.setValue(g);
-		this.b.setValue(b);
-		this.tfr.setValue("" + r);
-		this.tfg.setValue("" + g);
-		this.tfb.setValue("" + b);
-		this.intColor.setValue("" + color);
-		String s = Integer.toHexString(color);
-		this.hexColor.setValue("#" + s);
+	private void updateColor(int h, int s, int l) {
+		updateColor(h % 360, s, l, GuiUtils.fromHSL(h % 360, s, l));
 	}
 
-	private void setColor(int mouseX, int mouseY) {
-		int rx = GuiUtils.clamp(mouseX - (width / 2 - 100), 0, 199);
-		int ry = GuiUtils.clamp(GuiUtils.clamp(mouseY - (height / 2 - 100), 0, 160) * 20 / 16, 0, 199);
-		int[] data = new int[3];
-		pickerImage.getRaster().getPixel(rx, ry, data);
-		updateColor((data[0] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[2] & 0xFF) << 0);
+	private void updateColor(int rgba) {
+		var hsl = GuiUtils.hslFromRGBA(rgba, localHue, localSaturation);
+		updateColor(hsl.hue(), hsl.saturation(), hsl.lightness(), rgba);
+	}
+
+	private void updateColor(int h, int s, int l, int rgba) {
+		localHue = h;
+		localSaturation = s;
+		localLightness = l;
+		tfh.setValue("" + localHue);
+		tfs.setValue("" + localSaturation);
+		tfl.setValue("" + localLightness);
+		setPickerState(localHue, localSaturation, localLightness);
+
+		color = rgba & 0xffffff;
+		tfr.setValue("" + (color >> 16 & 0xFF));
+		tfg.setValue("" + (color >> 8 & 0xFF));
+		tfb.setValue("" + (color >> 0 & 0xFF));
+		this.intColor.setValue("" + color);
+		this.hexColor.setValue("#" + Integer.toHexString(color));
+	}
+
+	private void setColor(int mouseX, int mouseY, DragState dragState) {
+		drag = dragState;
+		if (drag == DragState.NONE)
+			return;
+
+		switch (drag) {
+			case HL: {
+				// hue
+				var hue = GuiUtils.clamp(mouseX - (width / 2 - 158), 0, 158 + 176) * 360 / (158 + 176 + 1);
+				// lightness
+				var lightness = GuiUtils.clamp(mouseY - (height / 2 - 76), 0, 76 * 2) * 100 / (76 * 2);
+				updateColor(hue, pickerSaturation, lightness);
+			}
+				break;
+			case S: {
+				var saturation = GuiUtils.clamp(mouseY - (height / 2 - 76), 0, 76 * 2) * 100 / (76 * 2);
+				updateColor(pickerHue, saturation, pickerLightness);
+			}
+				break;
+			default:
+				break;
+		}
 	}
 
 	private void updateRed(int v) {
-		v &= 0xFF;
 		updateColor((v & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
 	}
 
 	private void updateGreen(int v) {
-		v &= 0xFF;
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | (v & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
-
 	}
 
 	private void updateBlue(int v) {
-		v &= 0xFF;
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | (v & 0xFF) << 0);
+	}
+
+	private void updateHue(int v) {
+		v %= 360;
+		if (v < 0)
+			v += 360;
+		updateColor(v, pickerSaturation, pickerLightness);
+	}
+
+	private void updateSaturation(int v) {
+		v = GuiUtils.clamp(v, 0, 100);
+		updateColor(pickerHue, v, pickerLightness);
+	}
+
+	private void updateLightness(int v) {
+		v = GuiUtils.clamp(v, 0, 100);
+		updateColor(pickerHue, pickerSaturation, v);
+	}
+
+	@Override
+	protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
+		entries.add(devInfo("HEX", "#" + Integer.toHexString((color & 0xFFFFFF) | 0xF000000).substring(1)));
+		entries.add(devInfo("HSL", pickerHue + "/" + pickerSaturation + "/" + pickerLightness));
+		var res = GuiUtils.rgbaFromRGBA(color);
+		entries.add(devInfo("RGB", res.red() + "/" + res.green() + "/" + res.blue()));
+		super.generateDev(entries, mouseX, mouseY);
 	}
 }

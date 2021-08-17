@@ -17,7 +17,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Widget;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -598,7 +597,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 	@Override
 	protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
-		entries.add(new ACTDevInfo("List", this.elements.size() + "e", page + "/" + maxPage));
+		entries.add(devInfo("List", this.elements.size() + " element(s)", (page + 1) + "/" + maxPage));
 		super.generateDev(entries, mouseX, mouseY);
 	}
 }

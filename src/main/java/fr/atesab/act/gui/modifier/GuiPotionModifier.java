@@ -3,6 +3,7 @@ package fr.atesab.act.gui.modifier;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -23,7 +24,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
 
 public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 	private static class CustomPotionListElement extends ListElement {
@@ -174,7 +174,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			this.parent = parent;
 			buttonList.add(new Button(0, 0, 200, 20, new TranslatableComponent("gui.act.modifier.meta.setColor"),
 					b -> mc.setScreen(
-							new GuiColorModifier(parent, i -> parent.customColor = i, parent.customColor, -1))));
+							new GuiColorModifier(parent, i -> parent.customColor = i, parent.customColor, true))));
 			buttonList.add(type = new Button(201, 0, 199, 20, new TextComponent(""), b -> {
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
 				// PotionType.REGISTRY
@@ -196,7 +196,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
 	}
 
-	private int customColor = -1;
+	private OptionalInt customColor;
 
 	private Potion main;
 

@@ -39,6 +39,7 @@ import fr.atesab.act.config.Configuration;
 import fr.atesab.act.gui.GuiACT;
 import fr.atesab.act.gui.GuiGiver;
 import fr.atesab.act.gui.GuiMenu;
+import fr.atesab.act.gui.modifier.GuiColorModifier;
 import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
@@ -136,7 +137,7 @@ public class ACTMod {
 
 	public static final String MOD_NAME = "Advanced Creative 2";
 
-	public static final String MOD_VERSION = "2.3.1";
+	public static final String MOD_VERSION = "2.4.0";
 
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 
@@ -558,6 +559,7 @@ public class ACTMod {
 			}
 		});
 
+		GuiColorModifier.registerPickerImage();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

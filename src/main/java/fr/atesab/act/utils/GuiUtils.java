@@ -9,6 +9,7 @@ import java.util.List;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -25,14 +26,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fmlclient.EarlyLoaderGUI;
 
 /**
  * A set of tools to help to draw, show and modify {@link Screen}
@@ -61,8 +60,153 @@ public class GuiUtils {
 		}
 	}
 
+	public static record HSLResult(int hue, int saturation, int lightness, int alpha) {
+	};
+
+	public static record RGBResult(int red, int green, int blue, int alpha) {
+	};
+
 	public static final Button.OnPress EMPTY_PRESS = b -> {
 	};
+
+	public static int blueToRed(int color) {
+		return (color & 0xFF00FF00) | ((color & 0x000000FF) << 16) | ((color & 0x00FF0000) >> 16);
+	}
+
+	/**
+	 * @param rgba argb color
+	 * @return true if the rgba value has an alpha part or if the color is fully
+	 *         transparent
+	 */
+	public static boolean hasAlpha(int rgba) {
+		return (rgba & 0xFF000000) != 0;
+	}
+
+	/**
+	 * Convert r g b param to rgba int
+	 * 
+	 * @param r red
+	 * @param g green
+	 * @param b red
+	 * @param a alpha
+	 * @return (a << 24) | (r << 16) | (g << 8) | b
+	 */
+	public static int asRGBA(int r, int g, int b, int a) {
+		return (a << 24) | (r << 16) | (g << 8) | b;
+	}
+
+	/**
+	 * Convert r g b param to rgba int
+	 * 
+	 * @param r red
+	 * @param g green
+	 * @param b red
+	 * @param a alpha
+	 * @return (a << 24) | (r << 16) | (g << 8) | b
+	 */
+	public static int asRGBA(float r, float g, float b, float a) {
+		return ((int) (a * 0xFF) << 24) | ((int) (r * 0xFF) << 16) | ((int) (g * 0xFF) << 8) | (int) (b * 0xFF);
+	}
+
+	/**
+	 * convert hsl parm to rgba
+	 * 
+	 * @param h hue, angle [0-360[
+	 * @param s saturation, percentage [0-100]
+	 * @param l lightness, percentage [0-100]
+	 * @return rgba value
+	 */
+	public static int fromHSL(int h, int s, int l) {
+		return fromHSL(h, s / 100f, l / 100f);
+	}
+
+	/**
+	 * convert hsl parm to rgba
+	 * 
+	 * @param h hue, angle [0-360[
+	 * @param s saturation, percentage
+	 * @param l lightness, percentage
+	 * @return rgba value
+	 */
+	public static int fromHSL(int h, float s, float l) {
+		var c = (1 - Math.abs(2 * l - 1)) * s;
+		var hh = h / 60f;
+		var x = c * (1 - Math.abs(hh % 2 - 1));
+
+		var m = l - c / 2;
+
+		return switch ((int) hh) {
+			case 0 -> asRGBA(c, x, 0, 1f);
+			case 1 -> asRGBA(x, c, 0, 1f);
+			case 2 -> asRGBA(0, c, x, 1f);
+			case 3 -> asRGBA(0, x, c, 1f);
+			case 4 -> asRGBA(x, 0, c, 1f);
+			case 5 -> asRGBA(c, 0, x, 1f);
+			default -> 0xFF000000; // happy compiler
+		} + 0x010101 * (int) (m * 0xFF);
+	}
+
+	/**
+	 * get HSL from RGBA
+	 * 
+	 * @param rgba int rgba
+	 * @return HSL
+	 */
+	public static HSLResult hslFromRGBA(int rgba) {
+		return hslFromRGBA(rgba, 0, 0);
+	}
+
+	/**
+	 * @param rgba int rgba
+	 * @return RGB
+	 */
+	public static RGBResult rgbaFromRGBA(int rgba) {
+		var alpha = (rgba >> 24) & 0xff;
+		var red = (rgba >> 16) & 0xff;
+		var green = (rgba >> 8) & 0xff;
+		var blue = rgba & 0xff;
+		return new RGBResult(red, green, blue, alpha);
+	}
+
+	/**
+	 * get HSL from RGBA with an option to preserve hue/saturation with gray scale
+	 * 
+	 * @param rgba          int rgba
+	 * @param oldHue        old hue, to avoid loosing it
+	 * @param oldSaturation old saturation, to avoid loosing it
+	 * @return HSL
+	 */
+	public static HSLResult hslFromRGBA(int rgba, int oldHue, int oldSaturation) {
+		var alpha = (rgba >> 24) & 0xff;
+		var red = ((rgba >> 16) & 0xff) / 255f;
+		var green = ((rgba >> 8) & 0xff) / 255f;
+		var blue = (rgba & 0xff) / 255f;
+
+		var max = Math.max(Math.max(red, green), blue);
+		var min = Math.min(Math.min(red, green), blue);
+		var chroma = max - min;
+
+		int hue;
+
+		if (chroma == 0) {
+			hue = oldHue; // no color
+		} else if (max == red) {
+			hue = (int) ((((green - blue) / chroma) % 6) * 60);
+		} else if (max == green) {
+			hue = (int) ((((blue - red) / chroma + 2) % 6) * 60);
+		} else { // max == blue
+			hue = (int) ((((red - green) / chroma + 4) % 6) * 60);
+		}
+
+		if (hue < 0) {
+			hue += 360;
+		}
+
+		var lightness = (max + min) / 2;
+		var saturation = lightness == 1 ? oldSaturation : (chroma / (1 - Math.abs(2 * lightness - 1)));
+
+		return new HSLResult(hue, (int) (saturation * 100), (int) (lightness * 100), alpha);
+	}
 
 	/**
 	 * Set clipboard text
@@ -105,27 +249,41 @@ public class GuiUtils {
 	}
 
 	/**
+	 * @return a random ARGB with a full alpha
+	 */
+	public static int getRandomColor() {
+		return 0xff000000 | ACTMod.RANDOM.nextInt(0x1000000);
+	}
+
+	public static int getTimeColor(int frequency, int saturation, int lightness) {
+		return 0xff000000 | fromHSL((int) ((System.currentTimeMillis() % (long) frequency) * 360 / frequency),
+				saturation, lightness);
+	}
+
+	/**
 	 * Draw a box on the screen
 	 * 
+	 * @param p      matrix stack
 	 * @param x      x tl location
 	 * @param y      y tl location
 	 * @param width  box width
 	 * @param height box height
-	 * @param zLevel zlevel of the screen
+	 * @param z      zlevel of the screen
 	 * 
 	 * @since 2.0
 	 */
-	public static void drawBox(int x, int y, int width, int height, float zLevel) {
-		zLevel -= 50F;
-		drawGradientRect(x - 3, y - 4, x + width + 3, y - 3, -267386864, -267386864, zLevel);
-		drawGradientRect(x - 3, y + height + 3, x + width + 3, y + height + 4, -267386864, -267386864, zLevel);
-		drawGradientRect(x - 3, y - 3, x + width + 3, y + height + 3, -267386864, -267386864, zLevel);
-		drawGradientRect(x - 4, y - 3, x - 3, y + height + 3, -267386864, -267386864, zLevel);
-		drawGradientRect(x + width + 3, y - 3, x + width + 4, y + height + 3, -267386864, -267386864, zLevel);
-		drawGradientRect(x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, 1347420415, 1344798847, zLevel);
-		drawGradientRect(x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, 1347420415, 1344798847, zLevel);
-		drawGradientRect(x - 3, y - 3, x + width + 3, y - 3 + 1, 1347420415, 1347420415, zLevel);
-		drawGradientRect(x - 3, y + height + 2, x + width + 3, y + height + 3, 1344798847, 1344798847, zLevel);
+	public static void drawBox(PoseStack p, int x, int y, int width, int height, float z) {
+		z -= 50F;
+		// -267386864 0xF0100010 | 1347420415 0x505000FF | 1344798847 0x5028007F
+		drawGradientRect(p, x - 3, y - 4, x + width + 3, y - 3, 0xF0100010, 0xF0100010, z);
+		drawGradientRect(p, x - 3, y + height + 3, x + width + 3, y + height + 4, 0xF0100010, 0xF0100010, z);
+		drawGradientRect(p, x - 3, y - 3, x + width + 3, y + height + 3, 0xF0100010, 0xF0100010, z);
+		drawGradientRect(p, x - 4, y - 3, x - 3, y + height + 3, 0xF0100010, 0xF0100010, z);
+		drawGradientRect(p, x + width + 3, y - 3, x + width + 4, y + height + 3, 0xF0100010, 0xF0100010, z);
+		drawGradientRect(p, x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, 0x505000FF, 0x5028007F, z);
+		drawGradientRect(p, x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, 0x505000FF, 0x5028007F, z);
+		drawGradientRect(p, x - 3, y - 3, x + width + 3, y - 3 + 1, 0x505000FF, 0x505000FF, z);
+		drawGradientRect(p, x - 3, y + height + 2, x + width + 3, y + height + 3, 0x5028007F, 0x5028007F, z);
 	}
 
 	/**
@@ -177,6 +335,7 @@ public class GuiUtils {
 	/**
 	 * Draw a rectangle with a vertical gradient
 	 * 
+	 * @param stack      matrix stack
 	 * @param left       left location
 	 * @param top        top location
 	 * @param right      right location
@@ -185,97 +344,70 @@ public class GuiUtils {
 	 * @param endColor   endColor color
 	 * @param zLevel     zLevel of the screen
 	 * 
-	 * @see #drawGradientRect(int, int, int, int, int, int, int, int, float)
+	 * @see #drawGradientRect(PoseStack, int, int, int, int, int, int, int, int,
+	 *      float)
 	 * @since 2.0
 	 */
-	@SuppressWarnings("deprecation")
-	public static void drawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor,
-			float zLevel) {
-		float alpha1 = (float) (startColor >> 24 & 255) / 255.0F;
-		float red1 = (float) (startColor >> 16 & 255) / 255.0F;
-		float green1 = (float) (startColor >> 8 & 255) / 255.0F;
-		float blue1 = (float) (startColor & 255) / 255.0F;
-		float alpha2 = (float) (endColor >> 24 & 255) / 255.0F;
-		float red2 = (float) (endColor >> 16 & 255) / 255.0F;
-		float green2 = (float) (endColor >> 8 & 255) / 255.0F;
-		float blue2 = (float) (endColor & 255) / 255.0F;
-		RenderSystem.disableTexture();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
-				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
-				GlStateManager.DestFactor.ZERO);
-		Tesselator tesselator = Tesselator.getInstance();
-		BufferBuilder bufferbuilder = tesselator.getBuilder();
-		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		// func_225582_a_ = pos func_227885_a_ = color
-		bufferbuilder.vertex((double) right, (double) top, (double) zLevel).color(red1, green1, blue1, alpha1)
-				.endVertex();
-		bufferbuilder.vertex((double) left, (double) top, (double) zLevel).color(red1, green1, blue1, alpha1)
-				.endVertex();
-		bufferbuilder.vertex((double) left, (double) bottom, (double) zLevel).color(red2, green2, blue2, alpha2)
-				.endVertex();
-		bufferbuilder.vertex((double) right, (double) bottom, (double) zLevel).color(red2, green2, blue2, alpha2)
-				.endVertex();
-		tesselator.end();
-		RenderSystem.disableBlend();
-		RenderSystem.enableTexture();
+	public static void drawGradientRect(PoseStack stack, int left, int top, int right, int bottom, int startColor,
+			int endColor, float zLevel) {
+		drawGradientRect(stack, left, top, right, bottom, startColor, startColor, endColor, endColor, zLevel);
 	}
 
 	/**
 	 * Draw a gradient rectangle
 	 * 
-	 * @param left        left location
-	 * @param top         top location
-	 * @param right       right location
-	 * @param bottom      bottom location
-	 * @param leftColor   leftColor color
-	 * @param topColor    topColor color
-	 * @param rightColor  rightColor color
-	 * @param bottomColor bottomColor color
-	 * @param zLevel      zLevel of the screen
+	 * @param stack            matrix stack
+	 * @param left             left location
+	 * @param top              top location
+	 * @param right            right location
+	 * @param bottom           bottom location
+	 * @param rightTopColor    rightTopColor color (ARGB)
+	 * @param leftTopColor     leftTopColor color (ARGB)
+	 * @param leftBottomColor  leftBottomColor color (ARGB)
+	 * @param rightBottomColor rightBottomColor color (ARGB)
+	 * @param zLevel           zLevel of the screen
 	 * 
-	 * @see #drawGradientRect(int, int, int, int, int, int, float)
+	 * @see #drawGradientRect(PoseStack, int, int, int, int, int, int, float)
 	 * @since 2.0
 	 */
-	@SuppressWarnings("deprecation")
-	public static void drawGradientRect(int left, int top, int right, int bottom, int leftColor, int topColor,
-			int rightColor, int bottomColor, float zLevel) {
-		float alphaLeft = (float) (leftColor >> 24 & 255) / 255.0F;
-		float redLeft = (float) (leftColor >> 16 & 255) / 255.0F;
-		float greenLeft = (float) (leftColor >> 8 & 255) / 255.0F;
-		float blueLeft = (float) (leftColor & 255) / 255.0F;
-		float alphaTop = (float) (topColor >> 24 & 255) / 255.0F;
-		float redTop = (float) (topColor >> 16 & 255) / 255.0F;
-		float greenTop = (float) (topColor >> 8 & 255) / 255.0F;
-		float blueTop = (float) (topColor & 255) / 255.0F;
-		float alphaRight = (float) (rightColor >> 24 & 255) / 255.0F;
-		float redRight = (float) (rightColor >> 16 & 255) / 255.0F;
-		float greenRight = (float) (rightColor >> 8 & 255) / 255.0F;
-		float blueRight = (float) (rightColor & 255) / 255.0F;
-		float alphaBottom = (float) (bottomColor >> 24 & 255) / 255.0F;
-		float redBottom = (float) (bottomColor >> 16 & 255) / 255.0F;
-		float greenBottom = (float) (bottomColor >> 8 & 255) / 255.0F;
-		float blueBottom = (float) (bottomColor & 255) / 255.0F;
-		RenderSystem.disableTexture();
+	public static void drawGradientRect(PoseStack stack, int left, int top, int right, int bottom, int rightTopColor,
+			int leftTopColor, int leftBottomColor, int rightBottomColor, float zLevel) {
+		float alphaRightTop = (float) (rightTopColor >> 24 & 255) / 255.0F;
+		float redRightTop = (float) (rightTopColor >> 16 & 255) / 255.0F;
+		float greenRightTop = (float) (rightTopColor >> 8 & 255) / 255.0F;
+		float blueRightTop = (float) (rightTopColor & 255) / 255.0F;
+		float alphaLeftTop = (float) (leftTopColor >> 24 & 255) / 255.0F;
+		float redLeftTop = (float) (leftTopColor >> 16 & 255) / 255.0F;
+		float greenLeftTop = (float) (leftTopColor >> 8 & 255) / 255.0F;
+		float blueLeftTop = (float) (leftTopColor & 255) / 255.0F;
+		float alphaLeftBottom = (float) (leftBottomColor >> 24 & 255) / 255.0F;
+		float redLeftBottom = (float) (leftBottomColor >> 16 & 255) / 255.0F;
+		float greenLeftBottom = (float) (leftBottomColor >> 8 & 255) / 255.0F;
+		float blueLeftBottom = (float) (leftBottomColor & 255) / 255.0F;
+		float alphaRightBottom = (float) (rightBottomColor >> 24 & 255) / 255.0F;
+		float redRightBottom = (float) (rightBottomColor >> 16 & 255) / 255.0F;
+		float greenRightBottom = (float) (rightBottomColor >> 8 & 255) / 255.0F;
+		float blueRightBottom = (float) (rightBottomColor & 255) / 255.0F;
+		var bufferbuilder = Tesselator.getInstance().getBuilder();
 		RenderSystem.enableBlend();
+		RenderSystem.disableTexture();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
 				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
 				GlStateManager.DestFactor.ZERO);
-		Tesselator tesselator = Tesselator.getInstance();
-		BufferBuilder bufferbuilder = tesselator.getBuilder();
-		bufferbuilder.vertex((double) right, (double) top, (double) zLevel)
-				.color(redLeft, greenLeft, blueLeft, alphaLeft).endVertex();
-		bufferbuilder.vertex((double) left, (double) top, (double) zLevel).color(redTop, greenTop, blueTop, alphaTop)
+		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		var mat = stack.last().pose();
+		bufferbuilder.vertex(mat, right, top, zLevel).color(redRightTop, greenRightTop, blueRightTop, alphaRightTop)
 				.endVertex();
-		bufferbuilder.vertex((double) left, (double) bottom, (double) zLevel)
-				.color(redRight, greenRight, blueRight, alphaRight).endVertex();
-		bufferbuilder.vertex((double) right, (double) bottom, (double) zLevel)
-				.color(redBottom, greenBottom, blueBottom, alphaBottom).endVertex();
-		tesselator.end();
+		bufferbuilder.vertex(mat, left, top, zLevel).color(redLeftTop, greenLeftTop, blueLeftTop, alphaLeftTop)
+				.endVertex();
+		bufferbuilder.vertex(mat, left, bottom, zLevel)
+				.color(redLeftBottom, greenLeftBottom, blueLeftBottom, alphaLeftBottom).endVertex();
+		bufferbuilder.vertex(mat, right, bottom, zLevel)
+				.color(redRightBottom, greenRightBottom, blueRightBottom, alphaRightBottom).endVertex();
+		bufferbuilder.end();
+		BufferUploader.end(bufferbuilder);
 		RenderSystem.disableBlend();
 		RenderSystem.enableTexture();
 	}
@@ -290,7 +422,6 @@ public class GuiUtils {
 	 * 
 	 * @since 2.1.1
 	 */
-	@SuppressWarnings("deprecation")
 	public static void drawItemStack(ItemRenderer itemRender, ItemStack itemstack, int x, int y) {
 		if (itemstack == null || itemstack.isEmpty())
 			return;
@@ -333,6 +464,25 @@ public class GuiUtils {
 	 */
 	public static void drawRect(PoseStack stack, int left, int top, int right, int bottom, int color) {
 		Gui.fill(stack, left, top, right, bottom, color);
+	}
+
+	/**
+	 * Draws a solid color rectangle with the specified coordinates and color.
+	 * 
+	 * @param stack        the matrix stack
+	 * @param left         left location
+	 * @param top          top location
+	 * @param right        right location
+	 * @param bottom       bottom location
+	 * @param color        the color
+	 * @param colorHovered the color if the mouse is hover the rect
+	 * @param mouseX       the mouseX
+	 * @param mouseY       the mouseY
+	 */
+	public static void drawHoverableRect(PoseStack stack, int left, int top, int right, int bottom, int color,
+			int colorHovered, int mouseX, int mouseY) {
+		var c = (isHover(left, top, right - left, bottom - top, mouseX, mouseY) ? colorHovered : color);
+		Gui.fill(stack, left, top, right, bottom, c);
 	}
 
 	/**
@@ -394,7 +544,7 @@ public class GuiUtils {
 	 */
 
 	public static void drawRightString(Font font, String text, int x, int y, int color) {
-		drawCenterString(font, text, x, y, color, font.lineHeight);
+		drawRightString(font, text, x, y, color, font.lineHeight);
 	}
 
 	/**
@@ -551,8 +701,26 @@ public class GuiUtils {
 	}
 
 	/**
+	 * Draw a String on the screen at middle of an height
+	 * 
+	 * @param font  the renderer
+	 * @param text  the string to render
+	 * @param x     the x location
+	 * @param y     the y location
+	 * @param color the color of the text
+	 * 
+	 * @since 2.0
+	 * @see #drawCenterString(Font, String, int, int, int, int)
+	 * @see #drawRightString(Font, String, int, int, int, int)
+	 */
+	public static void drawString(Font font, String text, int x, int y, int color) {
+		drawString(font, text, x, y, color, font.lineHeight);
+	}
+
+	/**
 	 * Draw a text box on the screen
 	 * 
+	 * @param matrixStack  the matrixStack
 	 * @param font         the renderer
 	 * @param x            the x location
 	 * @param y            the y location
@@ -563,13 +731,13 @@ public class GuiUtils {
 	 * 
 	 * @since 2.1
 	 */
-	public static void drawTextBox(Font font, int x, int y, int parentWidth, int parentHeight, float zLevel,
-			String... args) {
+	public static void drawTextBox(PoseStack matrixStack, Font font, int x, int y, int parentWidth, int parentHeight,
+			float zLevel, String... args) {
 		List<String> text = Arrays.asList(args);
 		int width = text.isEmpty() ? 0 : text.stream().mapToInt(font::width).max().getAsInt();
 		int height = text.size() * (1 + font.lineHeight);
 		Tuple<Integer, Integer> pos = getRelativeBoxPos(x, y, width, height, parentWidth, parentHeight);
-		drawBox(pos.a, pos.b, width, height, zLevel);
+		drawBox(matrixStack, pos.a, pos.b, width, height, zLevel);
 		text.forEach(l -> {
 			ACTMod.drawString(font, l, pos.a, pos.b, 0xffffffff);
 			pos.b += (1 + font.lineHeight);

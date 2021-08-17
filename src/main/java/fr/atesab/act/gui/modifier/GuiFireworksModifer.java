@@ -158,7 +158,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundTag> {
 				width += 2;
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX + offsetX, mouseY + offsetY, width,
 						height, parent.width, parent.height);
-				GuiUtils.drawBox(pos.a, pos.b, width, height, parent.getZLevel());
+				GuiUtils.drawBox(matrixStack, pos.a, pos.b, width, height, parent.getZLevel());
 				pos.a++;
 				pos.b += 2;
 				int i;
@@ -169,7 +169,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundTag> {
 					int x = pos.a + font.width(fadeColor);
 					int y = pos.b + i * (font.lineHeight + 1);
 					for (int j = 0; j < exp.getFadeColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + font.lineHeight, y + font.lineHeight,
+						GuiUtils.drawGradientRect(matrixStack, x, y, x + font.lineHeight, y + font.lineHeight,
 								0xff000000 | exp.getFadeColors()[j], 0xff000000 | exp.getFadeColors()[j],
 								parent.getZLevel());
 						x += font.lineHeight + 1;
@@ -180,7 +180,7 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundTag> {
 					int x = pos.a + font.width(color);
 					int y = pos.b + i * (font.lineHeight + 1);
 					for (int j = 0; j < exp.getColors().length; j++) {
-						GuiUtils.drawGradientRect(x, y, x + font.lineHeight, y + font.lineHeight,
+						GuiUtils.drawGradientRect(matrixStack, x, y, x + font.lineHeight, y + font.lineHeight,
 								0xff000000 | exp.getColors()[j], 0xff000000 | exp.getColors()[j], parent.getZLevel());
 						x += font.lineHeight + 1;
 					}
@@ -246,11 +246,11 @@ public class GuiFireworksModifer extends GuiListModifier<CompoundTag> {
 		@Override
 		public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 			renderBackground(matrixStack);
-			colors.draw(mouseX, mouseY, getZLevel());
-			fadeColors.draw(mouseX, mouseY, getZLevel());
+			colors.draw(matrixStack, mouseX, mouseY, getZLevel());
+			fadeColors.draw(matrixStack, mouseX, mouseY, getZLevel());
 			super.render(matrixStack, mouseX, mouseY, partialTicks);
-			colors.drawNext(mouseX, mouseY, getZLevel());
-			fadeColors.drawNext(mouseX, mouseY, getZLevel());
+			colors.drawNext(matrixStack, mouseX, mouseY, getZLevel());
+			fadeColors.drawNext(matrixStack, mouseX, mouseY, getZLevel());
 		}
 
 		@Override
