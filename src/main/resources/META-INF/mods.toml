@@ -10,7 +10,7 @@ issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 	displayURL="https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode"
 	logoFile="logo.png"
 	authors="ATE47"
-	description="Borried about the old minecraft stuff ? This mod is made for you ! it add new items modifiers for your creative mode"
+	description="Borried about the old minecraft stuff? This mod is made for you! it add new items modifiers for your creative mode."
 
 [[dependencies.act]]
     modId="minecraft"
