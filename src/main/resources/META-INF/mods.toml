@@ -5,7 +5,7 @@ license="GNU General Public License 3"
 issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[mods]]
 	modId="act"
-	version="2.3.1"
+	version="2.4.0"
 	displayName="Advanced creative tab 2"
 	displayURL="https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode"
 	logoFile="logo.png"
