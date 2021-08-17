@@ -6,6 +6,7 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Arrays;
 import java.util.List;
 
+import com.mojang.blaze3d.pipeline.RenderCall;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -50,11 +51,15 @@ public class GuiUtils {
 			MinecraftForge.EVENT_BUS.register(this);
 		}
 
+		void renderScreen() {
+			Minecraft.getInstance().setScreen(screen);
+		}
+
 		@SubscribeEvent
 		public void onTick(TickEvent ev) {
 			if (delay < 0) {
-				Minecraft.getInstance().setScreen(screen);
 				MinecraftForge.EVENT_BUS.unregister(this);
+				runOnGameThread(this::renderScreen);
 			} else
 				delay--;
 		}
@@ -68,6 +73,15 @@ public class GuiUtils {
 
 	public static final Button.OnPress EMPTY_PRESS = b -> {
 	};
+
+	/**
+	 * run the call param on the game thread
+	 * 
+	 * @param call the call
+	 */
+	public static void runOnGameThread(RenderCall call) {
+		RenderSystem.recordRenderCall(call);
+	}
 
 	public static int blueToRed(int color) {
 		return (color & 0xFF00FF00) | ((color & 0x000000FF) << 16) | ((color & 0x00FF0000) >> 16);
