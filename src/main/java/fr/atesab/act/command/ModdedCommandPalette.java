@@ -6,6 +6,7 @@ import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class ModdedCommandPalette extends ModdedCommand {
 
@@ -16,14 +17,14 @@ public class ModdedCommandPalette extends ModdedCommand {
     @Override
     protected Command<CommandSourceStack> onNoArgument() {
         return c -> {
-            var arrays = ChatFormatting.values();
-            for (var cf : arrays) {
-                c.getSource()
-                        .sendSuccess(new TextComponent(cf.getName().toLowerCase()).withStyle(ChatFormatting.WHITE)
-                                .append(": ").withStyle(ChatFormatting.DARK_GRAY).append("&" + cf.getChar()).append(" ")
-                                .append(cf.getName().toLowerCase()).withStyle(cf), false);
+            var compo = new TranslatableComponent("cmd.act.palette").withStyle(ChatFormatting.WHITE).append(": ")
+                    .withStyle(ChatFormatting.DARK_GRAY);
+            for (var cf : ChatFormatting.values()) {
+                var t = "&" + cf.getChar();
+                compo = compo.append(t).append(" ").append(new TextComponent(t).withStyle(cf));
             }
-            return arrays.length;
+            c.getSource().sendSuccess(compo, false);
+            return 1;
         };
     }
 }
