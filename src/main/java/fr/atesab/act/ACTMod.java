@@ -1,5 +1,6 @@
 package fr.atesab.act;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +76,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -154,6 +156,9 @@ public class ACTMod {
 	public static final String MOD_LICENCE_LINK = "https://www.gnu.org/licenses/gpl-3.0.en.html";
 
 	public static final String MOD_LINK = "https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode";
+
+	public static final ResourceLocation MOD_FILE_LOGO = new ResourceLocation(MOD_ID, "mod_file_logo");
+
 	/**
 	 * @deprecated removed option
 	 */
@@ -599,6 +604,11 @@ public class ACTMod {
 		});
 
 		GuiColorModifier.registerPickerImage();
+		try {
+			GuiUtils.loadAndRegisterModImage(MOD_ID, MOD_FILE_LOGO, "logo.png");
+		} catch (IOException e) {
+			throw new RuntimeException("Can't find mod logo", e);
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

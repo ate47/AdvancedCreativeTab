@@ -3,11 +3,13 @@ package fr.atesab.act.utils;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import com.mojang.blaze3d.pipeline.RenderCall;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -29,6 +31,8 @@ import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -839,5 +843,26 @@ public class GuiUtils {
 
 	public static int clamp(int v, int min, int max) {
 		return v < min ? min : v > max ? max : v;
+	}
+
+	/**
+	 * load an image from a mod jar and register it to a resource
+	 * 
+	 * @param modId    the mod id
+	 * @param resource the resource to bind with the image
+	 * @param jarPath  the path in the jar
+	 * @throws IOException if the image can't be read
+	 */
+	public static void loadAndRegisterModImage(String modId, ResourceLocation resource, String jarPath)
+			throws IOException {
+		var img = NativeImage.read(ACTUtils.fetchFromModJar(modId, jarPath));
+
+		if (img == null) {
+			throw new IOException("Can't read image " + jarPath);
+		}
+
+		var tm = Minecraft.getInstance().getTextureManager();
+
+		tm.register(resource, new DynamicTexture(img));
 	}
 }
