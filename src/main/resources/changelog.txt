@@ -12,6 +12,7 @@
 - Integrate spectator tp into act /act sptp <username>
 - add /act color command to change color data of an item
 - add /act unbreakable [true|false] command to set an item unbreakable
+- add /act palette to get a palette of color
 
 -------------------------------------------------------
 --------------- ACT 2.4.0 -- (MC1.17.1) ---------------

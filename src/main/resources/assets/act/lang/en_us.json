@@ -199,6 +199,7 @@
   "cmd.act.color.set.hsl": "HSL",
   "cmd.act.color.set.hex": "Hex",
   "cmd.act.unbreakable": "Set unbreakable",
+  "cmd.act.palette": "Chat palette",
 
   "cmd.act.error.noargument": "This command take arguments!",
   "cmd.act.argument.player.unknown": "Unknown player '%s'"
