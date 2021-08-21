@@ -47,21 +47,29 @@ public class ModdedCommandColor extends ModdedCommand {
                                         .withStyle(ChatFormatting.WHITE)),
                                 false);
                     } else {
-                        c.getSource().sendSuccess(new TranslatableComponent("cmd.act.color.color")
-                                .withStyle(ChatFormatting.YELLOW).append(":").withStyle(ChatFormatting.DARK_GRAY)
-                                .append(new TextComponent("\u2589\u2589\u2589\u2589")
-                                        .withStyle(s -> s.withColor(TextColor.fromRgb(color.getAsInt()))))
-                                .append(" ")
-                                // remove color button
-                                .append(new TextComponent("[").withStyle(ChatFormatting.RED)
-                                        .withStyle(s -> s
-                                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                        new TranslatableComponent("cmd.act.color.remove.hover")
-                                                                .withStyle(ChatFormatting.YELLOW)))
-                                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                        "/act " + getName() + " remove")))
-                                        .append(new TranslatableComponent("cmd.act.color.remove")).append("]")),
-                                false);
+                        c.getSource()
+                                .sendSuccess(
+                                        new TranslatableComponent("cmd.act.color.color")
+                                                .withStyle(ChatFormatting.YELLOW).append(":")
+                                                .withStyle(ChatFormatting.DARK_GRAY)
+                                                .append(new TextComponent(
+                                                        "\u2589\u2589\u2589\u2589").withStyle(
+                                                                s -> s.withColor(TextColor.fromRgb(color.getAsInt()))))
+                                                .append(" ")
+                                                // remove color button
+                                                .append(new TextComponent("[").withStyle(ChatFormatting.RED)
+                                                        .withStyle(s -> s
+                                                                .withHoverEvent(new HoverEvent(
+                                                                        HoverEvent.Action.SHOW_TEXT,
+                                                                        new TranslatableComponent(
+                                                                                "cmd.act.color.remove.hover").withStyle(
+                                                                                        ChatFormatting.YELLOW)))
+                                                                .withClickEvent(
+                                                                        new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                                                                                "/act color remove")))
+                                                        .append(new TranslatableComponent("cmd.act.color.remove"))
+                                                        .append("]")),
+                                        false);
                     }
 
                     c.getSource()
@@ -75,7 +83,7 @@ public class ModdedCommandColor extends ModdedCommand {
                                                                                     .withStyle(ChatFormatting.YELLOW)))
                                                             .withClickEvent(
                                                                     new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                                            "/act " + getName() + " picker")))
+                                                                            "/act color picker")))
                                                     .append(new TranslatableComponent("cmd.act.color.picker"))
                                                     .append("]"),
                                     false);
@@ -103,7 +111,7 @@ public class ModdedCommandColor extends ModdedCommand {
                     var defaultColor = ItemUtils.getDefaultGlobalColor(is);
 
                     GuiUtils.displayScreen(new GuiColorModifier(null, newColor -> {
-                        if (newColor.isPresent() || (newColor.getAsInt() & 0xFF000000) == 0) {
+                        if (!newColor.isPresent() || (newColor.getAsInt() & 0xFF000000) == 0) {
                             ItemUtils.give(ItemUtils.removeColor(is), 36 + mc.player.getInventory().selected);
                         } else {
                             ItemUtils.give(ItemUtils.setGlobalColor(is, newColor.getAsInt()),
