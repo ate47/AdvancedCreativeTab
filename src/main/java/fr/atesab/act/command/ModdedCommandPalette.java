@@ -17,11 +17,11 @@ public class ModdedCommandPalette extends ModdedCommand {
     @Override
     protected Command<CommandSourceStack> onNoArgument() {
         return c -> {
-            var compo = new TranslatableComponent("cmd.act.palette").withStyle(ChatFormatting.WHITE).append(": ")
-                    .withStyle(ChatFormatting.DARK_GRAY);
+            var compo = new TranslatableComponent("cmd.act.palette").withStyle(ChatFormatting.WHITE)
+                    .append(new TextComponent(":").withStyle(ChatFormatting.DARK_GRAY));
             for (var cf : ChatFormatting.values()) {
                 var t = "&" + cf.getChar();
-                compo = compo.append(t).append(" ").append(new TextComponent(t).withStyle(cf));
+                compo = compo.append(t).append(" ").append(new TextComponent(t).withStyle(cf)).append(" ");
             }
             c.getSource().sendSuccess(compo, false);
             return 1;

@@ -41,17 +41,19 @@ public class ModdedCommandColor extends ModdedCommand {
                     // we have a colorable item
                     var color = ItemUtils.getGlobalColor(is);
                     if (!color.isPresent()) {
-                        c.getSource().sendSuccess(new TranslatableComponent("cmd.act.color.color")
-                                .withStyle(ChatFormatting.YELLOW).append(":").withStyle(ChatFormatting.DARK_GRAY)
-                                .append(new TranslatableComponent("cmd.act.color.error.nocolor")
-                                        .withStyle(ChatFormatting.WHITE)),
-                                false);
+                        c.getSource()
+                                .sendSuccess(new TranslatableComponent("cmd.act.color.color")
+                                        .withStyle(ChatFormatting.YELLOW)
+                                        .append(new TextComponent(":").withStyle(ChatFormatting.DARK_GRAY))
+                                        .append(new TranslatableComponent("cmd.act.color.error.nocolor")
+                                                .withStyle(ChatFormatting.WHITE)),
+                                        false);
                     } else {
                         c.getSource()
                                 .sendSuccess(
                                         new TranslatableComponent("cmd.act.color.color")
-                                                .withStyle(ChatFormatting.YELLOW).append(":")
-                                                .withStyle(ChatFormatting.DARK_GRAY)
+                                                .withStyle(ChatFormatting.YELLOW)
+                                                .append(new TextComponent(":").withStyle(ChatFormatting.DARK_GRAY))
                                                 .append(new TextComponent(
                                                         "\u2589\u2589\u2589\u2589").withStyle(
                                                                 s -> s.withColor(TextColor.fromRgb(color.getAsInt()))))
