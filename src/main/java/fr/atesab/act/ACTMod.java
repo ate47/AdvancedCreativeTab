@@ -141,7 +141,7 @@ public class ACTMod {
 
 	public static final String MOD_NAME = "Advanced Creative 2";
 
-	public static final String MOD_VERSION = "2.4.0";
+	public static final String MOD_VERSION = "2.5.0";
 
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 
