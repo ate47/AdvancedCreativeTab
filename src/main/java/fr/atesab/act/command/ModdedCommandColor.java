@@ -217,6 +217,19 @@ public class ModdedCommandColor extends ModdedCommand {
                             }
                         });
 
+                registerSubCommand(new ModdedCommand("random") {
+                    @Override
+                    protected Command<CommandSourceStack> onNoArgument() {
+                        return c -> {
+                            var mc = Minecraft.getInstance();
+                            var is = mc.player.getMainHandItem();
+                            ItemUtils.give(ItemUtils.setGlobalColor(is, GuiUtils.getRandomColor()),
+                                    36 + mc.player.getInventory().selected);
+                            return 0;
+                        };
+                    }
+                });
+
                 Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).forEach(t -> {
                     var name = t.getName().toLowerCase();
                     var rgb = t.getColor();
