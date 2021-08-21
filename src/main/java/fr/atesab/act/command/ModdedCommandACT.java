@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 public class ModdedCommandACT extends ModdedCommand {
 	public final ModdedCommandOpenGiver SC_OPEN_GIVER;
 	public final ModdedCommandOpenMenu SC_OPEN_MENU;
+	public final ModdedCommandColor SC_COLOR;
 	public final ModdedCommandEdit SC_EDIT;
 	public final ModdedCommandEnchant SC_ENCHANT;
 	public final ModdedCommandFormat SC_FORMAT;
@@ -35,5 +36,6 @@ public class ModdedCommandACT extends ModdedCommand {
 		registerSubCommand(SC_RENAME = new ModdedCommandRename());
 		registerSubCommand(SC_INFO = new ModdedCommandInfo());
 		registerSubCommand(SC_SPTP = new ModdedCommandSpTp());
+		registerSubCommand(SC_COLOR = new ModdedCommandColor());
 	}
 }

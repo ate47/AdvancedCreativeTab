@@ -123,7 +123,7 @@ public class GuiColorModifier extends GuiModifier<OptionalInt> {
 		this(parent, setter, color, color.orElse(0), transparentAsDefault);
 	}
 
-	private GuiColorModifier(Screen parent, Consumer<OptionalInt> setter, OptionalInt color, int defaultColor,
+	public GuiColorModifier(Screen parent, Consumer<OptionalInt> setter, OptionalInt color, int defaultColor,
 			boolean transparentAsDefault) {
 		super(parent, new TranslatableComponent("gui.act.modifier.meta.setColor"), setter);
 		var rgba = color.orElse(defaultColor);

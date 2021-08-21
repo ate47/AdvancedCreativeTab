@@ -52,6 +52,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -1095,6 +1096,11 @@ public class ItemUtils {
 	}
 
 	/**
+	 * base color of the leather armor
+	 */
+	public static final int LEATHER_ARMOR_BASE_COLOR = 10511680;
+
+	/**
 	 * Change the color of a leather armor
 	 * 
 	 * @param stack leather armor
@@ -1106,11 +1112,104 @@ public class ItemUtils {
 		if (stack.getTag() == null)
 			stack.setTag(new CompoundTag());
 		CompoundTag display = stack.getOrCreateTagElement(NBT_CHILD_DISPLAY);
-		if (color != 10511680)
+		if (color != LEATHER_ARMOR_BASE_COLOR)
 			display.putInt("color", color);
 		else if (display.contains("color"))
 			display.remove("color");
 		return stack;
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return if the stack is a potion item
+	 */
+	public static boolean isPotionItem(ItemStack stack) {
+		return stack.getItem().equals(Items.POTION) || stack.getItem().equals(Items.SPLASH_POTION)
+				|| stack.getItem().equals(Items.LINGERING_POTION) || stack.getItem().equals(Items.TIPPED_ARROW);
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return if the stack is a leather armor
+	 */
+	public static boolean isLeatherArmor(ItemStack stack) {
+		return stack.getItem()instanceof ArmorItem ai && ai.getMaterial() == ArmorMaterials.LEATHER;
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return if you can change the color of the stack
+	 */
+	public static boolean canGlobalColorIt(ItemStack stack) {
+		return isPotionItem(stack) || isLeatherArmor(stack);
+	}
+
+	/**
+	 * remove the color (if any) of the stack
+	 * 
+	 * @param stack the stack
+	 * @return the stack
+	 */
+	public static ItemStack removeColor(ItemStack stack) {
+		if (isPotionItem(stack)) {
+			var tag = stack.getTag();
+			if (tag != null && tag.contains("CustomPotionColor")) {
+				tag.remove("CustomPotionColor");
+				stack.setTag(tag);
+			}
+		} else if (isLeatherArmor(stack)) {
+			setColor(stack, LEATHER_ARMOR_BASE_COLOR);
+		}
+		return stack;
+	}
+
+	/**
+	 * set the color (if possible) of the stack
+	 * 
+	 * @param stack the stack
+	 * @param color the color to set
+	 * @return the stack
+	 */
+	public static ItemStack setGlobalColor(ItemStack stack, int color) {
+		if (isPotionItem(stack)) {
+			var tag = stack.getOrCreateTag();
+			tag.putInt("CustomPotionColor", color);
+		} else if (isLeatherArmor(stack)) {
+			setColor(stack, color);
+		}
+
+		return stack;
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return the default color of the stack
+	 */
+	public static OptionalInt getDefaultGlobalColor(ItemStack stack) {
+		if (isLeatherArmor(stack))
+			return OptionalInt.of(LEATHER_ARMOR_BASE_COLOR);
+		return OptionalInt.empty();
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return the color of the stack
+	 */
+	public static OptionalInt getGlobalColor(ItemStack stack) {
+		if (isPotionItem(stack)) {
+			var tag = stack.getTag();
+			if (tag != null && tag.contains("CustomPotionColor"))
+				return OptionalInt.of(tag.getInt("CustomPotionColor"));
+		} else if (isLeatherArmor(stack)) {
+			var tag = stack.getTag();
+			if (tag != null && tag.contains(NBT_CHILD_DISPLAY)) {
+				var display = tag.getCompound(NBT_CHILD_DISPLAY);
+				if (display.contains("color"))
+					return OptionalInt.of(display.getInt("color"));
+			}
+		}
+
+		return OptionalInt.empty();
 	}
 
 	/**
