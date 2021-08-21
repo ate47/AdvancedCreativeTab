@@ -111,7 +111,7 @@ public class ModdedCommandColor extends ModdedCommand {
                     var defaultColor = ItemUtils.getDefaultGlobalColor(is);
 
                     GuiUtils.displayScreen(new GuiColorModifier(null, newColor -> {
-                        if (!newColor.isPresent() || (newColor.getAsInt() & 0xFF000000) == 0) {
+                        if (!newColor.isPresent()) {
                             ItemUtils.give(ItemUtils.removeColor(is), 36 + mc.player.getInventory().selected);
                         } else {
                             ItemUtils.give(ItemUtils.setGlobalColor(is, newColor.getAsInt()),
