@@ -2,6 +2,7 @@ package fr.atesab.act;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,7 +142,9 @@ public class ACTMod {
 
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 
-	public static final String MOD_AUTHORS = "ATE47";
+	public static final String[] MOD_AUTHORS_ARRAY = { "ATE47" };
+
+	public static final String MOD_AUTHORS = Arrays.stream(MOD_AUTHORS_ARRAY).collect(Collectors.joining(", "));
 
 	public static final String MOD_LICENCE = "GNU GPL 3";
 

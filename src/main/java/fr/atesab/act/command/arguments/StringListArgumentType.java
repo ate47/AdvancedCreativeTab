@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -31,7 +32,8 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 			array[i] = formatter.apply(values[i]);
 		String[] example = new String[3];
 		System.arraycopy(array, 0, example, 0, example.length);
-		return new StringListArgumentType(Arrays.asList(array), Arrays.asList(example), true);
+		var l = Arrays.asList(array);
+		return new StringListArgumentType(() -> l, Arrays.asList(example), true);
 	}
 
 	public static <E extends Enum<E>> E[] getEnumList(Class<E> cls, final CommandContext<?> context,
@@ -60,22 +62,29 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 		return context.getArgument(name, String[].class);
 	}
 
-	public static StringListArgumentType stringList(Collection<String> suggestion, Collection<String> example,
+	public static StringListArgumentType stringList(Supplier<Collection<String>> suggestion, Collection<String> example,
 			boolean wordOnly) {
 		return new StringListArgumentType(suggestion, example, wordOnly);
 	}
 
-	public static StringListArgumentType stringList(String[] suggestion, String[] example, boolean wordOnly) {
-		return new StringListArgumentType(Arrays.asList(suggestion), Arrays.asList(example), wordOnly);
+	public static StringListArgumentType stringList(Collection<String> suggestion, Collection<String> example,
+			boolean wordOnly) {
+		return new StringListArgumentType(() -> suggestion, example, wordOnly);
 	}
 
-	private Collection<String> suggestion;
+	public static StringListArgumentType stringList(String[] suggestion, String[] example, boolean wordOnly) {
+		var l = Arrays.asList(suggestion);
+		return new StringListArgumentType(() -> l, Arrays.asList(example), wordOnly);
+	}
+
+	private Supplier<Collection<String>> suggestion;
 
 	private Collection<String> example;
 
 	private boolean wordOnly;
 
-	public StringListArgumentType(Collection<String> suggestion, Collection<String> example, boolean wordOnly) {
+	public StringListArgumentType(Supplier<Collection<String>> suggestion, Collection<String> example,
+			boolean wordOnly) {
 		this.suggestion = suggestion;
 		this.example = example;
 		this.wordOnly = wordOnly;
@@ -88,19 +97,8 @@ public class StringListArgumentType implements ArgumentType<String[]> {
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		String remaining = builder.getRemaining();
-		int diff;
-		if (wordOnly && !quoteStarted(remaining)) { // writing a word
-			diff = remaining.lastIndexOf(" ") + 1;
-		} else { // a quote is started
-			diff = remaining.lastIndexOf("\"") + 1;
-		}
-		String lastElement = remaining.substring(diff).toLowerCase(Locale.ROOT);
-		String current = remaining.substring(0, diff);
-		for (String sugg : suggestion)
-			if (sugg.toLowerCase(Locale.ROOT).startsWith(lastElement)) {
-				builder.suggest(current + sugg);
-			}
+		for (String sugg : suggestion.get())
+			builder.suggest(sugg);
 		return builder.buildFuture();
 	}
 
