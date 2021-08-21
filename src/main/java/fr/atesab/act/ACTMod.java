@@ -386,6 +386,39 @@ public class ACTMod {
 		renderer.draw(STACK, str, x, y, color);
 	}
 
+	/**
+	 * send us to another player
+	 * 
+	 * @param p  us
+	 * @param to the other player
+	 */
+	public static void spectatorTeleport(PlayerInfo to) {
+		spectatorTeleport(to.getProfile().getId());
+	}
+
+	/**
+	 * send us to another player
+	 * 
+	 * @param p  us
+	 * @param to the other player uuid
+	 */
+	public static void spectatorTeleport(UUID to) {
+		var p = Minecraft.getInstance().player;
+		if (p == null)
+			return;
+		var mode = Minecraft.getInstance().getConnection().getPlayerInfo(p.getGameProfile().getId()).getGameMode();
+		// ask for the mode
+		if (mode != GameType.SPECTATOR) {
+			p.chat("/gamemode " + GameType.SPECTATOR.getName());
+		}
+		// send tp request
+		p.connection.send(new ServerboundTeleportToEntityPacket(to));
+		// reset our old mode
+		if (mode != GameType.SPECTATOR) {
+			p.chat("/gamemode " + mode.getName());
+		}
+	}
+
 	public ACTMod() {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
 		config = new Configuration();
@@ -871,39 +904,6 @@ public class ACTMod {
 			ev.getToolTip().add(new TextComponent("SHIFT ").withStyle(ChatFormatting.YELLOW)
 					.append(new TranslatableComponent("gui.act.shift")).withStyle(ChatFormatting.GOLD));
 
-	}
-
-	/**
-	 * send us to another player
-	 * 
-	 * @param p  us
-	 * @param to the other player
-	 */
-	public static void spectatorTeleport(PlayerInfo to) {
-		spectatorTeleport(to.getProfile().getId());
-	}
-
-	/**
-	 * send us to another player
-	 * 
-	 * @param p  us
-	 * @param to the other player uuid
-	 */
-	public static void spectatorTeleport(UUID to) {
-		var p = Minecraft.getInstance().player;
-		if (p == null)
-			return;
-		var mode = Minecraft.getInstance().getConnection().getPlayerInfo(p.getGameProfile().getId()).getGameMode();
-		// ask for the mode
-		if (mode != GameType.SPECTATOR) {
-			p.chat("/gamemode " + GameType.SPECTATOR.getName());
-		}
-		// send tp request
-		p.connection.send(new ServerboundTeleportToEntityPacket(to));
-		// reset our old mode
-		if (mode != GameType.SPECTATOR) {
-			p.chat("/gamemode " + mode.getName());
-		}
 	}
 
 }
