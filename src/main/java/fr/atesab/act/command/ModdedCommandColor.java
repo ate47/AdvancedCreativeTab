@@ -115,6 +115,24 @@ public class ModdedCommandColor extends ModdedCommand {
                 };
             }
         });
+        registerSubCommand(new ModdedCommand("remove", "cmd.act.color.remove", CommandClickOption.doCommand) {
+            @Override
+            protected Command<CommandSourceStack> onNoArgument() {
+                return c -> {
+                    var mc = Minecraft.getInstance();
+                    var is = mc.player.getMainHandItem();
+                    // try if we can color it
+                    if (!ItemUtils.canGlobalColorIt(is)) {
+                        c.getSource().sendFailure(new TranslatableComponent("cmd.act.color.error.notcolorable")
+                                .withStyle(ChatFormatting.RED));
+                        return 1;
+                    }
+
+                    ItemUtils.give(ItemUtils.removeColor(is), 36 + mc.player.getInventory().selected);
+                    return 0;
+                };
+            }
+        });
 
         registerSubCommand(new ModdedCommand("set", "cmd.act.color.set", CommandClickOption.suggestCommand) {
             {
