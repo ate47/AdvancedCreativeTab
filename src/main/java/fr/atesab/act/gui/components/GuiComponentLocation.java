@@ -1,0 +1,14 @@
+package fr.atesab.act.gui.components;
+
+public class GuiComponentLocation {
+    public int x, y;
+    private GuiComponent component;
+
+    public GuiComponentLocation(GuiComponent c) {
+        this.component = c;
+    }
+
+    public GuiComponent getComponent() {
+        return component;
+    }
+}

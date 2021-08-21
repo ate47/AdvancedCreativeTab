@@ -132,6 +132,9 @@
   "gui.act.modifier.string.b64.encode": "Base 64 encode",
   "gui.act.modifier.string.b64.decode": "Base 64 decode",
 
+  "gui.act.modifier.file": "File",
+  "gui.act.modifier.byte.unit": "B",
+
   "potion.potency.3": "IV",
   "potion.potency.4": "V",
   "potion.potency.5": "VI",
@@ -179,5 +182,6 @@
   "cmd.act.info.link": "Link",
   "cmd.act.info.link.open": "Click to open the link",
 
-  "cmd.act.error.noargument": "This command take arguments!"
+  "cmd.act.error.noargument": "This command take arguments!",
+  "cmd.act.argument.player.unknown": "Unknown player"
 }
