@@ -1,6 +1,10 @@
 package fr.atesab.act.utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import net.minecraftforge.fmllegacy.packs.ResourcePackLoader;
 
 public class FileUtils {
 
@@ -41,6 +45,20 @@ public class FileUtils {
         int index = n.lastIndexOf('.');
 
         return index == -1 ? "" : n.substring(index + 1);
+    }
+
+    /**
+     * get a stream from a file in a mod jar
+     * 
+     * @param modId the mod id
+     * @param path  the path in the jar
+     * @return the stream
+     * @throws IOException
+     */
+    public static InputStream fetchFromModJar(String modId, String path) throws IOException {
+        var pack = ResourcePackLoader.getResourcePackFor(modId)
+                .orElseThrow(() -> new RuntimeException("Can't find modid " + modId));
+        return pack.getRootResource(path);
     }
 
     private FileUtils() {

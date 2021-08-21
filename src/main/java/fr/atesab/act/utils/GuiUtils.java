@@ -855,7 +855,7 @@ public class GuiUtils {
 	 */
 	public static void loadAndRegisterModImage(String modId, ResourceLocation resource, String jarPath)
 			throws IOException {
-		var img = NativeImage.read(ACTUtils.fetchFromModJar(modId, jarPath));
+		var img = NativeImage.read(FileUtils.fetchFromModJar(modId, jarPath));
 
 		if (img == null) {
 			throw new IOException("Can't read image " + jarPath);
