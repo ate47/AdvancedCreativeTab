@@ -85,9 +85,9 @@ public class ConnectionPlayerArgument implements ArgumentType<PlayerInfo[]> {
     @Override
     public Collection<String> getExamples() {
         return ACTUtils.applyAndGet(new ArrayList<>(), e -> {
-			e.add(Minecraft.getInstance().getUser().getName());
-			e.add("Notch");
-			e.addAll(Arrays.asList(ACTMod.MOD_AUTHORS_ARRAY));
-		};
+            e.add(Minecraft.getInstance().getUser().getName());
+            e.add("Notch");
+            e.addAll(Arrays.asList(ACTMod.MOD_AUTHORS_ARRAY));
+        });
     }
 }
