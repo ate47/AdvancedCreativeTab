@@ -18,6 +18,7 @@ public class ModdedCommandACT extends ModdedCommand {
 	public final ModdedCommandRandomFireWorks SC_RANDOM_FIREWORKS;
 	public final ModdedCommandInfo SC_INFO;
 	public final ModdedCommandSpTp SC_SPTP;
+	public final ModdedCommandUnbreakable SC_UNBREAKABLE;
 
 	public ModdedCommandACT() {
 		super(ACTMod.MOD_ID);
@@ -37,5 +38,6 @@ public class ModdedCommandACT extends ModdedCommand {
 		registerSubCommand(SC_INFO = new ModdedCommandInfo());
 		registerSubCommand(SC_SPTP = new ModdedCommandSpTp());
 		registerSubCommand(SC_COLOR = new ModdedCommandColor());
+		registerSubCommand(SC_UNBREAKABLE = new ModdedCommandUnbreakable());
 	}
 }

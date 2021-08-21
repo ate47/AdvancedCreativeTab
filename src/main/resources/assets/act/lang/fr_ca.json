@@ -198,6 +198,7 @@
   "cmd.act.color.set.rgb": "RVG",
   "cmd.act.color.set.hsl": "TSL",
   "cmd.act.color.set.hex": "Hex",
+  "cmd.act.unbreakable": "Définir incassable",
 
   "cmd.act.error.noargument": "Cette commande prend des arguments!",
   "cmd.act.argument.player.unknown": "Joueur inconnu ! '%s'"
