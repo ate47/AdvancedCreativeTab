@@ -181,7 +181,10 @@
   "cmd.act.info.licence": "License",
   "cmd.act.info.link": "Link",
   "cmd.act.info.link.open": "Click to open the link",
+  "cmd.act.sptp": "Teleport in the gamemode spectator",
+  "cmd.act.sptp.help": "%s <Player>: Teleport to a player",
+  "cmd.act.sptp.tp": "Teleporting to %s...",
 
   "cmd.act.error.noargument": "This command take arguments!",
-  "cmd.act.argument.player.unknown": "Unknown player"
+  "cmd.act.argument.player.unknown": "Unknown player '%s'"
 }

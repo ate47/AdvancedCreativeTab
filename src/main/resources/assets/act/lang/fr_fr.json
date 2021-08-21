@@ -181,7 +181,10 @@
   "cmd.act.info.licence": "Licence",
   "cmd.act.info.link": "Lien",
   "cmd.act.info.link.open": "Cliquer pour ouvrir le lien",
+  "cmd.act.sptp": "Se teleporter en utilisant le mode spectateur",
+  "cmd.act.sptp.help": "%s <Joueur>: Se teleporter vers un joueur",
+  "cmd.act.sptp.tp": "Teleportation vers %s...",
 
   "cmd.act.error.noargument": "Cette commande prend des arguments!",
-  "cmd.act.argument.player.unknown": "Joueur inconnu !"
+  "cmd.act.argument.player.unknown": "Joueur inconnu ! '%s'"
 }
