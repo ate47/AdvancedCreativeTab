@@ -185,6 +185,13 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 							compound.put("Explosion", exp.getTag());
 						}, ItemUtils.getExplosionInformation(currentItemStack.getOrCreateTagElement("Explosion"))));
 					}));
+		else if (ItemUtils.isContainer(currentItemStack))
+			addRenderableWidget(new Button(width / 2 - 100, height / 2 + 21, 200, 20,
+					new TranslatableComponent("gui.act.modifier.inventory"), b -> {
+						getMinecraft().setScreen(new GuiContainerModifier(this, data -> {
+							ItemUtils.setContainerData(currentItemStack, data);
+						}, ItemUtils.fetchContainerData(currentItemStack)));
+					}));
 		else
 			i = 0;
 		addRenderableWidget(new Button(width / 2 + 1, height / 2 + 25 + 21 * i, 99, 20,

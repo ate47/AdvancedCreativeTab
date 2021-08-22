@@ -117,6 +117,7 @@
   "gui.act.modifier.tag.editor.unknown": "Inconnu",
   "gui.act.modifier.tag.editor.intArray": "Liste d'entier",
   "gui.act.modifier.tag.editor.longArray": "Liste de long entier",
+  "gui.act.modifier.inventory": "Editeur d'inventaire",
 
   "gui.act.modifier.string.registry.items": "Objets",
   "gui.act.modifier.string.registry.blocks": "Blocs",

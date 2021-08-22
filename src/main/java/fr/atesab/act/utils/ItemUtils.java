@@ -28,6 +28,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import org.lwjgl.system.CallbackI.I;
+
 import fr.atesab.act.ACTMod;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -1368,6 +1370,13 @@ public class ItemUtils {
 	};
 
 	public static record ContainerData(ContainerSize size, NonNullList<ItemStack> stacks) {
+		public ContainerData copy() {
+			var stackCopy = NonNullList.withSize(stacks.size(), air());
+			for (var i = 0; i < stacks.size(); i++) {
+				stackCopy.set(i, stacks.get(i).copy());
+			}
+			return new ContainerData(size(), stackCopy);
+		}
 	};
 
 	/**

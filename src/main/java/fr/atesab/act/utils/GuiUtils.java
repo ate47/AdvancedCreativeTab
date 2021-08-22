@@ -931,8 +931,7 @@ public class GuiUtils {
 			font.draw(IDENTITY, "SHIFT + CTRL + " + ACTMod.getGiverKeyMapping().getKey().getDisplayName().getString(),
 					cx, cy, ChatFormatting.YELLOW.getColor() | 0xFF000000);
 			cy += font.lineHeight + 2;
-			font.draw(IDENTITY, I18n.get("gui.act.shiftctrl.open"), cx, cy,
-					ChatFormatting.GOLD.getColor() | 0xFF000000);
+			font.draw(IDENTITY, I18n.get("cmd.act.opengiver"), cx, cy, ChatFormatting.GOLD.getColor() | 0xFF000000);
 		}
 		IDENTITY.popPose();
 		ir.blitOffset = old;
