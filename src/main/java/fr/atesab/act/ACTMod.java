@@ -813,6 +813,8 @@ public class ACTMod {
 
 		var containerData = ItemUtils.getContainerSize(ev.getItemStack());
 		if (containerData != null && Screen.hasControlDown() && Screen.hasShiftDown()) {
+			if (isKeyDown(giver.getKey().getValue()))
+				mc.setScreen(new GuiGiver(mc.screen, ev.getItemStack()));
 			displayInventory(ev);
 			ev.getToolTip().clear();
 			return; // cancel the tooltip

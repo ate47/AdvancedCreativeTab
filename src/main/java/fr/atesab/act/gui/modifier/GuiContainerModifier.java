@@ -12,6 +12,8 @@ import fr.atesab.act.utils.ItemUtils.ContainerData;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class GuiContainerModifier extends GuiModifier<ContainerData> {
     private ContainerData data;
@@ -24,12 +26,12 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
     @Override
     protected void init() {
         addRenderableWidget(
-                new Button(width / 2 - 200, height / 2 - 80, 198, 20, new TranslatableComponent("gui.done"), b -> {
+                new Button(width / 2 - 200, height / 2 + 80, 198, 20, new TranslatableComponent("gui.done"), b -> {
                     set(data);
                     mc.setScreen(parent);
                 }));
         addRenderableWidget(
-                new Button(width / 2 + 2, height / 2 - 80, 198, 20, new TranslatableComponent("gui.cancel"), b -> {
+                new Button(width / 2 + 2, height / 2 + 80, 198, 20, new TranslatableComponent("gui.cancel"), b -> {
                     mc.setScreen(parent);
                 }));
         super.init();
@@ -45,6 +47,8 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
 
         GuiUtils.drawRect(stack, cx - 1, cy - 1, cx + size.sizeX() * 18 + 1, cy + size.sizeY() * 18 + 1, 0xFFDADADA);
 
+        ItemStack hoverStack = null;
+
         var ir = minecraft.getItemRenderer();
         for (var j = 0; j < size.sizeY(); j++) {
             for (var i = 0; i < size.sizeX(); i++) {
@@ -54,11 +58,17 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0xFFC2C2C2);
                 ir.renderGuiItem(item, sx, cy + 1);
                 ir.renderGuiItemDecorations(font, item, sx, cy + 1);
+                if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
+                    GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0x22DADADA);
+                    hoverStack = item;
+                }
             }
             cy += 18;
         }
-
         super.render(stack, mouseX, mouseY, delta);
+        if (hoverStack != null && hoverStack.getItem() != Items.AIR) {
+            renderTooltip(stack, hoverStack, mouseX, mouseY);
+        }
     }
 
     @Override
@@ -73,10 +83,13 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 var slot = size.indexOf(i, j);
                 var item = stacks.get(slot);
                 var sx = cx + 18 * i + 1;
-                if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY))
+                if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
+                    playClick();
                     mc.setScreen(new GuiGiver(this, item, stack -> {
                         stacks.set(slot, item == null ? ItemUtils.air() : item);
                     }, true));
+                    return true;
+                }
             }
             cy += 18;
         }
