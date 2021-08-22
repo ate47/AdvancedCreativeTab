@@ -95,6 +95,7 @@ import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
@@ -348,6 +349,18 @@ public class ACTMod {
 	public static void registerTemplate(String lang, ItemStack icon, String data) {
 		templates.add(ItemUtils.setCustomTag(ItemUtils.setCustomTag(icon.copy(), TEMPLATE_TAG_NAME, data),
 				TEMPLATE_TAG_NAME + "Lang", lang));
+	}
+
+	public static KeyMapping getGiverKeyMapping() {
+		return giver;
+	}
+
+	public static KeyMapping getMenuKeyMapping() {
+		return menu;
+	}
+
+	public static KeyMapping getEditKeyMapping() {
+		return edit;
 	}
 
 	/**
@@ -770,7 +783,7 @@ public class ACTMod {
 		}
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onRenderTooltip(ItemTooltipEvent ev) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!(mc.screen instanceof GuiGiver || mc.screen instanceof GuiModifier) && giver.getKey().getValue() != 0
@@ -797,6 +810,13 @@ public class ACTMod {
 		// remove if not in advanced game mode
 		if (config.doesDisableToolTip() && !ev.getFlags().isAdvanced())
 			return;
+
+		var containerData = ItemUtils.getContainerSize(ev.getItemStack());
+		if (containerData != null && Screen.hasControlDown() && Screen.hasShiftDown()) {
+			displayInventory(ev);
+			ev.getToolTip().clear();
+			return; // cancel the tooltip
+		}
 
 		if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
 			CompoundTag compound = ev.getItemStack().getTag();
@@ -909,11 +929,28 @@ public class ACTMod {
 									.append(ModdedCommand.createTranslatedText("gui.act.save", ChatFormatting.YELLOW)));
 				}
 			}
-		}
-		if (!isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))
+		} else
 			ev.getToolTip().add(new TextComponent("SHIFT ").withStyle(ChatFormatting.YELLOW)
-					.append(new TranslatableComponent("gui.act.shift")).withStyle(ChatFormatting.GOLD));
-
+					.append(new TranslatableComponent("gui.act.shift").withStyle(ChatFormatting.GOLD)));
+		if (containerData != null) {
+			ev.getToolTip().add(new TextComponent("SHIFT + CTRL ").withStyle(ChatFormatting.YELLOW)
+					.append(new TranslatableComponent("gui.act.shiftctrl").withStyle(ChatFormatting.GOLD)));
+		}
 	}
 
+	public void displayInventory(ItemTooltipEvent ev) {
+		var mc = Minecraft.getInstance();
+		var stack = ev.getItemStack();
+
+		var mh = mc.mouseHandler;
+		var mouseX = (int) (mh.xpos() * (double) mc.getWindow().getGuiScaledWidth()
+				/ (double) mc.getWindow().getScreenWidth());
+		var mouseY = (int) (mh.ypos() * (double) mc.getWindow().getGuiScaledHeight()
+				/ (double) mc.getWindow().getScreenHeight());
+
+		var width = mc.getWindow().getGuiScaledWidth();
+		var height = mc.getWindow().getGuiScaledHeight();
+
+		GuiUtils.renderInventory(mc.font, mouseX, mouseY - 17, stack, width, height);
+	}
 }

@@ -23,6 +23,8 @@
   "gui.act.leftClick": "Left click",
   "gui.act.rightClick": "Right click",
   "gui.act.shift": "for more options",
+  "gui.act.shiftctrl": "to show the inventory",
+  "gui.act.shiftctrl.open": "to open the inventory",
   "gui.act.tags": "Tags",
   "gui.act.uuid": "UUID",
   "gui.act.link": "Link",

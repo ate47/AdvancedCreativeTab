@@ -33,11 +33,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -53,6 +55,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -63,7 +66,11 @@ import net.minecraft.world.item.FireworkRocketItem.Shape;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -1348,5 +1355,136 @@ public class ItemUtils {
 				tag.remove("Unbreakable");
 		}
 		return stack;
+	}
+
+	public static record ContainerSize(int sizeX, int sizeY) {
+		public int indexOf(int x, int y) {
+			return y * sizeX() + x;
+		}
+
+		public boolean isIn(int slot) {
+			return slot >= 0 && slot < sizeX() * sizeY();
+		}
+	};
+
+	public static record ContainerData(ContainerSize size, NonNullList<ItemStack> stacks) {
+	};
+
+	/**
+	 * @param stack the stack
+	 * @return if the stack contains a container
+	 */
+	public static boolean isContainer(ItemStack stack) {
+		return getContainerSize(stack) != null;
+	}
+
+	/**
+	 * @param stack the stack
+	 * @return the size of the container or null if the stack isn't a container
+	 */
+	public static ContainerSize getContainerSize(ItemStack stack) {
+		if (!(stack.getItem()instanceof BlockItem bi))
+			return null;
+
+		var b = bi.getBlock();
+		if (b instanceof ShulkerBoxBlock || b == Blocks.BARREL || b == Blocks.TRAPPED_CHEST || b == Blocks.CHEST)
+			return new ContainerSize(9, 3);
+		if (b == Blocks.DISPENSER || b == Blocks.DROPPER)
+			return new ContainerSize(3, 3);
+		if (b instanceof AbstractFurnaceBlock)
+			return new ContainerSize(1, 2);
+		if (b == Blocks.JUKEBOX)
+			return new ContainerSize(1, 1);
+		if (b == Blocks.HOPPER)
+			return new ContainerSize(5, 1);
+		return null;
+	}
+
+	/**
+	 * load items from a container
+	 * 
+	 * @param stack the stack
+	 * @param data  the data to load
+	 */
+	public static void loadTagItems(ItemStack stack, ContainerData data) {
+		var tag = stack.getTag();
+		if (tag == null)
+			return;
+
+		if (!tag.contains("BlockEntityTag", Tag.TAG_COMPOUND))
+			return;
+
+		var blockTag = tag.getCompound("BlockEntityTag");
+
+		if (!blockTag.contains("Items", Tag.TAG_LIST))
+			return;
+
+		var items = blockTag.getList("Items", Tag.TAG_COMPOUND);
+
+		for (var i = 0; i < items.size(); i++) {
+			var item = items.getCompound(i);
+			var slot = item.getByte("Slot");
+			if (!data.size().isIn(slot))
+				continue;
+
+			data.stacks.set(slot, ItemStack.of(item));
+		}
+	}
+
+	/**
+	 * @return an air itemstack
+	 */
+	public static ItemStack air() {
+		return new ItemStack(Items.AIR);
+	}
+
+	/**
+	 * load the cd of a jukebox
+	 * 
+	 * @param jukebox the jukebox
+	 * @return the cd or null if no cd is present
+	 */
+	public static ItemStack loadCD(ItemStack jukebox) {
+		var tag = jukebox.getTag();
+		if (tag == null)
+			return air();
+
+		if (!tag.contains("BlockEntityTag", Tag.TAG_COMPOUND))
+			return air();
+
+		var blockTag = tag.getCompound("BlockEntityTag");
+
+		if (!blockTag.contains("RecordItem", Tag.TAG_COMPOUND))
+			return air();
+
+		return ItemStack.of(blockTag.getCompound("RecordItem"));
+	}
+
+	/**
+	 * fetch the data of a container
+	 * 
+	 * @param stack the stack
+	 * @return the ContainerData or null if the stack isn't a container
+	 */
+	public static ContainerData fetchContainerData(ItemStack stack) {
+		var size = getContainerSize(stack);
+
+		if (!(size != null && stack.getItem()instanceof BlockItem bi))
+			return null;
+
+		var stacks = NonNullList.withSize(size.sizeX() * size.sizeY(), air());
+
+		var b = bi.getBlock();
+		var data = new ContainerData(size, stacks);
+		if (b instanceof ShulkerBoxBlock || b == Blocks.BARREL || b == Blocks.TRAPPED_CHEST || b == Blocks.CHEST
+				|| b == Blocks.DISPENSER || b == Blocks.DROPPER || b instanceof AbstractFurnaceBlock
+				|| b == Blocks.HOPPER) {
+			loadTagItems(stack, data);
+		} else if (b == Blocks.JUKEBOX) {
+			data.stacks.set(0, loadCD(stack));
+		} else
+			return null;
+
+		return data;
 	}
 }

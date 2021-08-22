@@ -21,6 +21,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import org.lwjgl.opengl.GL11;
 
 import fr.atesab.act.ACTMod;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
@@ -32,6 +33,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -77,6 +79,7 @@ public class GuiUtils {
 
 	public static final Button.OnPress EMPTY_PRESS = b -> {
 	};
+	private static final PoseStack IDENTITY = new PoseStack();
 
 	/**
 	 * run the call param on the game thread
@@ -865,4 +868,75 @@ public class GuiUtils {
 
 		tm.register(resource, new DynamicTexture(img));
 	}
+
+	/**
+	 * render the inventory of an item stack (if any)
+	 * 
+	 * @param font         the font to use
+	 * @param x            x location
+	 * @param y            y location
+	 * @param stack        the stack to get
+	 * @param screenWidth  screen width
+	 * @param screenHeight screen height
+	 */
+	public static void renderInventory(Font font, int x, int y, ItemStack stack, int screenWidth, int screenHeight) {
+		var data = ItemUtils.fetchContainerData(stack);
+		if (data == null)
+			return;
+		var size = data.size();
+		var stacks = data.stacks();
+		var ir = Minecraft.getInstance().getItemRenderer();
+
+		var width = 9 * 18 + 8;
+		var height = font.lineHeight + 18 * size.sizeY() + 2 + (font.lineHeight + 2) * 2 + 8;
+
+		var box = getRelativeBoxPos(x, y, width, height, screenWidth, screenHeight);
+		var rx = box.a;
+		var ry = box.b;
+
+		RenderSystem.disableDepthTest();
+
+		var cx = rx + 7;
+		var cy = ry + 6;
+
+		var itemX = cx + 18 * (9 - size.sizeX()) / 2;
+
+		ir.blitOffset = 400;
+		IDENTITY.pushPose();
+		IDENTITY.translate(0D, 0D, 400D);
+
+		drawBox(IDENTITY, rx + 4, ry + 3, width, height, 1);
+
+		// name
+		font.draw(IDENTITY, stack.getHoverName().getString(), cx, cy, 0xFFFFFFFF);
+		cy += 2 + font.lineHeight;
+
+		drawRect(IDENTITY, itemX - 1, cy - 1, itemX + size.sizeX() * 18 + 1, cy + size.sizeY() * 18 + 1, 0xFFDADADA);
+		var old = ir.blitOffset;
+		for (var j = 0; j < size.sizeY(); j++) {
+			for (var i = 0; i < size.sizeX(); i++) {
+				var slot = size.indexOf(i, j);
+				var item = stacks.get(slot);
+				var sx = itemX + 18 * i + 1;
+				drawRect(IDENTITY, sx, cy + 1, sx + 16, cy + 1 + 16, 0xFFC2C2C2);
+				ir.renderGuiItem(item, sx, cy + 1);
+				ir.renderGuiItemDecorations(font, item, sx, cy + 1);
+			}
+			cy += 18;
+		}
+
+		cy += 4;
+
+		if (ACTMod.getGiverKeyMapping().getKey().getValue() != 0) {
+			font.draw(IDENTITY, "SHIFT + CTRL + " + ACTMod.getGiverKeyMapping().getKey().getDisplayName().getString(),
+					cx, cy, ChatFormatting.YELLOW.getColor() | 0xFF000000);
+			cy += font.lineHeight + 2;
+			font.draw(IDENTITY, I18n.get("gui.act.shiftctrl.open"), cx, cy,
+					ChatFormatting.GOLD.getColor() | 0xFF000000);
+		}
+		IDENTITY.popPose();
+		ir.blitOffset = old;
+		RenderSystem.enableDepthTest();
+	}
+
 }
