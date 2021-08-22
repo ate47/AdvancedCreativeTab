@@ -1487,4 +1487,60 @@ public class ItemUtils {
 
 		return data;
 	}
+
+	/**
+	 * set the container data of a stack if possible and return it
+	 * 
+	 * @param stack the stack
+	 * @param data  the data to set
+	 * @return the stack
+	 */
+	public static ItemStack setContainerData(ItemStack stack, ContainerData data) {
+		return setContainerData(stack, data.stacks());
+	}
+
+	/**
+	 * set the stacks of a stack if possible and return it
+	 * 
+	 * @param stack  the stack
+	 * @param stacks the stacks to set
+	 * @return the stack
+	 */
+	public static ItemStack setContainerData(ItemStack stack, NonNullList<ItemStack> stacks) {
+		if (!(stack.getItem()instanceof BlockItem bi))
+			return stack;
+
+		var b = bi.getBlock();
+		var blockTag = stack.getOrCreateTagElement("BlockEntityTag");
+		if (b instanceof ShulkerBoxBlock || b == Blocks.BARREL || b == Blocks.TRAPPED_CHEST || b == Blocks.CHEST
+				|| b == Blocks.DISPENSER || b == Blocks.DROPPER || b == Blocks.HOPPER
+				|| b instanceof AbstractFurnaceBlock) {
+			var items = new ListTag();
+			for (var slot = 0; slot < stacks.size(); slot++) {
+				var item = stacks.get(slot);
+				if (item.getItem() == Items.AIR)
+					continue;
+				var itemTag = new CompoundTag();
+				itemTag.putByte("Slot", (byte) slot);
+				itemTag.putByte("Count", (byte) item.getCount());
+				var it = item.getTag();
+				if (it != null)
+					itemTag.put("tag", it);
+				items.add(itemTag);
+			}
+			blockTag.put("Items", items);
+		} else if (b == Blocks.JUKEBOX) {
+			if (stack.getItem() == Items.AIR)
+				return stack;
+			var itemTag = new CompoundTag();
+			itemTag.putByte("Count", (byte) stack.getCount());
+			var it = stack.getTag();
+			if (it != null)
+				itemTag.put("tag", it);
+
+			blockTag.put("RecordItem", itemTag);
+		}
+
+		return stack;
+	}
 }
