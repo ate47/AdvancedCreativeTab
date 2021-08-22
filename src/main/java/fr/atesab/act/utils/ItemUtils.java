@@ -1532,6 +1532,7 @@ public class ItemUtils {
 				var itemTag = new CompoundTag();
 				itemTag.putByte("Slot", (byte) slot);
 				itemTag.putByte("Count", (byte) item.getCount());
+				itemTag.putString("id", item.getItem().getRegistryName().toString());
 				var it = item.getTag();
 				if (it != null)
 					itemTag.put("tag", it);
@@ -1539,11 +1540,13 @@ public class ItemUtils {
 			}
 			blockTag.put("Items", items);
 		} else if (b == Blocks.JUKEBOX) {
-			if (stack.getItem() == Items.AIR)
+			var cd = stacks.get(0);
+			if (cd.getItem() == Items.AIR)
 				return stack;
 			var itemTag = new CompoundTag();
-			itemTag.putByte("Count", (byte) stack.getCount());
-			var it = stack.getTag();
+			itemTag.putString("id", cd.getItem().getRegistryName().toString());
+			itemTag.putByte("Count", (byte) cd.getCount());
+			var it = cd.getTag();
 			if (it != null)
 				itemTag.put("tag", it);
 
