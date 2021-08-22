@@ -236,9 +236,12 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static void addToClipboard(String text) {
-		StringSelection select = new StringSelection(text);
-		Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-		cb.setContents(select, select);
+		try {
+			StringSelection select = new StringSelection(text);
+			Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+			cb.setContents(select, select);
+		} catch (Exception e) {
+		}
 	}
 
 	/**

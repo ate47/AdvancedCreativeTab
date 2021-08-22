@@ -26,12 +26,12 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
     @Override
     protected void init() {
         addRenderableWidget(
-                new Button(width / 2 - 200, height / 2 + 80, 198, 20, new TranslatableComponent("gui.done"), b -> {
+                new Button(width / 2 - 100, height / 2 + 80, 98, 20, new TranslatableComponent("gui.done"), b -> {
                     set(data);
                     mc.setScreen(parent);
                 }));
         addRenderableWidget(
-                new Button(width / 2 + 2, height / 2 + 80, 198, 20, new TranslatableComponent("gui.cancel"), b -> {
+                new Button(width / 2 + 2, height / 2 + 80, 98, 20, new TranslatableComponent("gui.cancel"), b -> {
                     mc.setScreen(parent);
                 }));
         super.init();
@@ -59,7 +59,7 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 ir.renderGuiItem(item, sx, cy + 1);
                 ir.renderGuiItemDecorations(font, item, sx, cy + 1);
                 if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
-                    GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0x22DADADA);
+                    GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0x44DADADA);
                     hoverStack = item;
                 }
             }
@@ -67,7 +67,10 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
         }
         super.render(stack, mouseX, mouseY, delta);
         if (hoverStack != null && hoverStack.getItem() != Items.AIR) {
+            stack.pushPose();
+            stack.translate(0.0D, 0.0D, 400.0D);
             renderTooltip(stack, hoverStack, mouseX, mouseY);
+            stack.popPose();
         }
     }
 
@@ -85,8 +88,9 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 var sx = cx + 18 * i + 1;
                 if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
                     playClick();
-                    mc.setScreen(new GuiGiver(this, item, stack -> {
-                        stacks.set(slot, item == null ? ItemUtils.air() : item);
+                    mc.setScreen(new GuiGiver(this, item, code -> {
+                        var codeStack = ItemUtils.getFromGiveCode(code);
+                        stacks.set(slot, codeStack == null ? ItemUtils.air() : codeStack);
                     }, true));
                     return true;
                 }

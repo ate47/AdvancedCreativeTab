@@ -86,18 +86,18 @@ public class GuiGiver extends GuiModifier<String> {
 		code.setMaxLength(Integer.MAX_VALUE);
 		if (preText != null)
 			code.setValue(preText.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
-		boolean flag2 = deleteButton; // deleteCancel
-		int s1 = flag2 ? 120 : 180;
+		int s1 = deleteButton ? 120 : 180;
 		int s2 = 120;
 		addRenderableWidget(giveButton = new Button(width / 2 - 180, height / 2 + 21, s1, 20,
 				new TranslatableComponent("gui.act.give.give"), b -> ItemUtils.give(currentItemStack)));
 		addRenderableWidget(new Button(width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20,
 				new TranslatableComponent("gui.act.give.copy"), b -> GuiUtils.addToClipboard(code.getValue())));
-		addRenderableWidget(new Button(width / 2 - 180 + (flag2 ? 2 * s1 + 1 : 0), height / 2 + 21 + (flag2 ? 0 : 21),
-				(flag2 ? s1 - 1 : s2), 20, new TranslatableComponent("gui.act.give.editor"), b -> {
-					getMinecraft().setScreen(
-							new GuiItemStackModifier(this, currentItemStack, itemStack -> setCurrent(itemStack)));
-				}));
+		addRenderableWidget(
+				new Button(width / 2 - 180 + (deleteButton ? 2 * s1 + 1 : 0), height / 2 + 21 + (deleteButton ? 0 : 21),
+						(deleteButton ? s1 - 1 : s2), 20, new TranslatableComponent("gui.act.give.editor"), b -> {
+							getMinecraft().setScreen(new GuiItemStackModifier(this, currentItemStack,
+									itemStack -> setCurrent(itemStack)));
+						}));
 		doneButton = addRenderableWidget(new Button(width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
 				new TranslatableComponent("gui.done"), b -> {
 					if (setter != null && currentItemStack != null)
