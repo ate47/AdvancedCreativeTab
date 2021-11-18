@@ -47,10 +47,13 @@ import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
+import fr.atesab.act.utils.ACTUtils;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.CommandUtils;
+import fr.atesab.act.utils.FileUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
+import fr.atesab.act.utils.ReflectionUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
@@ -187,6 +190,7 @@ public class ACTMod {
 	private static CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
 	private static Set<String> commandSet = new HashSet<>();
 	private static CommandDispatcher<SharedSuggestionProvider> SharedSuggestionProvider;
+	private static InternalCommandExecutor internalCommandExecutor = new InternalCommandExecutor();
 
 	/**
 	 * @return if the tool tip is disabled
@@ -474,6 +478,14 @@ public class ACTMod {
 		registerCommand(new ModdedCommandGamemodeQuick("gma", GameType.ADVENTURE));
 		registerCommand(new ModdedCommandGamemodeQuick("gms", GameType.SURVIVAL));
 		registerCommand(new ModdedCommandGamemodeQuick("gmsp", GameType.SPECTATOR));
+
+		internalCommandExecutor.registerModule(ACTUtils.class);
+		internalCommandExecutor.registerModule(ChatUtils.class);
+		internalCommandExecutor.registerModule(CommandUtils.class);
+		internalCommandExecutor.registerModule(FileUtils.class);
+		internalCommandExecutor.registerModule(GuiUtils.class);
+		internalCommandExecutor.registerModule(ItemUtils.class);
+		internalCommandExecutor.registerModule(ReflectionUtils.class);
 
 		LOGGER.info("Commands registered.");
 	}

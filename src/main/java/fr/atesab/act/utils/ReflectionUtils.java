@@ -9,6 +9,7 @@ import java.util.List;
  * @author ATE47
  * @since 2.4.0
  */
+@InternalCommandModule("reflection")
 public class ReflectionUtils {
 
     /**

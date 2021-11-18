@@ -46,6 +46,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  * @author ATE47
  * @since 2.0
  */
+@InternalCommandModule("gui")
 public class GuiUtils {
 	private static class DelayScreen {
 		private Screen screen;
@@ -76,6 +77,9 @@ public class GuiUtils {
 
 	public static record RGBResult(int red, int green, int blue, int alpha) {
 	};
+
+	public static final int COLOR_CONTAINER_BORDER = 0xC2C2C2;
+	public static final int COLOR_CONTAINER_SLOT = 0xDADADA;
 
 	public static final Button.OnPress EMPTY_PRESS = b -> {
 	};
@@ -157,13 +161,13 @@ public class GuiUtils {
 		var m = l - c / 2;
 
 		return switch ((int) hh) {
-			case 0 -> asRGBA(c, x, 0, 1f);
-			case 1 -> asRGBA(x, c, 0, 1f);
-			case 2 -> asRGBA(0, c, x, 1f);
-			case 3 -> asRGBA(0, x, c, 1f);
-			case 4 -> asRGBA(x, 0, c, 1f);
-			case 5 -> asRGBA(c, 0, x, 1f);
-			default -> 0xFF000000; // happy compiler
+		case 0 -> asRGBA(c, x, 0, 1f);
+		case 1 -> asRGBA(x, c, 0, 1f);
+		case 2 -> asRGBA(0, c, x, 1f);
+		case 3 -> asRGBA(0, x, c, 1f);
+		case 4 -> asRGBA(x, 0, c, 1f);
+		case 5 -> asRGBA(c, 0, x, 1f);
+		default -> 0xFF000000; // happy compiler
 		} + 0x010101 * (int) (m * 0xFF);
 	}
 
@@ -899,7 +903,7 @@ public class GuiUtils {
 
 		RenderSystem.disableDepthTest();
 
-		var cx = rx + 7;
+		var cx = rx + 8;
 		var cy = ry + 6;
 
 		var itemX = cx + 18 * (9 - size.sizeX()) / 2;
@@ -913,15 +917,15 @@ public class GuiUtils {
 		// name
 		font.draw(IDENTITY, stack.getHoverName().getString(), cx, cy, 0xFFFFFFFF);
 		cy += 2 + font.lineHeight;
-
-		drawRect(IDENTITY, itemX - 1, cy - 1, itemX + size.sizeX() * 18 + 1, cy + size.sizeY() * 18 + 1, 0xFFDADADA);
+		drawRect(IDENTITY, itemX - 1, cy - 1, itemX + size.sizeX() * 18 + 1, cy + size.sizeY() * 18 + 1,
+				COLOR_CONTAINER_BORDER | 0xFF000000);
 		var old = ir.blitOffset;
 		for (var j = 0; j < size.sizeY(); j++) {
 			for (var i = 0; i < size.sizeX(); i++) {
 				var slot = size.indexOf(i, j);
 				var item = stacks.get(slot);
 				var sx = itemX + 18 * i + 1;
-				drawRect(IDENTITY, sx, cy + 1, sx + 16, cy + 1 + 16, 0xFFC2C2C2);
+				drawRect(IDENTITY, sx, cy + 1, sx + 16, cy + 1 + 16, COLOR_CONTAINER_SLOT | 0xFF000000);
 				ir.renderGuiItem(item, sx, cy + 1);
 				ir.renderGuiItemDecorations(font, item, sx, cy + 1);
 			}

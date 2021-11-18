@@ -11,27 +11,30 @@ import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.ItemUtils.ContainerData;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class GuiContainerModifier extends GuiModifier<ContainerData> {
     private ContainerData data;
+    private Component title;
 
-    public GuiContainerModifier(Screen parent, Consumer<ContainerData> setter, ContainerData data) {
+    public GuiContainerModifier(Screen parent, Component title, Consumer<ContainerData> setter, ContainerData data) {
         super(parent, new TranslatableComponent("gui.act.modifier.inventory"), setter);
         this.data = data.copy();
+        this.title = title;
     }
 
     @Override
     protected void init() {
         addRenderableWidget(
-                new Button(width / 2 - 100, height / 2 + 80, 98, 20, new TranslatableComponent("gui.done"), b -> {
+                new Button(width / 2 - 96, height / 2 + 60, 94, 20, new TranslatableComponent("gui.done"), b -> {
                     set(data);
                     mc.setScreen(parent);
                 }));
         addRenderableWidget(
-                new Button(width / 2 + 2, height / 2 + 80, 98, 20, new TranslatableComponent("gui.cancel"), b -> {
+                new Button(width / 2 + 2, height / 2 + 60, 94, 20, new TranslatableComponent("gui.cancel"), b -> {
                     mc.setScreen(parent);
                 }));
         super.init();
@@ -45,7 +48,10 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
         var cy = height / 2 - size.sizeY() * 18 / 2;
         var cx = width / 2 - size.sizeX() * 18 / 2;
 
-        GuiUtils.drawRect(stack, cx - 1, cy - 1, cx + size.sizeX() * 18 + 1, cy + size.sizeY() * 18 + 1, 0xFFDADADA);
+        GuiUtils.drawRect(stack, width / 2 - 104, height / 2 - 80, width / 2 + 104, height / 2 + 84,
+                GuiUtils.COLOR_CONTAINER_BORDER | 0xFF000000);
+
+        GuiUtils.drawCenterString(font, title.getString(), width / 2, height / 2 - 76, 0xFF7F7F7F);
 
         ItemStack hoverStack = null;
 
@@ -55,11 +61,11 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 var slot = size.indexOf(i, j);
                 var item = stacks.get(slot);
                 var sx = cx + 18 * i + 1;
-                GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0xFFC2C2C2);
+                GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, GuiUtils.COLOR_CONTAINER_SLOT | 0xFF000000);
                 ir.renderGuiItem(item, sx, cy + 1);
                 ir.renderGuiItemDecorations(font, item, sx, cy + 1);
                 if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
-                    GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, 0x44DADADA);
+                    GuiUtils.drawRect(stack, sx, cy, sx + 18, cy + 18, GuiUtils.COLOR_CONTAINER_SLOT | 0x66000000);
                     hoverStack = item;
                 }
             }
@@ -104,7 +110,7 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
     @Override
     protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
         var size = data.size();
-        entries.add(devInfo("Inventory", "(" + size.sizeX() + "," + size.sizeY() + ")"));
+        entries.add(devInfo("Inventory", "(W,H) = (" + size.sizeX() + ", " + size.sizeY() + ")"));
         super.generateDev(entries, mouseX, mouseY);
     }
 }

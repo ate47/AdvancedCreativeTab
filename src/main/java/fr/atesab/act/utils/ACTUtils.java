@@ -2,12 +2,15 @@ package fr.atesab.act.utils;
 
 import java.util.function.Consumer;
 
+import fr.atesab.act.internalcommand.InternalCommand;
+
 /**
  * A set of tools to help
  * 
  * @author ATE47
  * @since 2.5.0
  */
+@InternalCommandModule(useBaseName = false)
 public class ACTUtils {
     /**
      * check if a number is positive and return it
@@ -72,6 +75,7 @@ public class ACTUtils {
      * @param b b
      * @return mod(a,b)
      */
+    @InternalCommand
     public static int mod(int a, int b) {
         return ((a % b) + b) % b;
     }

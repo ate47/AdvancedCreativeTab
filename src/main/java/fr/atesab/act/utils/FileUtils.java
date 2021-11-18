@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import net.minecraftforge.fmllegacy.packs.ResourcePackLoader;
 
+@InternalCommandModule("file")
 public class FileUtils {
 
     /**

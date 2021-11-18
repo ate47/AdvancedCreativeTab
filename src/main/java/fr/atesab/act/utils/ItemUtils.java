@@ -81,6 +81,7 @@ import net.minecraftforge.registries.ForgeRegistries;
  * @author ATE47
  * @since 2.0
  */
+@InternalCommandModule("item")
 public class ItemUtils {
 	/**
 	 * Attribute data
@@ -1142,7 +1143,7 @@ public class ItemUtils {
 	 * @return if the stack is a leather armor
 	 */
 	public static boolean isLeatherArmor(ItemStack stack) {
-		return stack.getItem()instanceof ArmorItem ai && ai.getMaterial() == ArmorMaterials.LEATHER;
+		return stack.getItem() instanceof ArmorItem ai && ai.getMaterial() == ArmorMaterials.LEATHER;
 	}
 
 	/**
@@ -1392,7 +1393,7 @@ public class ItemUtils {
 	 * @return the size of the container or null if the stack isn't a container
 	 */
 	public static ContainerSize getContainerSize(ItemStack stack) {
-		if (!(stack.getItem()instanceof BlockItem bi))
+		if (!(stack.getItem() instanceof BlockItem bi))
 			return null;
 
 		var b = bi.getBlock();
@@ -1478,7 +1479,7 @@ public class ItemUtils {
 	public static ContainerData fetchContainerData(ItemStack stack) {
 		var size = getContainerSize(stack);
 
-		if (!(size != null && stack.getItem()instanceof BlockItem bi))
+		if (!(size != null && stack.getItem() instanceof BlockItem bi))
 			return null;
 
 		var stacks = NonNullList.withSize(size.sizeX() * size.sizeY(), air());
@@ -1516,7 +1517,7 @@ public class ItemUtils {
 	 * @return the stack
 	 */
 	public static ItemStack setContainerData(ItemStack stack, NonNullList<ItemStack> stacks) {
-		if (!(stack.getItem()instanceof BlockItem bi))
+		if (!(stack.getItem() instanceof BlockItem bi))
 			return stack;
 
 		var b = bi.getBlock();
