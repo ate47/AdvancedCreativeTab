@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import fr.atesab.act.internalcommand.InternalCommandModule;
 import net.minecraftforge.fmllegacy.packs.ResourcePackLoader;
 
-@InternalCommandModule("file")
+@InternalCommandModule(name = "file")
 public class FileUtils {
 
     /**

@@ -21,6 +21,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import org.lwjgl.opengl.GL11;
 
 import fr.atesab.act.ACTMod;
+import fr.atesab.act.internalcommand.InternalCommandModule;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -46,7 +47,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  * @author ATE47
  * @since 2.0
  */
-@InternalCommandModule("gui")
+@InternalCommandModule(name = "gui")
 public class GuiUtils {
 	private static class DelayScreen {
 		private Screen screen;

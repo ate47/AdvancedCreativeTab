@@ -47,6 +47,7 @@ import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
+import fr.atesab.act.internalcommand.InternalCommandExecutor;
 import fr.atesab.act.utils.ACTUtils;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.CommandUtils;

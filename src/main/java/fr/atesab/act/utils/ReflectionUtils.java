@@ -3,13 +3,15 @@ package fr.atesab.act.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.atesab.act.internalcommand.InternalCommandModule;
+
 /**
  * A set of tools to help with reflection
  * 
  * @author ATE47
  * @since 2.4.0
  */
-@InternalCommandModule("reflection")
+@InternalCommandModule(name = "reflection")
 public class ReflectionUtils {
 
     /**

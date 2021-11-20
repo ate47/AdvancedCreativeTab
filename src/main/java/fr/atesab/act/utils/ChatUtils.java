@@ -1,6 +1,7 @@
 package fr.atesab.act.utils;
 
 import fr.atesab.act.ACTMod;
+import fr.atesab.act.internalcommand.InternalCommandModule;
 import fr.atesab.act.internalcommand.InternalCommand;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -21,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
  * @author ATE47
  * @since 2.0
  */
-@InternalCommandModule("chat")
+@InternalCommandModule(name = "chat")
 public class ChatUtils {
 	public static final char MODIFIER = '\u00a7';
 
@@ -74,7 +75,7 @@ public class ChatUtils {
 	 * @param itemStack the stack
 	 * @since 2.0
 	 */
-	@InternalCommand("showstack")
+	@InternalCommand(name = "showstack")
 	public static void itemStack(ItemStack itemStack) {
 		if (itemStack != null) {
 			CompoundTag item = new CompoundTag();
@@ -103,7 +104,7 @@ public class ChatUtils {
 	 * @see ChatUtils#show(String)
 	 * @see ChatUtils#error(String)
 	 */
-	@InternalCommand("showraw")
+	@InternalCommand(name = "showraw")
 	public static void send(Component message) {
 		Player plr = Minecraft.getInstance().player;
 		if (plr != null)
@@ -117,7 +118,7 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#error(String)
 	 */
-	@InternalCommand("show")
+	@InternalCommand(name = "show")
 	public static void show(String message) {
 		send(getPrefix().append(message));
 	}

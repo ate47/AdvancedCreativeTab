@@ -3,6 +3,7 @@ package fr.atesab.act.utils;
 import java.util.function.Consumer;
 
 import fr.atesab.act.internalcommand.InternalCommand;
+import fr.atesab.act.internalcommand.InternalCommandModule;
 
 /**
  * A set of tools to help

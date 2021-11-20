@@ -31,6 +31,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import org.lwjgl.system.CallbackI.I;
 
 import fr.atesab.act.ACTMod;
+import fr.atesab.act.internalcommand.InternalCommandModule;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EffectInstance;
@@ -81,7 +82,7 @@ import net.minecraftforge.registries.ForgeRegistries;
  * @author ATE47
  * @since 2.0
  */
-@InternalCommandModule("item")
+@InternalCommandModule(name = "item")
 public class ItemUtils {
 	/**
 	 * Attribute data

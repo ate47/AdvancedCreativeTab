@@ -3,19 +3,25 @@ package fr.atesab.act.internalcommand;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mojang.brigadier.tree.CommandNode;
+
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+
 public class InternalCommandExecutor {
     private final Map<String, AbstractInternalCommand> commands = new HashMap<>();
 
-    public void registerModule(Class<?> cls) {
-        var mic = cls.getAnnotation(InternalCommandModule.class);
+    public void registerModule(Class<?> module) {
+        var mic = module.getAnnotation(InternalCommandModule.class);
 
-        var prefix = mic != null ? (mic.useBaseName() ? cls.getCanonicalName() : mic.name()) : cls.getCanonicalName();
+        var prefix = mic != null ? (mic.useBaseName() ? module.getCanonicalName() : mic.name())
+                : module.getCanonicalName();
 
         if (!prefix.isEmpty()) {
             prefix += ".";
         }
 
-        for (var method : cls.getDeclaredMethods()) {
+        for (var method : module.getDeclaredMethods()) {
             var ic = method.getAnnotation(InternalCommand.class);
             if (ic != null) {
                 var name = ic.name();
@@ -25,7 +31,7 @@ public class InternalCommandExecutor {
 
                 name = prefix + name;
 
-                var aic = new AbstractInternalCommand(name, method);
+                var aic = new AbstractInternalCommand(module, name, method);
 
                 var old = commands.get(name);
 
@@ -37,5 +43,9 @@ public class InternalCommandExecutor {
                 commands.put(name, aic);
             }
         }
+    }
+
+    public void registerAll(CommandNode<CommandSourceStack> node) {
+        commands.values().stream().map(AbstractInternalCommand::buildNode).forEach(node::addChild);
     }
 }

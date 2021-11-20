@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import fr.atesab.act.ACTMod;
+import fr.atesab.act.internalcommand.InternalCommandModule;
 import fr.atesab.act.internalcommand.InternalCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -19,7 +20,7 @@ import net.minecraftforge.event.ForgeEventFactory;
  * @author ATE47
  * @since 2.0
  */
-@InternalCommandModule("command")
+@InternalCommandModule(name = "command")
 public class CommandUtils {
 	private static final Random RANDOM = ACTMod.RANDOM;
 
@@ -33,7 +34,7 @@ public class CommandUtils {
 	 * @return players' names
 	 * @since 2.0
 	 */
-	@InternalCommand("playerlist")
+	@InternalCommand(name = "playerlist")
 	public static List<String> getPlayerList() {
 		List<PlayerInfo> networkPlayerInfos = new ArrayList<>(
 				Minecraft.getInstance().player.connection.getOnlinePlayers());
@@ -73,7 +74,7 @@ public class CommandUtils {
 	 * @param message chat message to send
 	 * @since 2.0
 	 */
-	@InternalCommand("send")
+	@InternalCommand(name = "send")
 	public static void sendMessage(String message) {
 		LocalPlayer p;
 		if ((p = Minecraft.getInstance().player) != null) {
