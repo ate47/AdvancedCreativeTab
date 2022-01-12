@@ -29,6 +29,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
+import com.mojang.datafixers.util.Either;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,6 +76,7 @@ import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
@@ -84,6 +86,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -95,11 +98,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
+import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent.DrawScreenEvent;
 import net.minecraftforge.client.event.ScreenEvent.InitScreenEvent;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.client.gui.widget.ModListWidget;
-import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -148,7 +152,7 @@ public class ACTMod {
 
 	public static final String MOD_NAME = "Advanced Creative 2";
 
-	public static final String MOD_VERSION = "2.6.0";
+	public static final String MOD_VERSION = "2.6.1";
 
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 
@@ -192,6 +196,7 @@ public class ACTMod {
 	private static Set<String> commandSet = new HashSet<>();
 	private static CommandDispatcher<SharedSuggestionProvider> SharedSuggestionProvider;
 	private static InternalCommandExecutor internalCommandExecutor = new InternalCommandExecutor();
+	private static final Component HIDE_COMPONENT = new TextComponent("%HIDE_COMPONENT%");
 
 	/**
 	 * @return if the tool tip is disabled
@@ -796,6 +801,17 @@ public class ACTMod {
 		}
 	}
 
+	@SubscribeEvent
+	public void onRenderToopTipPost(RenderTooltipEvent.GatherComponents ev) {
+		if (ev.getItemStack() == null || ev.getItemStack().isEmpty())
+			return;
+		for (Either<FormattedText, TooltipComponent> e : ev.getTooltipElements())
+			if (e.left().filter(c -> c == HIDE_COMPONENT).isPresent()) {
+				ev.setCanceled(true);
+				break;
+			}
+	}
+
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onRenderTooltip(ItemTooltipEvent ev) {
 		Minecraft mc = Minecraft.getInstance();
@@ -829,7 +845,7 @@ public class ACTMod {
 			if (isKeyDown(giver.getKey().getValue()))
 				mc.setScreen(new GuiGiver(mc.screen, ev.getItemStack()));
 			displayInventory(ev);
-			ev.getToolTip().clear();
+			ev.getToolTip().add(HIDE_COMPONENT);
 			return; // cancel the tooltip
 		}
 
