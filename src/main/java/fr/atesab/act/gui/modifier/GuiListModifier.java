@@ -138,7 +138,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
 		public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
 				float partialTicks) {
-			buttonList.stream().filter(AbstractWidget::isHovered).forEach(
+			buttonList.stream().filter(AbstractWidget::isHoveredOrFocused).forEach(
 					b -> GuiUtils.drawRelativeToolTip(matrixStack, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
 		}
 

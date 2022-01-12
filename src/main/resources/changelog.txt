@@ -3,7 +3,7 @@
 
 > Mod: Advanced Creative 2 (act)
 > Author(s): ATE47
-> Minecraft version(s): 1.8.9->1.17.1
+> Minecraft version(s): 1.8.9->1.18.1
 
 -------------------------------------------------------
 --------------- ACT 2.6.0 -- (MC1.17.1) ---------------

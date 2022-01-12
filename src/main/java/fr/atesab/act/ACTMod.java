@@ -92,9 +92,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 import net.minecraftforge.client.event.ClientChatEvent;
-import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
-import net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent;
+import net.minecraftforge.client.event.ScreenEvent.DrawScreenEvent;
+import net.minecraftforge.client.event.ScreenEvent.InitScreenEvent;
+import net.minecraftforge.client.gui.ModListScreen;
+import net.minecraftforge.client.gui.widget.ModListWidget;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -108,10 +112,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
-import net.minecraftforge.fmlclient.ConfigGuiHandler.ConfigGuiFactory;
-import net.minecraftforge.fmlclient.gui.screen.ModListScreen;
-import net.minecraftforge.fmlclient.gui.widget.ModListWidget;
-import net.minecraftforge.fmlclient.registry.ClientRegistry;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @OnlyIn(Dist.CLIENT)
@@ -772,14 +772,14 @@ public class ACTMod {
 
 	@SubscribeEvent
 	public void onDrawScreen(DrawScreenEvent.Post ev) {
-		if (ev.getGui() instanceof GuiACT && MOD_STATE.isShow()) {
+		if (ev.getScreen() instanceof GuiACT && MOD_STATE.isShow()) {
 			drawString(Minecraft.getInstance().font, "Warning! Currently in " + MOD_STATE.getColor() + MOD_STATE.name(),
 					5, 5, 0xffffffff);
 		}
 	}
 
 	@SubscribeEvent
-	public void onInitGui(InitGuiEvent.Post ev) {
+	public void onInitGui(InitScreenEvent.Post ev) {
 		injectSuggestions();
 	}
 

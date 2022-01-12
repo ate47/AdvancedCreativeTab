@@ -45,7 +45,7 @@ public class ItemStackButtonWidget extends AbstractButton {
 	@Override
 	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTick) {
 		GuiUtils.drawItemStack(Minecraft.getInstance().getItemRenderer(), stack, x + 1, y + 1);
-		if (isHovered())
+		if (isHoveredOrFocused())
 			GuiUtils.drawRect(matrixStack, x, y, x + 18, y + 18, 0x55cccccc);
 	}
 

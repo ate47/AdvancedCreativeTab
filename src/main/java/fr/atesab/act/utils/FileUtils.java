@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import fr.atesab.act.internalcommand.InternalCommandModule;
-import net.minecraftforge.fmllegacy.packs.ResourcePackLoader;
+import net.minecraftforge.resource.ResourcePackLoader;
 
 @InternalCommandModule(name = "file")
 public class FileUtils {
@@ -58,7 +58,7 @@ public class FileUtils {
      * @throws IOException
      */
     public static InputStream fetchFromModJar(String modId, String path) throws IOException {
-        var pack = ResourcePackLoader.getResourcePackFor(modId)
+        var pack = ResourcePackLoader.getPackFor(modId)
                 .orElseThrow(() -> new RuntimeException("Can't find modid " + modId));
         return pack.getRootResource(path);
     }

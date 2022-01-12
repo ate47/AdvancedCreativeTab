@@ -14,20 +14,24 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 version = "2.6.0"
-project.ext.minecraftVersion = "1.17"
+project.ext.minecraft_version = "1.18.1"
 group = "fr.atesab.act" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ACT"
 project.ext.artifactId = "act"
 
 project.ext.groupId = "fr.atesab"
-project.ext.projectVersion = "${version}-${project.ext.minecraftVersion}"
+project.ext.projectVersion = "${version}-forge-${project.ext.minecraft_version}"
 
-// Mojang ships Java 16 to end users in 1.17+ instead of Java 8 in 1.16 or lower, so your mod should target Java 16.
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.18.1-39.0.5'
+}
+
 minecraft {
-    mappings channel: 'official', version: '1.17.1'
+    mappings channel: 'official', version: project.ext.minecraft_version
     runs {
         client {
             workingDirectory project.file('run')
@@ -68,10 +72,6 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-}
-
-dependencies {
-    minecraft 'net.minecraftforge:forge:1.17.1-37.0.0'
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
