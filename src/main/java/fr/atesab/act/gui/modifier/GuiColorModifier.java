@@ -36,6 +36,7 @@ public class GuiColorModifier extends GuiModifier<OptionalInt> {
 	private static final int PICKER_SIZE_Y = 200;
 	private static final int PICKER_S_SIZE_X = 20;
 	private static final int PICKER_HL_SIZE_X = 200;
+	private static boolean pickerInit = false;
 	private static final ResourceLocation PICKER_S_RESOURCE = new ResourceLocation(ACTMod.MOD_ID, "picker_hl");
 	private static final ResourceLocation PICKER_HL_RESOURCE = new ResourceLocation(ACTMod.MOD_ID, "picker_s");
 	private static final DynamicTexture PICKER_IMAGE_S = new DynamicTexture(
@@ -59,6 +60,8 @@ public class GuiColorModifier extends GuiModifier<OptionalInt> {
 	private static int pickerLightness;
 
 	private static void setPickerState(int hue, int saturation, int lightness) {
+		if (!pickerInit)
+			registerPickerImage();
 		// regen PICKER_IMAGE_S
 		if (!(hue == pickerHue && lightness == pickerLightness)) {
 			pickerHue = hue;
@@ -92,6 +95,7 @@ public class GuiColorModifier extends GuiModifier<OptionalInt> {
 	}
 
 	public static void registerPickerImage() {
+		pickerInit = true;
 		TextureManager tm = Minecraft.getInstance().getTextureManager();
 		setPickerState(0, 0, 100);
 		tm.register(PICKER_S_RESOURCE, PICKER_IMAGE_S);

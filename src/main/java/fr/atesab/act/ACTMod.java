@@ -43,7 +43,6 @@ import fr.atesab.act.config.Configuration;
 import fr.atesab.act.gui.GuiACT;
 import fr.atesab.act.gui.GuiGiver;
 import fr.atesab.act.gui.GuiMenu;
-import fr.atesab.act.gui.modifier.GuiColorModifier;
 import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
@@ -166,7 +165,7 @@ public class ACTMod {
 
 	public static final String MOD_LINK = "https://www.curseforge.com/minecraft/mc-mods/advanced-extended-creative-mode";
 
-	public static final ResourceLocation MOD_FILE_LOGO = new ResourceLocation(MOD_ID, "mod_file_logo");
+	// public static final ResourceLocation MOD_FILE_LOGO = new ResourceLocation(MOD_ID, "mod_file_logo"); // TODO: implement loadOnUsageBuffer if needed also in registerPickerImage
 
 	/**
 	 * @deprecated removed option
@@ -634,12 +633,11 @@ public class ACTMod {
 			}
 		});
 
-		GuiColorModifier.registerPickerImage();
-		try {
-			GuiUtils.loadAndRegisterModImage(MOD_ID, MOD_FILE_LOGO, "logo.png");
-		} catch (IOException e) {
-			throw new RuntimeException("Can't find mod logo", e);
-		}
+		// try {
+		// 	GuiUtils.loadAndRegisterModImage(MOD_ID, MOD_FILE_LOGO, "logo.png");
+		// } catch (IOException e) {
+		// 	throw new RuntimeException("Can't find mod logo", e);
+		// }
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
