@@ -1,12 +1,9 @@
 package fr.atesab.act.command;
 
-import java.util.Arrays;
-
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.gui.modifier.GuiColorModifier;
 import fr.atesab.act.utils.GuiUtils;
@@ -16,10 +13,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+
+import java.util.Arrays;
 
 public class ModdedCommandColor extends ModdedCommand {
 
@@ -30,64 +28,67 @@ public class ModdedCommandColor extends ModdedCommand {
             protected Command<CommandSourceStack> onNoArgument() {
                 return c -> {
                     var mc = Minecraft.getInstance();
+                    if (mc.player == null) {
+                        return 0;
+                    }
                     var is = mc.player.getMainHandItem();
                     // try if we can color it
                     if (!ItemUtils.canGlobalColorIt(is)) {
-                        c.getSource().sendFailure(new TranslatableComponent("cmd.act.color.error.notcolorable")
+                        c.getSource().sendFailure(Component.translatable("cmd.act.color.error.notcolorable")
                                 .withStyle(ChatFormatting.RED));
                         return 1;
                     }
 
                     // we have a colorable item
                     var color = ItemUtils.getGlobalColor(is);
-                    if (!color.isPresent()) {
+                    if (color.isEmpty()) {
                         c.getSource()
-                                .sendSuccess(new TranslatableComponent("cmd.act.color.color")
-                                        .withStyle(ChatFormatting.YELLOW)
-                                        .append(new TextComponent(":").withStyle(ChatFormatting.DARK_GRAY))
-                                        .append(new TranslatableComponent("cmd.act.color.error.nocolor")
-                                                .withStyle(ChatFormatting.WHITE)),
+                                .sendSuccess(Component.translatable("cmd.act.color.color")
+                                                .withStyle(ChatFormatting.YELLOW)
+                                                .append(Component.literal(":").withStyle(ChatFormatting.DARK_GRAY))
+                                                .append(Component.translatable("cmd.act.color.error.nocolor")
+                                                        .withStyle(ChatFormatting.WHITE)),
                                         false);
                     } else {
                         c.getSource()
                                 .sendSuccess(
-                                        new TranslatableComponent("cmd.act.color.color")
+                                        Component.translatable("cmd.act.color.color")
                                                 .withStyle(ChatFormatting.YELLOW)
-                                                .append(new TextComponent(":").withStyle(ChatFormatting.DARK_GRAY))
-                                                .append(new TextComponent(
+                                                .append(Component.literal(":").withStyle(ChatFormatting.DARK_GRAY))
+                                                .append(Component.literal(
                                                         "\u2589\u2589\u2589\u2589").withStyle(
-                                                                s -> s.withColor(TextColor.fromRgb(color.getAsInt()))))
+                                                        s -> s.withColor(TextColor.fromRgb(color.getAsInt()))))
                                                 .append(" ")
                                                 // remove color button
-                                                .append(new TextComponent("[").withStyle(ChatFormatting.RED)
+                                                .append(Component.literal("[").withStyle(ChatFormatting.RED)
                                                         .withStyle(s -> s
                                                                 .withHoverEvent(new HoverEvent(
                                                                         HoverEvent.Action.SHOW_TEXT,
-                                                                        new TranslatableComponent(
+                                                                        Component.translatable(
                                                                                 "cmd.act.color.remove.hover").withStyle(
-                                                                                        ChatFormatting.YELLOW)))
+                                                                                ChatFormatting.YELLOW)))
                                                                 .withClickEvent(
                                                                         new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                                                                 "/act color remove")))
-                                                        .append(new TranslatableComponent("cmd.act.color.remove"))
+                                                        .append(Component.translatable("cmd.act.color.remove"))
                                                         .append("]")),
                                         false);
                     }
 
                     c.getSource()
                             .sendSuccess(
-                                    new TextComponent(
-                                            "[").withStyle(ChatFormatting.WHITE)
-                                                    .withStyle(s -> s
-                                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                                    new TranslatableComponent(
+                                    Component.literal(
+                                                    "[").withStyle(ChatFormatting.WHITE)
+                                            .withStyle(s -> s
+                                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                                            Component.translatable(
                                                                             "cmd.act.color.picker.hover")
-                                                                                    .withStyle(ChatFormatting.YELLOW)))
-                                                            .withClickEvent(
-                                                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                                            "/act color picker")))
-                                                    .append(new TranslatableComponent("cmd.act.color.picker"))
-                                                    .append("]"),
+                                                                    .withStyle(ChatFormatting.YELLOW)))
+                                                    .withClickEvent(
+                                                            new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                                                                    "/act color picker")))
+                                            .append(Component.translatable("cmd.act.color.picker"))
+                                            .append("]"),
                                     false);
 
                     return 2;
@@ -101,10 +102,13 @@ public class ModdedCommandColor extends ModdedCommand {
             protected Command<CommandSourceStack> onNoArgument() {
                 return c -> {
                     var mc = Minecraft.getInstance();
+                    if (mc.player == null) {
+                        return 0;
+                    }
                     var is = mc.player.getMainHandItem();
                     // try if we can color it
                     if (!ItemUtils.canGlobalColorIt(is)) {
-                        c.getSource().sendFailure(new TranslatableComponent("cmd.act.color.error.notcolorable")
+                        c.getSource().sendFailure(Component.translatable("cmd.act.color.error.notcolorable")
                                 .withStyle(ChatFormatting.RED));
                         return 1;
                     }
@@ -113,13 +117,13 @@ public class ModdedCommandColor extends ModdedCommand {
                     var defaultColor = ItemUtils.getDefaultGlobalColor(is);
 
                     GuiUtils.displayScreen(new GuiColorModifier(null, newColor -> {
-                        if (!newColor.isPresent()) {
+                        if (newColor.isEmpty()) {
                             ItemUtils.give(ItemUtils.removeColor(is), 36 + mc.player.getInventory().selected);
                         } else {
                             ItemUtils.give(ItemUtils.setGlobalColor(is, newColor.getAsInt()),
                                     36 + mc.player.getInventory().selected);
                         }
-                    }, color, defaultColor.orElse(0), !defaultColor.isPresent()));
+                    }, color, defaultColor.orElse(0), defaultColor.isEmpty()));
 
                     return 1;
                 };
@@ -130,10 +134,13 @@ public class ModdedCommandColor extends ModdedCommand {
             protected Command<CommandSourceStack> onNoArgument() {
                 return c -> {
                     var mc = Minecraft.getInstance();
+                    if (mc.player == null) {
+                        return 0;
+                    }
                     var is = mc.player.getMainHandItem();
                     // try if we can color it
                     if (!ItemUtils.canGlobalColorIt(is)) {
-                        c.getSource().sendFailure(new TranslatableComponent("cmd.act.color.error.notcolorable")
+                        c.getSource().sendFailure(Component.translatable("cmd.act.color.error.notcolorable")
                                 .withStyle(ChatFormatting.RED));
                         return 1;
                     }
@@ -162,6 +169,9 @@ public class ModdedCommandColor extends ModdedCommand {
                                                     var rgb = GuiUtils.asRGBA(r, g, b, 0xFF);
 
                                                     var mc = Minecraft.getInstance();
+                                                    if (mc.player == null) {
+                                                        return 0;
+                                                    }
                                                     var is = mc.player.getMainHandItem();
                                                     ItemUtils.give(ItemUtils.setGlobalColor(is, rgb),
                                                             36 + mc.player.getInventory().selected);
@@ -185,6 +195,9 @@ public class ModdedCommandColor extends ModdedCommand {
                                                             var rgb = GuiUtils.fromHSL(h, s, l);
 
                                                             var mc = Minecraft.getInstance();
+                                                            if (mc.player == null) {
+                                                                return 0;
+                                                            }
                                                             var is = mc.player.getMainHandItem();
                                                             ItemUtils.give(ItemUtils.setGlobalColor(is, rgb),
                                                                     36 + mc.player.getInventory().selected);
@@ -205,12 +218,15 @@ public class ModdedCommandColor extends ModdedCommand {
                                                 rgb = Integer.valueOf(h, 16);
                                             } catch (NumberFormatException r) {
                                                 c.getSource().sendFailure(
-                                                        new TranslatableComponent("cmd.act.color.error.valid")
+                                                        Component.translatable("cmd.act.color.error.valid")
                                                                 .withStyle(ChatFormatting.RED));
                                                 return 1;
                                             }
 
                                             var mc = Minecraft.getInstance();
+                                            if (mc.player == null) {
+                                                return 0;
+                                            }
                                             var is = mc.player.getMainHandItem();
                                             ItemUtils.give(ItemUtils.setGlobalColor(is, rgb),
                                                     36 + mc.player.getInventory().selected);
@@ -224,6 +240,9 @@ public class ModdedCommandColor extends ModdedCommand {
                     protected Command<CommandSourceStack> onNoArgument() {
                         return c -> {
                             var mc = Minecraft.getInstance();
+                            if (mc.player == null) {
+                                return 0;
+                            }
                             var is = mc.player.getMainHandItem();
                             ItemUtils.give(ItemUtils.setGlobalColor(is, GuiUtils.getRandomColor()),
                                     36 + mc.player.getInventory().selected);
@@ -235,11 +254,15 @@ public class ModdedCommandColor extends ModdedCommand {
                 Arrays.stream(ChatFormatting.values()).filter(ChatFormatting::isColor).forEach(t -> {
                     var name = t.getName().toLowerCase();
                     var rgb = t.getColor();
+                    assert rgb != null;
                     registerSubCommand(new ModdedCommand(name) {
                         @Override
                         protected Command<CommandSourceStack> onNoArgument() {
                             return c -> {
                                 var mc = Minecraft.getInstance();
+                                if (mc.player == null) {
+                                    return 0;
+                                }
                                 var is = mc.player.getMainHandItem();
                                 ItemUtils.give(ItemUtils.setGlobalColor(is, rgb),
                                         36 + mc.player.getInventory().selected);

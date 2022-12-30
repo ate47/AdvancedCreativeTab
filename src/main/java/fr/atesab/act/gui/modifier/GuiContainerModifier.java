@@ -1,27 +1,25 @@
 package fr.atesab.act.gui.modifier;
 
-import java.util.List;
-import java.util.function.Consumer;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import fr.atesab.act.gui.GuiGiver;
+import fr.atesab.act.gui.components.ACTButton;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.ItemUtils.ContainerData;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 public class GuiContainerModifier extends GuiModifier<ContainerData> {
-    private ContainerData data;
-    private Component title;
+    private final ContainerData data;
+    private final Component title;
 
     public GuiContainerModifier(Screen parent, Component title, Consumer<ContainerData> setter, ContainerData data) {
-        super(parent, new TranslatableComponent("gui.act.modifier.inventory"), setter);
+        super(parent, Component.translatable("gui.act.modifier.inventory"), setter);
         this.data = data.copy();
         this.title = title;
     }
@@ -29,14 +27,12 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
     @Override
     protected void init() {
         addRenderableWidget(
-                new Button(width / 2 - 96, height / 2 + 60, 94, 20, new TranslatableComponent("gui.done"), b -> {
+                new ACTButton(width / 2 - 96, height / 2 + 60, 94, 20, Component.translatable("gui.done"), b -> {
                     set(data);
                     mc.setScreen(parent);
                 }));
         addRenderableWidget(
-                new Button(width / 2 + 2, height / 2 + 60, 94, 20, new TranslatableComponent("gui.cancel"), b -> {
-                    mc.setScreen(parent);
-                }));
+                new ACTButton(width / 2 + 2, height / 2 + 60, 94, 20, Component.translatable("gui.cancel"), b -> mc.setScreen(parent)));
         super.init();
     }
 
@@ -55,6 +51,7 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
 
         ItemStack hoverStack = null;
 
+        assert minecraft != null;
         var ir = minecraft.getItemRenderer();
         for (var j = 0; j < size.sizeY(); j++) {
             for (var i = 0; i < size.sizeX(); i++) {
@@ -64,7 +61,7 @@ public class GuiContainerModifier extends GuiModifier<ContainerData> {
                 GuiUtils.drawRect(stack, sx, cy + 1, sx + 16, cy + 1 + 16, GuiUtils.COLOR_CONTAINER_SLOT | 0xFF000000);
                 ir.renderGuiItem(item, sx, cy + 1);
                 ir.renderGuiItemDecorations(font, item, sx, cy + 1);
-                if (GuiUtils.isHover(sx, cy + 1, 16, 16, (int) mouseX, (int) mouseY)) {
+                if (GuiUtils.isHover(sx, cy + 1, 16, 16, mouseX, mouseY)) {
                     GuiUtils.drawRect(stack, sx, cy, sx + 18, cy + 18, GuiUtils.COLOR_CONTAINER_SLOT | 0x66000000);
                     hoverStack = item;
                 }

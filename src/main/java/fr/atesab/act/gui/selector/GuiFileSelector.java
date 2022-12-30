@@ -1,12 +1,6 @@
 package fr.atesab.act.gui.selector;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.function.Function;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import fr.atesab.act.utils.FileUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
@@ -15,9 +9,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Function;
+
 public class GuiFileSelector extends GuiListSelector<File> {
-    private class FileListElement extends ListElement {
-        private File f;
+    private static class FileListElement extends ListElement {
+        private final File f;
         private String desc;
 
         public FileListElement(File f) {
@@ -44,12 +44,6 @@ public class GuiFileSelector extends GuiListSelector<File> {
         }
 
         @Override
-        public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-            // TODO Auto-generated method stub
-            super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-
-        @Override
         public boolean match(String search) {
             String s = search.toLowerCase();
             return f.getName().toLowerCase().contains(s);
@@ -66,7 +60,14 @@ public class GuiFileSelector extends GuiListSelector<File> {
             c = Minecraft.getInstance().gameDirectory;
         }
 
-        Arrays.stream(c.listFiles()).map(FileListElement::new).forEach(this::addListElement);
+        File[] files = c.listFiles();
+        if (files != null) {
+            Arrays.stream(files)
+                    .filter(Objects::nonNull)
+                    .map(FileListElement::new)
+                    .forEach(this::addListElement);
+        }
+
     }
 
 }

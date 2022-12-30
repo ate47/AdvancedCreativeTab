@@ -12,62 +12,58 @@ public class GridPolicies {
     });
 
     /**
-     * 
      * @return a grid using the {@link GuiComponent#getX()} and
-     *         {@link GuiComponent#getY()} functions to get the location
+     * {@link GuiComponent#getY()} functions to get the location
      */
     public static GridPolicy absoluteGrid() {
         return ABSOLUTE;
     }
 
     /**
-     * @return a grid puting all the components verticaly
+     * @return a grid putting all the components vertically
      */
     public static GridPolicy verticalGrid(GridAlignmentX alignment) {
         return new VerticalGridPolicy(alignment);
     }
 
     /**
-     * @return a grid puting all the components horizontaly
+     * @return a grid putting all the components horizontally
      */
     public static GridPolicy horizontalGrid(GridAlignmentY alignment) {
         return new HorizontalGridPolicy(alignment);
     }
 
     /**
-     * 
-     * @param maxElementY
-     * @return
+     * @param maxElementY max element vertically
+     * @return FlexGridPolicy
      */
     public static GridPolicy horizontalFlexGrid(int maxElementY) {
         return new FlexGridPolicy(maxElementY, FlexGridType.HORIZONTAL, GridAlignmentX.CENTER, GridAlignmentY.MIDDLE);
     }
 
     /**
-     * 
-     * @param maxElementX
-     * @param alignmentX
-     * @param alignmentY
-     * @return
+     * @param maxElementX max element horizontally
+     * @param alignmentX align x
+     * @param alignmentY align y
+     * @return FlexGridPolicy
      */
     public static GridPolicy verticalFlexGrid(int maxElementX, GridAlignmentX alignmentX, GridAlignmentY alignmentY) {
         return new FlexGridPolicy(maxElementX, FlexGridType.VERTICAL, alignmentX, alignmentY);
     }
 
     /**
-     * @param maxElementX
-     * @return
+     * @param maxElementX max element horizontally
+     * @return FlexGridPolicy
      */
     public static GridPolicy verticalFlexGrid(int maxElementX) {
         return new FlexGridPolicy(maxElementX, FlexGridType.VERTICAL, GridAlignmentX.CENTER, GridAlignmentY.MIDDLE);
     }
 
     /**
-     * 
-     * @param maxElementY
-     * @param alignmentX
-     * @param alignmentY
-     * @return
+     * @param maxElementY max element vertically
+     * @param alignmentX align x
+     * @param alignmentY align y
+     * @return FlexGridPolicy
      */
     public static GridPolicy horizontalFlexGrid(int maxElementY, GridAlignmentX alignmentX, GridAlignmentY alignmentY) {
         return new FlexGridPolicy(maxElementY, FlexGridType.HORIZONTAL, alignmentX, alignmentY);

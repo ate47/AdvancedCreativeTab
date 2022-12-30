@@ -1,21 +1,21 @@
 package fr.atesab.act.gui.components.grid;
 
-import java.util.List;
-
 import fr.atesab.act.gui.components.GuiComponent;
 import fr.atesab.act.gui.components.GuiComponentContainer;
 import fr.atesab.act.gui.components.GuiComponentLocation;
 import fr.atesab.act.utils.ACTUtils;
 
+import java.util.List;
+
 public class FlexGridPolicy implements GridPolicy {
     public enum FlexGridType {
-        HORIZONTAL, VERTICAL;
+        HORIZONTAL, VERTICAL
     }
 
     private final int maxElement;
     private final FlexGridType type;
-    private GridAlignmentX.AlignFunction alignmentX;
-    private GridAlignmentY.AlignFunction alignmentY;
+    private final GridAlignmentX.AlignFunction alignmentX;
+    private final GridAlignmentY.AlignFunction alignmentY;
 
     public FlexGridPolicy(int maxElement, FlexGridType type, GridAlignmentX alignmentX, GridAlignmentY alignmentY) {
         this.type = type;
@@ -33,7 +33,7 @@ public class FlexGridPolicy implements GridPolicy {
 
         switch (type) {
             case VERTICAL:
-                for (var it = components.listIterator(); it.hasNext();) {
+                for (var it = components.listIterator(); it.hasNext(); ) {
                     var i = it.nextIndex();
                     var c = it.next();
 
@@ -42,7 +42,7 @@ public class FlexGridPolicy implements GridPolicy {
                 }
                 break;
             case HORIZONTAL:
-                for (var it = components.listIterator(); it.hasNext();) {
+                for (var it = components.listIterator(); it.hasNext(); ) {
                     var i = it.nextIndex();
                     var c = it.next();
 

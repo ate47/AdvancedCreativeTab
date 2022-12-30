@@ -12,7 +12,7 @@ public @interface InternalCommandModule {
 
     /**
      * @return true if the name of the type should be used as a prefix, false
-     *         otherwise
+     * otherwise
      */
     boolean useBaseName() default true;
 }

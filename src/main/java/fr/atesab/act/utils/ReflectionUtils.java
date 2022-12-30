@@ -1,13 +1,13 @@
 package fr.atesab.act.utils;
 
+import fr.atesab.act.internalcommand.InternalCommandModule;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.atesab.act.internalcommand.InternalCommandModule;
-
 /**
  * A set of tools to help with reflection
- * 
+ *
  * @author ATE47
  * @since 2.4.0
  */
@@ -16,7 +16,7 @@ public class ReflectionUtils {
 
     /**
      * fetch all the superclasses without Object.class
-     * 
+     *
      * @param current the current class
      * @return the list of the superclasses
      */
@@ -27,7 +27,7 @@ public class ReflectionUtils {
     /**
      * fetch all the superclasses and stop at the end or Object.class if current
      * isn't a parent of end without end or Object.class
-     * 
+     *
      * @param current the current class
      * @param end     the end class
      * @return the list of the superclasses

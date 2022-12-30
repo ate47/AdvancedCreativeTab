@@ -1,13 +1,13 @@
 package fr.atesab.act.utils;
 
-import java.util.function.Consumer;
-
 import fr.atesab.act.internalcommand.InternalCommand;
 import fr.atesab.act.internalcommand.InternalCommandModule;
 
+import java.util.function.Consumer;
+
 /**
  * A set of tools to help
- * 
+ *
  * @author ATE47
  * @since 2.5.0
  */
@@ -15,7 +15,7 @@ import fr.atesab.act.internalcommand.InternalCommandModule;
 public class ACTUtils {
     /**
      * check if a number is positive and return it
-     * 
+     *
      * @param value the number to check
      * @param name  the name of the variable
      * @return the number
@@ -29,7 +29,7 @@ public class ACTUtils {
 
     /**
      * check if a number is stricly positive and return it
-     * 
+     *
      * @param value the number to check
      * @param name  the name of the variable
      * @return the number
@@ -43,7 +43,7 @@ public class ACTUtils {
 
     /**
      * check if a number is negative and return it
-     * 
+     *
      * @param value the number to check
      * @param name  the name of the variable
      * @return the number
@@ -57,7 +57,7 @@ public class ACTUtils {
 
     /**
      * check if a number is stricly negative and return it
-     * 
+     *
      * @param value the number to check
      * @param name  the name of the variable
      * @return the number
@@ -71,10 +71,10 @@ public class ACTUtils {
 
     /**
      * modulus, if a > 0 mod(a,b) = a%b
-     * 
+     *
      * @param a a
      * @param b b
-     * @return mod(a,b)
+     * @return mod(a, b)
      */
     @InternalCommand
     public static int mod(int a, int b) {
@@ -83,7 +83,7 @@ public class ACTUtils {
 
     /**
      * apply the consumer and return t
-     * 
+     *
      * @param <T>    t type
      * @param t      t
      * @param action the consumer to apply

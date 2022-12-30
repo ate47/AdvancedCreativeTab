@@ -11,7 +11,7 @@ public enum GridAlignmentY {
     public interface AlignFunction {
         /**
          * process the alignement of the object
-         * 
+         *
          * @param containerHeight the height of the container
          * @param height          the height of the object
          * @return the Y location of the object

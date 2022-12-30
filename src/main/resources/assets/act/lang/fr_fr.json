@@ -5,6 +5,7 @@
   "key.act.menu": "Ouvrir le menu",
   "key.act.edit": "Editer l'objet en main",
 
+  "key.act": "Advanced Creative Tab",
   "itemGroup.act": "Advanced Creative Tab",
 
   "gui.act.error": "Erreur",
@@ -205,5 +206,6 @@
   "cmd.act.palette": "Palette du chat",
 
   "cmd.act.error.noargument": "Cette commande prend des arguments!",
-  "cmd.act.argument.player.unknown": "Joueur inconnu ! '%s'"
+  "cmd.act.argument.player.unknown": "Joueur inconnu ! '%s'",
+  "cmd.act.argument.player.noconnection": "Pas de connexion !"
 }

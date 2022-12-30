@@ -1,13 +1,13 @@
 package fr.atesab.act.gui.components.grid;
 
-import java.util.List;
-
 import fr.atesab.act.gui.components.GuiComponent;
 import fr.atesab.act.gui.components.GuiComponentContainer;
 import fr.atesab.act.gui.components.GuiComponentLocation;
 
+import java.util.List;
+
 public class HorizontalGridPolicy implements GridPolicy {
-    private GridAlignmentY.AlignFunction alignFunction;
+    private final GridAlignmentY.AlignFunction alignFunction;
 
     public HorizontalGridPolicy(GridAlignmentY alignment) {
         this.alignFunction = alignment.alignFunction;

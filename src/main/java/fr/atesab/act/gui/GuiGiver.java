@@ -1,168 +1,164 @@
 package fr.atesab.act.gui;
 
-import java.awt.Color;
-import java.util.function.Consumer;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import fr.atesab.act.ACTMod;
+import fr.atesab.act.gui.components.ACTButton;
 import fr.atesab.act.gui.modifier.GuiItemStackModifier;
 import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+
+import java.awt.*;
+import java.util.function.Consumer;
 
 public class GuiGiver extends GuiModifier<String> {
-	private Button giveButton, saveButton, doneButton;
-	private EditBox code;
-	private String preText;
-	private ItemStack currentItemStack;
-	private Consumer<String> setter;
-	private boolean deleteButton;
+    private Button giveButton, saveButton, doneButton;
+    private EditBox code;
+    private String preText;
+    private ItemStack currentItemStack;
+    private Consumer<String> setter;
+    private boolean deleteButton;
 
-	public GuiGiver(Screen parent) {
-		super(parent, new TranslatableComponent("gui.act.give"), s -> {
-		});
-		if (mc.player != null) {
-			ItemStack mainHand = mc.player.getMainHandItem();
-			this.currentItemStack = mainHand != null ? mainHand : mc.player.getItemInHand(InteractionHand.OFF_HAND);
-			this.preText = ItemUtils.getGiveCode(this.currentItemStack);
-		}
-	}
+    public GuiGiver(Screen parent) {
+        super(parent, Component.translatable("gui.act.give"), s -> {
+        });
+        if (mc.player != null) {
+            this.currentItemStack = mc.player.getMainHandItem();
+            this.preText = ItemUtils.getGiveCode(this.currentItemStack);
+        }
+    }
 
-	public GuiGiver(Screen parent, ItemStack itemStack) {
-		this(parent, itemStack, null, false);
-	}
+    public GuiGiver(Screen parent, ItemStack itemStack) {
+        this(parent, itemStack, null, false);
+    }
 
-	public GuiGiver(Screen parent, ItemStack itemStack, Consumer<String> setter, boolean deleteButton) {
-		super(parent, new TranslatableComponent("gui.act.give"), s -> {
-		});
-		this.preText = itemStack != null ? ItemUtils.getGiveCode(itemStack) : "";
-		this.currentItemStack = itemStack;
-		this.setter = setter;
-		this.deleteButton = deleteButton;
-	}
+    public GuiGiver(Screen parent, ItemStack itemStack, Consumer<String> setter, boolean deleteButton) {
+        super(parent, Component.translatable("gui.act.give"), s -> {
+        });
+        this.preText = itemStack != null ? ItemUtils.getGiveCode(itemStack) : "";
+        this.currentItemStack = itemStack;
+        this.setter = setter;
+        this.deleteButton = deleteButton;
+    }
 
-	public GuiGiver(Screen parent, String preText) {
-		this(parent, preText, s -> {
-		}, false);
-	}
+    public GuiGiver(Screen parent, String preText) {
+        this(parent, preText, s -> {
+        }, false);
+    }
 
-	public GuiGiver(Screen parent, String preText, Consumer<String> setter, boolean deleteButton) {
-		this(parent, preText != null && !preText.isEmpty() ? ItemUtils.getFromGiveCode(preText) : null);
-		this.preText = preText;
-	}
+    public GuiGiver(Screen parent, String preText, Consumer<String> setter, boolean deleteButton) {
+        this(parent, preText != null && !preText.isEmpty() ? ItemUtils.getFromGiveCode(preText) : null);
+        this.preText = preText;
+    }
 
-	@Override
-	public boolean isPauseScreen() {
-		return false || (parent != null && parent.isPauseScreen());
-	}
+    @Override
+    public boolean isPauseScreen() {
+        return parent != null && parent.isPauseScreen();
+    }
 
-	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		renderBackground(matrixStack);
-		code.render(matrixStack, mouseX, mouseY, partialTicks);
-		GuiUtils.drawCenterString(font, I18n.get("gui.act.give"), width / 2, code.y - 21, Color.ORANGE.getRGB(), 20);
-		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		if (currentItemStack != null) {
-			GuiUtils.drawItemStack(itemRenderer, this, currentItemStack, code.x + code.getWidth() + 5, code.y - 2);
-			if (GuiUtils.isHover(code.x + code.getWidth() + 5, code.y, 20, 20, mouseX, mouseY))
-				renderTooltip(matrixStack, currentItemStack, mouseX, mouseY);
-		}
-	}
+    @Override
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        renderBackground(matrixStack);
+        code.render(matrixStack, mouseX, mouseY, partialTicks);
+        GuiUtils.drawCenterString(font, I18n.get("gui.act.give"), width / 2, code.y - 21, Color.ORANGE.getRGB(), 20);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        if (currentItemStack != null) {
+            GuiUtils.drawItemStack(itemRenderer, this, currentItemStack, code.x + code.getWidth() + 5, code.y - 2);
+            if (GuiUtils.isHover(code.x + code.getWidth() + 5, code.y, 20, 20, mouseX, mouseY))
+                renderTooltip(matrixStack, currentItemStack, mouseX, mouseY);
+        }
+    }
 
-	@Override
-	public void init() {
+    @Override
+    public void init() {
 
-		code = new EditBox(font, width / 2 - 178, height / 2 + 2, 356, 16, new TextComponent(""));
-		code.setMaxLength(Integer.MAX_VALUE);
-		if (preText != null)
-			code.setValue(preText.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
-		int s1 = deleteButton ? 120 : 180;
-		int s2 = 120;
-		addRenderableWidget(giveButton = new Button(width / 2 - 180, height / 2 + 21, s1, 20,
-				new TranslatableComponent("gui.act.give.give"), b -> ItemUtils.give(currentItemStack)));
-		addRenderableWidget(new Button(width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20,
-				new TranslatableComponent("gui.act.give.copy"), b -> GuiUtils.addToClipboard(code.getValue())));
-		addRenderableWidget(
-				new Button(width / 2 - 180 + (deleteButton ? 2 * s1 + 1 : 0), height / 2 + 21 + (deleteButton ? 0 : 21),
-						(deleteButton ? s1 - 1 : s2), 20, new TranslatableComponent("gui.act.give.editor"), b -> {
-							getMinecraft().setScreen(new GuiItemStackModifier(this, currentItemStack,
-									itemStack -> setCurrent(itemStack)));
-						}));
-		doneButton = addRenderableWidget(new Button(width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
-				new TranslatableComponent("gui.done"), b -> {
-					if (setter != null && currentItemStack != null)
-						setter.accept(code.getValue());
-					getMinecraft().setScreen(parent);
-				}));
-		if (setter != null)
-			addRenderableWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
-					new TranslatableComponent("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
-		else
-			saveButton = addRenderableWidget(new Button(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
-					new TranslatableComponent("gui.act.save"), b -> {
-						if (parent instanceof GuiMenu)
-							((GuiMenu) parent).get();
-						ACTMod.saveItem(code.getValue());
-						getMinecraft().setScreen(new GuiMenu(parent));
-					}));
-		if (deleteButton)
-			addRenderableWidget(new Button(width / 2 - 180, height / 2 + 42, s2, 20,
-					new TranslatableComponent("gui.act.delete"), b -> {
-						setter.accept(null);
-						getMinecraft().setScreen(parent);
-					}));
-		super.init();
-	}
+        code = new EditBox(font, width / 2 - 178, height / 2 + 2, 356, 16, Component.literal(""));
+        code.setMaxLength(Integer.MAX_VALUE);
+        if (preText != null)
+            code.setValue(preText.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
+        int s1 = deleteButton ? 120 : 180;
+        int s2 = 120;
+        addRenderableWidget(giveButton = new ACTButton(width / 2 - 180, height / 2 + 21, s1, 20,
+                Component.translatable("gui.act.give.give"), b -> ItemUtils.give(currentItemStack)));
+        addRenderableWidget(new ACTButton(width / 2 + s1 - 178, height / 2 + 21, s1 - 2, 20,
+                Component.translatable("gui.act.give.copy"), b -> GuiUtils.addToClipboard(code.getValue())));
+        addRenderableWidget(
+                new ACTButton(width / 2 - 180 + (deleteButton ? 2 * s1 + 1 : 0), height / 2 + 21 + (deleteButton ? 0 : 21),
+                        (deleteButton ? s1 - 1 : s2), 20, Component.translatable("gui.act.give.editor"), b -> getMinecraft().setScreen(new GuiItemStackModifier(this, currentItemStack,
+                                this::setCurrent))));
+        doneButton = addRenderableWidget(new ACTButton(width / 2 - 179 + 2 * s2, height / 2 + 42, s2 - 1, 20,
+                Component.translatable("gui.done"), b -> {
+            if (setter != null && currentItemStack != null)
+                setter.accept(code.getValue());
+            getMinecraft().setScreen(parent);
+        }));
+        if (setter != null)
+            addRenderableWidget(new ACTButton(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
+                    Component.translatable("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
+        else
+            saveButton = addRenderableWidget(new ACTButton(width / 2 - 58, height / 2 + 42, s2 - 2, 20,
+                    Component.translatable("gui.act.save"), b -> {
+                if (parent instanceof GuiMenu)
+                    ((GuiMenu) parent).get();
+                ACTMod.saveItem(code.getValue());
+                getMinecraft().setScreen(new GuiMenu(parent));
+            }));
+        if (deleteButton)
+            addRenderableWidget(new ACTButton(width / 2 - 180, height / 2 + 42, s2, 20,
+                    Component.translatable("gui.act.delete"), b -> {
+                setter.accept(null);
+                getMinecraft().setScreen(parent);
+            }));
+        super.init();
+    }
 
-	@Override
-	public boolean charTyped(char key, int modifiers) {
-		return code.charTyped(key, modifiers);
-	}
+    @Override
+    public boolean charTyped(char key, int modifiers) {
+        return code.charTyped(key, modifiers);
+    }
 
-	@Override
-	public boolean keyPressed(int key, int scanCode, int modifiers) {
-		return code.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
-	}
+    @Override
+    public boolean keyPressed(int key, int scanCode, int modifiers) {
+        return code.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
+    }
 
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		return code.mouseClicked(mouseX, mouseY, mouseButton) || super.mouseClicked(mouseX, mouseY, mouseButton);
-	}
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+        return code.mouseClicked(mouseX, mouseY, mouseButton) || super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
 
-	private void setCurrent(ItemStack currentItemStack) {
-		preText = ItemUtils.getGiveCode(this.currentItemStack = currentItemStack);
-	}
+    private void setCurrent(ItemStack currentItemStack) {
+        preText = ItemUtils.getGiveCode(this.currentItemStack = currentItemStack);
+    }
 
-	public void setCurrentItemStack(ItemStack currentItemStack) {
-		this.currentItemStack = currentItemStack;
-		this.preText = ItemUtils.getGiveCode(currentItemStack);
-	}
+    public void setCurrentItemStack(ItemStack currentItemStack) {
+        this.currentItemStack = currentItemStack;
+        this.preText = ItemUtils.getGiveCode(currentItemStack);
+    }
 
-	public void setPreText(String preText) {
-		this.preText = preText;
-		this.currentItemStack = preText != null && !preText.isEmpty() ? ItemUtils.getFromGiveCode(preText) : null;
-	}
+    public void setPreText(String preText) {
+        this.preText = preText;
+        this.currentItemStack = preText != null && !preText.isEmpty() ? ItemUtils.getFromGiveCode(preText) : null;
+    }
 
-	@Override
-	public void tick() {
-		code.tick();
-		this.currentItemStack = ItemUtils
-				.getFromGiveCode(code.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
-		this.giveButton.active = this.currentItemStack != null && getMinecraft().player != null
-				&& getMinecraft().player.isCreative();
-		this.doneButton.active = (setter != null && this.currentItemStack != null) || setter == null;
-		if (saveButton != null)
-			saveButton.active = this.currentItemStack != null;
-		super.tick();
-	}
+    @Override
+    public void tick() {
+        code.tick();
+        this.currentItemStack = ItemUtils
+                .getFromGiveCode(code.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+        this.giveButton.active = this.currentItemStack != null && getMinecraft().player != null
+                && getMinecraft().player.isCreative();
+        this.doneButton.active = setter == null || this.currentItemStack != null;
+        if (saveButton != null)
+            saveButton.active = this.currentItemStack != null;
+        super.tick();
+    }
 }

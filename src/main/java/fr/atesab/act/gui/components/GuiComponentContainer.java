@@ -1,13 +1,13 @@
 package fr.atesab.act.gui.components;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.atesab.act.gui.components.grid.GridPolicies;
 import fr.atesab.act.gui.components.grid.GridPolicy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class GuiComponentContainer {
-    private List<GuiComponentLocation> components = new ArrayList<>();
+    private final List<GuiComponentLocation> components = new ArrayList<>();
     private boolean inInit = false;
     private int globalWidth, globalHeight;
     private GridPolicy gridPolicy;
@@ -18,7 +18,7 @@ public abstract class GuiComponentContainer {
 
     /**
      * set the component location policy
-     * 
+     *
      * @param gridPolicy the policy
      */
     public void setGridPolicy(GridPolicy gridPolicy) {
@@ -48,7 +48,7 @@ public abstract class GuiComponentContainer {
     /**
      * add components to the container, this method is better than calling
      * {@link #addComponent(GuiComponent)} multiple time.
-     * 
+     *
      * @param components the components to add
      */
     public void addComponents(GuiComponent... components) {
@@ -62,7 +62,7 @@ public abstract class GuiComponentContainer {
     /**
      * add a component and return it, use {@link #addComponents(GuiComponent...)} to
      * add multiple components.
-     * 
+     *
      * @param <T>       the component type
      * @param component the component
      * @return the component

@@ -1,12 +1,10 @@
 package fr.atesab.act.internalcommand;
 
+import com.mojang.brigadier.tree.CommandNode;
+import net.minecraft.commands.CommandSourceStack;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.mojang.brigadier.tree.CommandNode;
-
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 
 public class InternalCommandExecutor {
     private final Map<String, AbstractInternalCommand> commands = new HashMap<>();

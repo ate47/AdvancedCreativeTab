@@ -5,6 +5,7 @@
   "key.act.menu": "Open the menu",
   "key.act.edit": "Edit inhand item",
 
+  "key.act": "Advanced Creative Tab",
   "itemGroup.act": "Advanced Creative Tab",
 
   "gui.act.error": "Error",
@@ -205,5 +206,6 @@
   "cmd.act.palette": "Chat palette",
 
   "cmd.act.error.noargument": "This command take arguments!",
-  "cmd.act.argument.player.unknown": "Unknown player '%s'"
+  "cmd.act.argument.player.unknown": "Unknown player '%s'",
+  "cmd.act.argument.player.noconnection": "No connection!"
 }

@@ -1,11 +1,11 @@
 package fr.atesab.act.utils;
 
+import fr.atesab.act.internalcommand.InternalCommandModule;
+import net.minecraftforge.resource.ResourcePackLoader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-import fr.atesab.act.internalcommand.InternalCommandModule;
-import net.minecraftforge.resource.ResourcePackLoader;
 
 @InternalCommandModule(name = "file")
 public class FileUtils {
@@ -13,11 +13,11 @@ public class FileUtils {
     /**
      * units to format {@link #sizeUnit(long, String)}
      */
-    public static final String[] UNITS = { "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+    public static final String[] UNITS = {"", "k", "M", "G", "T", "P", "E", "Z", "Y"};
 
     /**
      * format a number with an unit
-     * 
+     *
      * @param size     the number
      * @param unitName the unit to append to the prefix (k, M, G, etc.)
      * @return the formatted string
@@ -35,7 +35,7 @@ public class FileUtils {
 
     /**
      * get the extension of a file
-     * 
+     *
      * @param f the file
      * @return the extension
      */
@@ -51,16 +51,22 @@ public class FileUtils {
 
     /**
      * get a stream from a file in a mod jar
-     * 
+     *
      * @param modId the mod id
      * @param path  the path in the jar
      * @return the stream
-     * @throws IOException
+     * @throws IOException error while loading from the jar
      */
     public static InputStream fetchFromModJar(String modId, String path) throws IOException {
         var pack = ResourcePackLoader.getPackFor(modId)
                 .orElseThrow(() -> new RuntimeException("Can't find modid " + modId));
-        return pack.getRootResource(path);
+        try {
+            return pack.getRootResource(path);
+        } catch (Throwable t) {
+            try (pack) {
+                throw t;
+            }
+        }
     }
 
     private FileUtils() {

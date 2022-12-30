@@ -11,7 +11,7 @@ public enum GridAlignmentX {
     public interface AlignFunction {
         /**
          * process the alignement of the object
-         * 
+         *
          * @param containerWidth the width of the container
          * @param width          the width of the object
          * @return the X location of the object

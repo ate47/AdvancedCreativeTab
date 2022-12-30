@@ -1,13 +1,13 @@
 package fr.atesab.act.gui.components.grid;
 
-import java.util.List;
-
 import fr.atesab.act.gui.components.GuiComponent;
 import fr.atesab.act.gui.components.GuiComponentContainer;
 import fr.atesab.act.gui.components.GuiComponentLocation;
 
+import java.util.List;
+
 public class VerticalGridPolicy implements GridPolicy {
-    private GridAlignmentX.AlignFunction alignFunction;
+    private final GridAlignmentX.AlignFunction alignFunction;
 
     public VerticalGridPolicy(GridAlignmentX alignment) {
         this.alignFunction = alignment.alignFunction;

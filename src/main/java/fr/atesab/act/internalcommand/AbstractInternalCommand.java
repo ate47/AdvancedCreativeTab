@@ -1,12 +1,10 @@
 package fr.atesab.act.internalcommand;
 
-import java.lang.reflect.Method;
-
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+
+import java.lang.reflect.Method;
 
 class AbstractInternalCommand {
     Class<?> module;
