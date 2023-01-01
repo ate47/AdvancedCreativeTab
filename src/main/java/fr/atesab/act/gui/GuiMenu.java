@@ -125,9 +125,14 @@ public class GuiMenu extends GuiListModifier<Object> {
 
     @Override
     protected Object get() {
-        ACTMod.getCustomItems().clear();
-        getElements().stream().filter(MenuListElement.class::isInstance)
-                .forEach(m -> ACTMod.saveItem(ItemUtils.getGiveCode(((MenuListElement) m).stack)));
+        ACTMod.getCustomItems().applyUpdate(lst -> {
+            lst.clear();
+            for (ListElement element : getElements()) {
+                if (element instanceof MenuListElement m) {
+                    lst.add(ItemUtils.getGiveCode(m.stack));
+                }
+            }
+        });
         ACTMod.saveConfigs();
         return null;
     }

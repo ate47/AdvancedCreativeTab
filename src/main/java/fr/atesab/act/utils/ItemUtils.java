@@ -542,18 +542,16 @@ public class ItemUtils {
      * @see #getEnchantments(ItemStack)
      * @since 2.0
      */
-    @SuppressWarnings("deprecation")
     public static List<Tuple<Enchantment, Integer>> getEnchantments(ItemStack stack, boolean book) {
-        LinkedTreeMap<Enchantment, Integer> map = new LinkedTreeMap<>(
-                (e1, e2) -> e2.getDescriptionId().compareToIgnoreCase(e1.getDescriptionId()));
-        Registry.ENCHANTMENT.forEach(e -> map.put(e, 0));
+        Map<Enchantment, Integer> map = new HashMap<>();
+        ForgeRegistries.ENCHANTMENTS.forEach(e -> map.put(e, 0));
         String key = book ? NBT_CHILD_BOOK_ENCHANTMENTS : NBT_CHILD_ENCHANTMENTS;
         ListTag list = stack.getTag() != null && stack.getTag().contains(key) ? stack.getTag().getList(key, 10)
                 : new ListTag();
         for (int i = 0; i < list.size(); i++) {
             CompoundTag tag = list.getCompound(i);
             if (tag.contains("id")) {
-                Enchantment ench = Registry.ENCHANTMENT.get(ResourceLocation.tryParse(tag.getString("id")));
+                Enchantment ench = ForgeRegistries.ENCHANTMENTS.getValue(ResourceLocation.tryParse(tag.getString("id")));
                 if (ench != null) {
                     map.put(ench, tag.contains("lvl") ? tag.getInt("lvl") : 0);
                 }
@@ -561,7 +559,9 @@ public class ItemUtils {
 
         }
         List<Tuple<Enchantment, Integer>> result = new ArrayList<>();
-        map.keySet().forEach(e -> result.add(new Tuple<>(e, map.get(e))));
+        map.keySet().stream()
+                .sorted(Comparator.comparing(Enchantment::getDescriptionId))
+                .forEach(e -> result.add(new Tuple<>(e, map.get(e))));
         return result;
     }
 
@@ -613,10 +613,9 @@ public class ItemUtils {
      * @see #getFromGiveCode(String)
      * @since 2.0
      */
-    @SuppressWarnings("deprecation")
     public static String getGiveCode(ItemStack itemStack, boolean showCount) {
         boolean noTag = itemStack.getTag() != null && !itemStack.getTag().isEmpty();
-        return Registry.ITEM.getKey(itemStack.getItem()) + (noTag ? itemStack.getTag().toString() : "")
+        return ForgeRegistries.ITEMS.getKey(itemStack.getItem()) + (noTag ? itemStack.getTag().toString() : "")
                 + (itemStack.getCount() == 1 && showCount ? "" : " " + itemStack.getCount());
     }
 

@@ -38,7 +38,6 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
         private boolean errDur = false, errAmp = false;
         private final Button type;
 
-        @SuppressWarnings("deprecation")
         public CustomPotionListElement(GuiPotionModifier parent, MobEffectInstance potionEffect) {
             super(400, 50);
             int l = 5 + Math.max(font.width(I18n.get("gui.act.modifier.meta.potion.duration") + " : "),
@@ -58,7 +57,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
                     Component.translatable("gui.act.modifier.meta.potion.type"), b -> {
                 List<Tuple<String, MobEffect>> pots = new ArrayList<>();
                 // Potion.REGISTRY
-                Registry.MOB_EFFECT
+                ForgeRegistries.MOB_EFFECTS
                         .forEach(pot -> pots.add(new Tuple<>(I18n.get(pot.getDescriptionId()), pot)));
                 mc.setScreen(new GuiButtonListSelector<>(parent,
                         Component.translatable("gui.act.modifier.meta.potion.type"), pots, pot -> {
@@ -173,7 +172,6 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
         private final Button type;
 
-        @SuppressWarnings("deprecation")
         public MainPotionListElement(GuiPotionModifier parent) {
             super(400, 29);
             this.parent = parent;
@@ -183,7 +181,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
             buttonList.add(type = new ACTButton(201, 0, 199, 20, Component.literal(""), b -> {
                 List<Tuple<String, Potion>> pots = new ArrayList<>();
                 // PotionType.REGISTRY
-                Registry.POTION.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
+                ForgeRegistries.POTIONS.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
                 mc.setScreen(new GuiButtonListSelector<>(parent,
                         Component.translatable("gui.act.modifier.meta.potion.type"), pots, pot -> {
                     parent.main = pot;

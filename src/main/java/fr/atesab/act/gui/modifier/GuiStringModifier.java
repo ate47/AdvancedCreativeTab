@@ -25,7 +25,7 @@ public class GuiStringModifier extends GuiModifier<String> {
     public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         renderBackground(matrixStack);
         field.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawRightString(font, I18n.get("gui.act.text") + " : ", field.x, field.y, Color.ORANGE.getRGB(),
+        GuiUtils.drawRightString(font, I18n.get("gui.act.text") + " : ", field.getX(), field.getY(), Color.ORANGE.getRGB(),
                 field.getHeight());
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }

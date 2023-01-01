@@ -7,6 +7,7 @@ import fr.atesab.act.command.arguments.PlayerListArgumentType;
 import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -19,7 +20,7 @@ public class ModdedCommandHead extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
         return command.then(Commands.argument("players", PlayerListArgumentType.playerList()).executes(c -> {
             try {
                 ItemUtils.give(ItemUtils.getHeads(PlayerListArgumentType.getPlayerList(c, "players")));

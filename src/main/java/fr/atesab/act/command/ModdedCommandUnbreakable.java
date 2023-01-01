@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -17,7 +18,7 @@ public class ModdedCommandUnbreakable extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
         return command.then(Commands.argument("unbreakable", BoolArgumentType.bool()).executes(c -> {
             var mc = Minecraft.getInstance();
             if (mc.player == null) {

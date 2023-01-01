@@ -13,7 +13,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -502,28 +501,7 @@ public class GuiUtils {
     }
 
     /**
-     * Draw relatively a {@link Widget}
-     *
-     * @param stack        the matrix stack
-     * @param field        the field
-     * @param offsetX      the x offset
-     * @param offsetY      the y offset
-     * @param mouseX       the mouse X location
-     * @param mouseY       the mouse Y location
-     * @param partialTicks the partialTicks of the render
-     * @since 2.0
-     */
-    public static void drawRelative(PoseStack stack, AbstractWidget field, int offsetX, int offsetY, int mouseX,
-                                    int mouseY, float partialTicks) {
-        field.x += offsetX; // x
-        field.y += offsetY; // y
-        field.render(stack, mouseX + offsetX, mouseY + offsetY, partialTicks);
-        field.x -= offsetX;
-        field.y -= offsetY;
-    }
-
-    /**
-     * Draw relatively a {@link Widget}
+     * Draw relatively a {@link AbstractWidget}
      *
      * @param stack        the matrix stack
      * @param widget       the widget
@@ -534,13 +512,13 @@ public class GuiUtils {
      * @param partialTicks the partialTicks of the render
      * @since 2.0
      */
-    public static void drawRelativeToolTip(PoseStack stack, AbstractWidget widget, int offsetX, int offsetY, int mouseX,
-                                           int mouseY, float partialTicks) {
-        widget.x += offsetX; // x
-        widget.y += offsetY; // y
-        widget.renderToolTip(stack, mouseX + offsetX, mouseY + offsetY); // renderToolTip
-        widget.x -= offsetX;
-        widget.y -= offsetY;
+    public static void drawRelative(PoseStack stack, AbstractWidget widget, int offsetX, int offsetY, int mouseX,
+                                    int mouseY, float partialTicks) {
+        widget.setX(widget.getX() + offsetX); // x
+        widget.setY(widget.getY() + offsetY); // y
+        widget.render(stack, mouseX + offsetX, mouseY + offsetY, partialTicks);
+        widget.setX(widget.getX() - offsetX);
+        widget.setY(widget.getY() - offsetY);
     }
 
     /**
@@ -578,7 +556,7 @@ public class GuiUtils {
     }
 
     /**
-     * Draw a String to the right of a {@link Widget}
+     * Draw a String to the right of a {@link AbstractWidget}
      *
      * @param font  the renderer
      * @param text  the string to render
@@ -589,11 +567,11 @@ public class GuiUtils {
      * @since 2.0
      */
     public static void drawRightString(Font font, String text, AbstractWidget field, int color) {
-        drawRightString(font, text, field.x, field.y, color, field.getHeight());
+        drawRightString(font, text, field.getX(), field.getY(), color, field.getHeight());
     }
 
     /**
-     * Draw a String to the right of a {@link Widget} with offsets
+     * Draw a String to the right of a {@link AbstractWidget} with offsets
      *
      * @param font    the renderer
      * @param text    the string to render
@@ -606,7 +584,7 @@ public class GuiUtils {
      */
     public static void drawRightString(Font font, String text, AbstractWidget field, int color, int offsetX,
                                        int offsetY) {
-        drawRightString(font, text, field.x + offsetX, field.y + offsetY, color, field.getHeight());
+        drawRightString(font, text, field.getX() + offsetX, field.getY() + offsetY, color, field.getHeight());
     }
 
     /**
@@ -793,7 +771,7 @@ public class GuiUtils {
     }
 
     /**
-     * Check if a {@link Widget} is hover by a location (mouse)
+     * Check if a {@link AbstractWidget} is hover by a location (mouse)
      *
      * @param widget the widget
      * @param mouseX the mouse x location
@@ -803,7 +781,7 @@ public class GuiUtils {
      * @since 2.0
      */
     public static boolean isHover(AbstractWidget widget, int mouseX, int mouseY) {
-        return isHover(widget.x, widget.y, widget.getWidth(), widget.getHeight(), mouseX, mouseY);
+        return isHover(widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(), mouseX, mouseY);
     }
 
     /**

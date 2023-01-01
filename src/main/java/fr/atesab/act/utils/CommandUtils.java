@@ -86,7 +86,7 @@ public class CommandUtils {
             if (ClientCommandHandler.runCommand(message)) {
                 return;
             }
-            p.commandSigned(message, Component.literal(message));
+            p.connection.sendCommand(message.substring(1));
         }
     }
 

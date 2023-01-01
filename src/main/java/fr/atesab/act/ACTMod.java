@@ -3,11 +3,8 @@ package fr.atesab.act;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.ParseResults;
-import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
 import com.mojang.datafixers.util.Either;
@@ -24,6 +21,7 @@ import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.internalcommand.InternalCommandExecutor;
+import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
@@ -34,32 +32,32 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.SuggestionProviders;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.client.gui.widget.ModListWidget;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -68,6 +66,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -81,7 +80,6 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
@@ -140,7 +138,7 @@ public class ACTMod {
     @Deprecated
     public static final String MOD_FACTORY = "fr.atesab.act.gui.ModGuiFactory";
     private static ModdedCommandACT modCommand;
-    public static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
+    private static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
     public static final String TEMPLATE_TAG_NAME = "TemplateData";
     public static final Random RANDOM = new Random();
 
@@ -158,7 +156,7 @@ public class ACTMod {
     private static KeyMapping giver, menu, edit;
     private static final List<ItemStack> templates = new ArrayList<>();
     private static final Map<String, Map<String, Consumer<StringModifier>>> stringModifier = new HashMap<>();
-    private static Configuration config;
+    private static final Configuration config = new Configuration();
     private static final CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
     private static CommandDispatcher<SharedSuggestionProvider> SharedSuggestionProvider;
     private static final InternalCommandExecutor internalCommandExecutor = new InternalCommandExecutor();
@@ -192,7 +190,7 @@ public class ACTMod {
      * @return the codes
      * @since 2.1
      */
-    public static List<String> getCustomItems() {
+    public static SyncList<String> getCustomItems() {
         return config.getCustomitems();
     }
 
@@ -225,6 +223,19 @@ public class ACTMod {
      */
     public static String getTemplateData(ItemStack template) {
         return ItemUtils.getCustomTag(template, TEMPLATE_TAG_NAME, null);
+    }
+
+    /**
+     * find the tab of an item
+     *
+     * @param stack item stack
+     * @return tab or null
+     */
+    public static CreativeModeTab findTabForItem(ItemStack stack) {
+        // might be useful to use the search tree instead to reduce usage
+        return CreativeModeTabs.allTabs().stream()
+                .filter(tab -> tab.contains(stack))
+                .findAny().orElse(null);
     }
 
     /**
@@ -336,7 +347,7 @@ public class ACTMod {
      * @param code the code
      */
     public static void saveItem(String code) {
-        LOGGER.info("Adding : " + code);
+        LOGGER.info("Adding : {}", code);
         config.getCustomitems().add(0, code);
     }
 
@@ -390,7 +401,6 @@ public class ACTMod {
         p.connection.send(new ServerboundTeleportToEntityPacket(to));
         // reset our old mode
         if (mode != GameType.SPECTATOR) {
-            assert mode != null;
             ModdedCommand.sendSigned("/gamemode " + mode.getName());
         }
     }
@@ -441,11 +451,24 @@ public class ACTMod {
 
     public ACTMod() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        bus.addListener(this::clientSetup);
         bus.addListener(this::commonSetup);
         bus.addListener(this::registerKeyBinding);
-        config = new Configuration();
-        config.sync(FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml").toFile());
+        bus.addListener(this::registerCreativeTab);
+        config.sync(FMLPaths.CONFIGDIR.get().resolve(MOD_ID + ".toml"));
+        config.addCustomItemsCallback(this::syncItemConfig);
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    private void syncItemConfig(List<String> itemConfig) {
+        // force the regeneration of the tabs
+        CreativeModeTabs.CACHED_ENABLED_FEATURES = null;
+        // if (ADVANCED_CREATIVE_TAB.isTabRegistered()) {
+        //     LOGGER.info("Sync items config");
+        //     // ADVANCED_CREATIVE_TAB.getTab().buildContents(FeatureFlagSet.of(), false);
+        // } else {
+        //     LOGGER.info("Tab not yet generated");
+        // }
     }
 
     private void checkModList(Screen screen) {
@@ -476,24 +499,36 @@ public class ACTMod {
         ev.register(ACTMod.edit = new KeyMapping("key.act.edit", GLFW.GLFW_KEY_H, "key.act"));
     }
 
-    private void registerCommandDispatcher(CommandDispatcher<CommandSourceStack> dispatcher) {
+    private void registerCommandDispatcher(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         // /act
-        new ModdedCommandACT().register(dispatcher);
+        new ModdedCommandACT().register(dispatcher, context);
 
         // /gm
-        new ModdedCommandGamemode("gm").register(dispatcher);
-        new ModdedCommandGamemodeQuick("gmc", GameType.CREATIVE).register(dispatcher);
-        new ModdedCommandGamemodeQuick("gma", GameType.ADVENTURE).register(dispatcher);
-        new ModdedCommandGamemodeQuick("gms", GameType.SURVIVAL).register(dispatcher);
-        new ModdedCommandGamemodeQuick("gmsp", GameType.SPECTATOR).register(dispatcher);
+        new ModdedCommandGamemode("gm").register(dispatcher, context);
+        new ModdedCommandGamemodeQuick("gmc", GameType.CREATIVE).register(dispatcher, context);
+        new ModdedCommandGamemodeQuick("gma", GameType.ADVENTURE).register(dispatcher, context);
+        new ModdedCommandGamemodeQuick("gms", GameType.SURVIVAL).register(dispatcher, context);
+        new ModdedCommandGamemodeQuick("gmsp", GameType.SPECTATOR).register(dispatcher, context);
+    }
+
+    private void registerCreativeTab(CreativeModeTabEvent.Register ev) {
+        ADVANCED_CREATIVE_TAB.register(ev);
     }
 
     @SubscribeEvent
     public void registerCommand(RegisterClientCommandsEvent ev) {
         // register over the Forge and ACT dispatcher to have the suggestions
-        registerCommandDispatcher(ev.getDispatcher());
-        registerCommandDispatcher(dispatcher);
+        registerCommandDispatcher(ev.getDispatcher(), ev.getBuildContext());
+        registerCommandDispatcher(dispatcher, ev.getBuildContext());
 
+        LOGGER.info("Commands registered.");
+    }
+
+    private void clientSetup(FMLClientSetupEvent ev) {
+        ADVANCED_CREATIVE_TAB.buildSubItems();
+    }
+
+    private void commonSetup(FMLCommonSetupEvent ev) {
         internalCommandExecutor.registerModule(ACTUtils.class);
         internalCommandExecutor.registerModule(ChatUtils.class);
         internalCommandExecutor.registerModule(CommandUtils.class);
@@ -501,11 +536,6 @@ public class ACTMod {
         internalCommandExecutor.registerModule(GuiUtils.class);
         internalCommandExecutor.registerModule(ItemUtils.class);
         internalCommandExecutor.registerModule(ReflectionUtils.class);
-
-        LOGGER.info("Commands registered.");
-    }
-
-    private void commonSetup(FMLCommonSetupEvent ev) {
 
 
         ModList.get().getModContainerById(MOD_ID).ifPresent(con -> {
@@ -541,22 +571,6 @@ public class ACTMod {
             // Register modifier for every items
             registerStringModifier(i.getDescriptionId() + ".name", "registry.items",
                     sm -> sm.setString(registryName.toString()));
-
-            if (i == Items.AIR) {
-                return; // ignore air
-            }
-
-            // build cheat tab
-            if (i.getCreativeTabs() == null || i.getCreativeTabs().isEmpty() || i.getItemCategory() == null) {
-                ADVANCED_CREATIVE_TAB.addSubitem(i);
-            } else {
-                NonNullList<ItemStack> sub = NonNullList.create();
-                i.fillItemCategory(CreativeModeTab.TAB_SEARCH, sub);
-                if (sub.stream().noneMatch(is -> is.getItem().equals(i) && (is.getTag() == null || is.getTag().isEmpty()
-                        || !(is.getTag().size() == 1 && is.getTag().contains("damage"))))) {
-                    ADVANCED_CREATIVE_TAB.addSubitem(i);
-                }
-            }
         });
         /*
          * Register modifier for every registries
@@ -804,24 +818,27 @@ public class ACTMod {
 
         if (isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
             CompoundTag compound = ev.getItemStack().getTag();
-            String s = (!ev.getFlags().isAdvanced() ? ItemUtils.getRegistry(ev.getItemStack()).toString() : "");
-            if (!(mc.screen instanceof CreativeModeInventoryScreen
-                    && ((CreativeModeInventoryScreen) mc.screen).getSelectedTab() == CreativeModeTab.TAB_SEARCH.getId())
-                    && ev.getItemStack().getItem().getCreativeTabs() != null) {
-                s += ChatFormatting.WHITE + (s.isEmpty() ? "" : " ")
-                        + ev.getItemStack().getItem().getCreativeTabs().stream().filter(Objects::nonNull)
-                        .map(i -> i.getDisplayName().getString()).collect(Collectors.joining(", "));
+            if (!ev.getFlags().isAdvanced()) {
+                ev.getToolTip().add(
+                        Component.literal(ItemUtils.getRegistry(ev.getItemStack()).toString())
+                                .withStyle(ChatFormatting.DARK_GRAY)
+                );
             }
-            if (!s.isEmpty()) {
-                ev.getToolTip().add(Component.literal(s));
+            if (!(mc.screen instanceof CreativeModeInventoryScreen
+                    && AdvancedCreativeTab.getCurrentSelectedTab() == CreativeModeTabs.SEARCH)) {
+                CreativeModeTab tab = findTabForItem(ev.getItemStack());
+                if (tab != null) {
+                    ev.getToolTip().add(tab.getDisplayName().copy().withStyle(ChatFormatting.BLUE));
+                }
             }
             if (compound != null && compound.contains("CustomPotionColor", 99)) {
+                int color = compound.getInt("CustomPotionColor");
                 ev.getToolTip()
-                        .add(ModdedCommand.createText(
-                                I18n.get("item.color",
-                                        ChatFormatting.YELLOW
-                                                + String.format("#%06X", compound.getInt("CustomPotionColor"))),
-                                ChatFormatting.GOLD));
+                        .add(Component.translatable("item.color",
+                                        Component.literal(String.format("#%06X", color)).withStyle(ChatFormatting.YELLOW))
+                                .withStyle(ChatFormatting.GOLD)
+                                .append(" ")
+                                .append(Component.literal("\u25A0\u25A0\u25A0\u25A0").withStyle(s -> s.withColor(color | 0xff000000))));
             }
             if (!ev.getFlags().isAdvanced()) {
                 if (ev.getToolTip().size() != 0) {
@@ -836,12 +853,13 @@ public class ACTMod {
                 }
                 if (compound != null && compound.contains("display", 10)
                         && compound.getCompound("display").contains("color", 99)) {
+                    int color = compound.getCompound("display").getInt("color");
                     ev.getToolTip()
-                            .add(ModdedCommand.createText(
-                                    I18n.get("item.color",
-                                            ChatFormatting.YELLOW + String.format("#%06X",
-                                                    compound.getCompound("display").getInt("color"))),
-                                    ChatFormatting.GOLD));
+                            .add(Component.translatable("item.color",
+                                            Component.literal(String.format("#%06X", color)).withStyle(ChatFormatting.YELLOW))
+                                    .withStyle(ChatFormatting.GOLD)
+                                    .append(" ")
+                                    .append(Component.literal("\u25A0\u25A0\u25A0\u25A0").withStyle(s -> s.withColor(color | 0xff000000))));
                 }
                 if (ev.getItemStack().isDamaged()) {
                     int dmg = Math.abs(ev.getItemStack().getDamageValue() - ev.getItemStack().getMaxDamage()) + 1;

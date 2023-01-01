@@ -7,9 +7,10 @@ import fr.atesab.act.ACTMod;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ItemEnchantmentArgument;
+import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -26,9 +27,9 @@ public class ModdedCommandEnchant extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
-        return command.then(Commands.argument("enchantname", ItemEnchantmentArgument.enchantment()).executes(c -> {
-            Enchantment e = ItemEnchantmentArgument.getEnchantment(c, "enchantname");
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
+        return command.then(Commands.argument("enchantname", enchantmentArgument(context)).executes(c -> {
+            Enchantment e = ResourceArgument.getEnchantment(c, "enchantname").get();
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null) {
                 return 0;
@@ -40,7 +41,7 @@ public class ModdedCommandEnchant extends ModdedCommand {
             ItemUtils.give(is, 36 + mc.player.getInventory().selected);
             return 0;
         }).then(Commands.argument("enchantlevel", IntegerArgumentType.integer()).executes(c -> {
-            Enchantment e = ItemEnchantmentArgument.getEnchantment(c, "enchantname");
+            Enchantment e = ResourceArgument.getEnchantment(c, "enchantname").get();
             int lvl = IntegerArgumentType.getInteger(c, "enchantlevel");
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null) {

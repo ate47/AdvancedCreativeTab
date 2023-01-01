@@ -3,7 +3,7 @@
 
   "key.act.giver": "Open the giver",
   "key.act.menu": "Open the menu",
-  "key.act.edit": "Edit inhand item",
+  "key.act.edit": "Edit in-hand item",
 
   "key.act": "Advanced Creative Tab",
   "itemGroup.act": "Advanced Creative Tab",
@@ -174,8 +174,8 @@
   "cmd.act.opengiver": "Open the giver",
   "cmd.act.rfw": "Random Fireworks",
   "cmd.act.menu": "Open the menu",
-  "cmd.act.edit": "Edit inhand item",
-  "cmd.act.rename": "Rename inhand item",
+  "cmd.act.edit": "Edit in-hand item",
+  "cmd.act.rename": "Rename in-hand item",
   "cmd.act.head": "Give a head",
   "cmd.act.aliases": "Aliases",
   "cmd.act.info": "Mod info",
@@ -185,7 +185,7 @@
   "cmd.act.info.licence": "License",
   "cmd.act.info.link": "Link",
   "cmd.act.info.link.open": "Click to open the link",
-  "cmd.act.sptp": "Teleport in the gamemode spectator",
+  "cmd.act.sptp": "Teleport with the spectator gamemode",
   "cmd.act.sptp.help": "%s <Player>: Teleport to a player",
   "cmd.act.sptp.tp": "Teleporting to %s...",
   "cmd.act.color": "Set the color of an item",
@@ -205,7 +205,7 @@
   "cmd.act.unbreakable": "Set unbreakable",
   "cmd.act.palette": "Chat palette",
 
-  "cmd.act.error.noargument": "This command take arguments!",
+  "cmd.act.error.noargument": "This command takes argument(s)!",
   "cmd.act.argument.player.unknown": "Unknown player '%s'",
   "cmd.act.argument.player.noconnection": "No connection!"
 }

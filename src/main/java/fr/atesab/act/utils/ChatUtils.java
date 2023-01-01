@@ -86,7 +86,7 @@ public class ChatUtils {
                         style.withHoverEvent(
                                 new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(itemStack)));
                         style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                "/" + ACTMod.getModCommand().getName() + " " + ACTMod.getModCommand().SC_OPEN_GIVER.getName()
+                                ACTMod.getModCommand().getName() + " " + ACTMod.getModCommand().SC_OPEN_GIVER.getName()
                                         + " " + ItemUtils.getGiveCode(itemStack)));
                         return style;
                     }))));

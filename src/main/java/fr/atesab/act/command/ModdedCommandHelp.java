@@ -6,6 +6,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import fr.atesab.act.command.arguments.StringListArgumentType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
@@ -49,7 +50,7 @@ public class ModdedCommandHelp extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
         // show command help
         return command
                 .then(Commands

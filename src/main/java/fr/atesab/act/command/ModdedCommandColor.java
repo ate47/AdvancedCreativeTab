@@ -4,12 +4,14 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import fr.atesab.act.ACTMod;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.gui.modifier.GuiColorModifier;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
@@ -41,6 +43,7 @@ public class ModdedCommandColor extends ModdedCommand {
 
                     // we have a colorable item
                     var color = ItemUtils.getGlobalColor(is);
+                    var actCmd = ACTMod.getModCommand();
                     if (color.isEmpty()) {
                         c.getSource()
                                 .sendSuccess(Component.translatable("cmd.act.color.color")
@@ -69,7 +72,7 @@ public class ModdedCommandColor extends ModdedCommand {
                                                                                 ChatFormatting.YELLOW)))
                                                                 .withClickEvent(
                                                                         new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                                                "/act color remove")))
+                                                                                "/" + actCmd.getName() + " " + actCmd.SC_COLOR.getName() + " remove")))
                                                         .append(Component.translatable("cmd.act.color.remove"))
                                                         .append("]")),
                                         false);
@@ -86,7 +89,7 @@ public class ModdedCommandColor extends ModdedCommand {
                                                                     .withStyle(ChatFormatting.YELLOW)))
                                                     .withClickEvent(
                                                             new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                                    "/act color picker")))
+                                                                    "/" + actCmd.getName() + " " + actCmd.SC_COLOR.getName() + " picker")))
                                             .append(Component.translatable("cmd.act.color.picker"))
                                             .append("]"),
                                     false);
@@ -159,7 +162,7 @@ public class ModdedCommandColor extends ModdedCommand {
                         new ModdedCommand("rgb", "cmd.act.color.set.rgb", CommandClickOption.suggestCommand) {
                             @Override
                             protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-                                    LiteralArgumentBuilder<CommandSourceStack> command) {
+                                    LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
                                 return command.then(Commands.argument("red", IntegerArgumentType.integer(0, 0xFF)).then(
                                         Commands.argument("green", IntegerArgumentType.integer(0, 0xFF)).then(Commands
                                                 .argument("blue", IntegerArgumentType.integer(0, 0xFF)).executes(c -> {
@@ -183,7 +186,7 @@ public class ModdedCommandColor extends ModdedCommand {
                         new ModdedCommand("hsl", "cmd.act.color.set.hsl", CommandClickOption.suggestCommand) {
                             @Override
                             protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-                                    LiteralArgumentBuilder<CommandSourceStack> command) {
+                                    LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
                                 return command.then(Commands.argument("hue", IntegerArgumentType.integer(0, 359))
                                         .then(Commands.argument("saturation", IntegerArgumentType.integer(0, 100))
                                                 .then(Commands
@@ -209,7 +212,7 @@ public class ModdedCommandColor extends ModdedCommand {
                         new ModdedCommand("hex", "cmd.act.color.set.hex", CommandClickOption.suggestCommand) {
                             @Override
                             protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-                                    LiteralArgumentBuilder<CommandSourceStack> command) {
+                                    LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
                                 return command
                                         .then(Commands.argument("hexcode", StringArgumentType.word()).executes(c -> {
                                             var h = StringArgumentType.getString(c, "hexcode");

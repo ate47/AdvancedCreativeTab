@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import fr.atesab.act.utils.ItemUtils;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.item.ItemArgument;
@@ -16,8 +17,8 @@ public class ModdedCommandGive extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
-        return command.then(Commands.argument("giveoption", ItemArgument.item(COMMAND_BUILD_CONTEXT))
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
+        return command.then(Commands.argument("giveoption", ItemArgument.item(context))
                 .then(Commands.argument("givecount", IntegerArgumentType.integer()).executes(c -> {
                     ItemUtils.give(ItemArgument.getItem(c, "giveoption")
                             .createItemStack(IntegerArgumentType.getInteger(c, "givecount"), false));

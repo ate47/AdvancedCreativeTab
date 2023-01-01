@@ -7,23 +7,26 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.atesab.act.command.ModdedCommandHelp.CommandClickOption;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.chat.ClientChatPreview;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.commands.arguments.ResourceArgument;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.*;
 
 public class ModdedCommand {
 
-    public static final CommandBuildContext COMMAND_BUILD_CONTEXT = new CommandBuildContext(RegistryAccess.BUILTIN.get());
+    protected static ResourceArgument<Enchantment> enchantmentArgument(CommandBuildContext context) {
+        return ResourceArgument.resource(context, Registries.ENCHANTMENT);
+    }
+
     public static final int MAX_EXAMPLE = 6;
 
     public static MutableComponent createPrefix(String text, ChatFormatting color, ChatFormatting border) {
@@ -32,6 +35,10 @@ public class ModdedCommand {
 
     public static MutableComponent createText(String text, ChatFormatting color) {
         return Component.literal(Objects.requireNonNull(text)).withStyle(color);
+    }
+
+    public static MutableComponent createText(String text, int color) {
+        return Component.literal(Objects.requireNonNull(text)).withStyle(s -> s.withColor(color));
     }
 
     public static MutableComponent createTranslatedPrefix(String text, ChatFormatting color, ChatFormatting border,
@@ -54,12 +61,10 @@ public class ModdedCommand {
         if (player == null) {
             return;
         }
-        ClientChatPreview chatPreview = new ClientChatPreview(mc);
-        Component component = Util.mapNullable(chatPreview.pull(message), ClientChatPreview.Preview::response);
         if (message.startsWith("/")) {
-            player.commandSigned(message.substring(1), component);
+            player.connection.sendCommand(message.substring(1));
         } else {
-            player.chatSigned(message, component);
+            player.connection.sendChat(message);
         }
     }
 
@@ -198,13 +203,13 @@ public class ModdedCommand {
      * @return the same command argument builder modified
      */
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
         return command;
     }
 
     /**
      * Called for registering non argument command, should not be used for argument
-     * command, see {@link #onArgument(LiteralArgumentBuilder)} for that
+     * command, see {@link #onArgument(LiteralArgumentBuilder, CommandBuildContext)} for that
      *
      * @return the command to execute
      */
@@ -227,25 +232,25 @@ public class ModdedCommand {
      *
      * @param dispatcher the dispatcher
      */
-    public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+    public void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         register();
         this.dispatcher = dispatcher;
-        register(dispatcher.getRoot());
+        register(dispatcher.getRoot(), context);
     }
 
-    private void register(CommandNode<CommandSourceStack> node) {
+    private void register(CommandNode<CommandSourceStack> node, CommandBuildContext context) {
         LiteralArgumentBuilder<CommandSourceStack> bld;
         Command<CommandSourceStack> noArgument;
         for (String alias : aliases) {
             noArgument = onNoArgument();
-            bld = onArgument(Commands.literal(alias));
+            bld = onArgument(Commands.literal(alias), context);
             if (noArgument != null) {
                 bld.executes(noArgument);
             }
             this.node = bld.build();
             NAME_TO_COMMAND.forEach((salias, cmd) -> {
                 cmd.dispatcher = dispatcher;
-                cmd.register(this.node);
+                cmd.register(this.node, context);
             });
             node.addChild(this.node);
         }

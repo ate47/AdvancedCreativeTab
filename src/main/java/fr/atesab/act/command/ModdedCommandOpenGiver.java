@@ -9,6 +9,7 @@ import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.world.InteractionHand;
@@ -22,7 +23,7 @@ public class ModdedCommandOpenGiver extends ModdedCommand {
 
     @Override
     protected LiteralArgumentBuilder<CommandSourceStack> onArgument(
-            LiteralArgumentBuilder<CommandSourceStack> command) {
+            LiteralArgumentBuilder<CommandSourceStack> command, CommandBuildContext context) {
         return command.then(Commands.argument("giveroptions", StringArgumentType.greedyString()).executes(c -> {
             GuiUtils.displayScreen(new GuiGiver(null, StringArgumentType.getString(c, "giveroptions")));
             return 0;

@@ -36,8 +36,8 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
         @Override
         public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
             GuiUtils.drawRelative(matrixStack, textField, offsetX, offsetY, mouseX, mouseY, partialTicks);
-            GuiUtils.drawRightString(font, I18n.get(enchantment.getDescriptionId()) + " : ", offsetX + textField.x,
-                    offsetY + textField.y, (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
+            GuiUtils.drawRightString(font, I18n.get(enchantment.getDescriptionId()) + " : ", offsetX + textField.getX(),
+                    offsetY + textField.getY(), (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
                     textField.getHeight());
             super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
         }

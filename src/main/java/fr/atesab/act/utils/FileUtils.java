@@ -6,6 +6,7 @@ import net.minecraftforge.resource.ResourcePackLoader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 @InternalCommandModule(name = "file")
 public class FileUtils {
@@ -61,7 +62,7 @@ public class FileUtils {
         var pack = ResourcePackLoader.getPackFor(modId)
                 .orElseThrow(() -> new RuntimeException("Can't find modid " + modId));
         try {
-            return pack.getRootResource(path);
+            return Objects.requireNonNull(pack.getRootResource(path)).get();
         } catch (Throwable t) {
             try (pack) {
                 throw t;

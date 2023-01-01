@@ -1,7 +1,7 @@
 
 modLoader="javafml"
 loaderVersion="[37,)"
-license="GNU General Public License 3"
+license="GNU LGPL 3"
 issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[mods]]
 	modId="act"
@@ -15,7 +15,7 @@ issueTrackerURL="https://github.com/ate47/AdvancedCreativeTab/issues"
 [[dependencies.act]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.19,1.19.3)"
+    versionRange="[1.19.3,1.20)"
     ordering="NONE"
     side="BOTH"
 

@@ -11,7 +11,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -95,7 +94,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
         }
 
         @Override
-        protected void otherActionPerformed(Widget button, int mouseButton) {
+        protected void otherActionPerformed(AbstractWidget button, int mouseButton) {
             if (mouseButton == 1 && right != null)
                 right.run();
             super.otherActionPerformed(button, mouseButton);
@@ -135,11 +134,6 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
                     tf -> GuiUtils.drawRelative(matrixStack, tf, offsetX, offsetY, mouseX, mouseY, partialTicks));
         }
 
-        public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-                             float partialTicks) {
-            buttonList.stream().filter(AbstractWidget::isHoveredOrFocused).forEach(
-                    b -> GuiUtils.drawRelativeToolTip(matrixStack, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
-        }
 
         public int getSizeX() {
             return sizeX;
@@ -209,7 +203,11 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
             });
         }
 
-        protected void otherActionPerformed(Widget button, int mouseButton) {
+        protected void otherActionPerformed(AbstractWidget button, int mouseButton) {
+        }
+
+        public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
+                             float partialTicks) {
         }
 
         public void setSizeX(int sizeX) {
@@ -473,8 +471,8 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 
         int m = font.width(I18n.get("gui.act.search") + " : ");
         int n = Math.min(600, width - 20);
-        search.x = (width - n) / 2 + 6 + m;
-        search.y = 18;
+        search.setX((width - n) / 2 + 6 + m);
+        search.setY(18);
         search.setWidth(n - 18 - m);
         search.setHeight(18);
         elements.forEach(ListElement::init);
@@ -522,7 +520,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
         }
         search.mouseClicked(mouseX, mouseY, mouseButton);
         if (mouseButton == 1) {
-            if (GuiUtils.isHover(search.x, search.y, search.getWidth(), search.getHeight(), (int) mouseX,
+            if (GuiUtils.isHover(search.getX(), search.getY(), search.getWidth(), search.getHeight(), (int) mouseX,
                     (int) mouseY)) {
                 search.setValue("");
                 page = 0;
@@ -559,7 +557,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         search.render(matrixStack, mouseX, mouseY, partialTicks);
         GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
-        GuiUtils.drawRightString(font, I18n.get("gui.act.search") + " : ", search.x, search.y, Color.ORANGE.getRGB(),
+        GuiUtils.drawRightString(font, I18n.get("gui.act.search") + " : ", search.getX(), search.getY(), Color.ORANGE.getRGB(),
                 search.getHeight());
         if (equals(getMinecraft().screen)) {
             for (int i = 0; i < visibleElements.length; i++) {

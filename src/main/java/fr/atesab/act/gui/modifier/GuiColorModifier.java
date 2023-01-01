@@ -219,10 +219,10 @@ public class GuiColorModifier extends GuiModifier<OptionalInt> {
             GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.setColor.saturation") + ": ", tfs,
                     0xffffffff);
 
-            GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.intColor") + ":", intColor.x,
-                    intColor.y - 4 - 10, 0xffffffff, 10);
-            GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.hexColor") + ":", hexColor.x,
-                    hexColor.y - 4 - 10, 0xffffffff, 10);
+            GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.intColor") + ":", intColor.getX(),
+                    intColor.getY() - 4 - 10, 0xffffffff, 10);
+            GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.setColor.hexColor") + ":", hexColor.getX(),
+                    hexColor.getY() - 4 - 10, 0xffffffff, 10);
 
             tfr.render(matrixStack, mouseX, mouseY, partialTicks);
             tfg.render(matrixStack, mouseX, mouseY, partialTicks);

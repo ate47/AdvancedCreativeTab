@@ -13,9 +13,9 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = "2.7.0"
-project.ext.minecraft_version = "1.19.2"
-project.ext.minecraft_forge_rev = "43.1.7"
+version = "2.7.1"
+project.ext.minecraft_version = "1.19.3"
+project.ext.minecraft_forge_rev = "44.0.41"
 group = "fr.atesab.act" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ACT"
 project.ext.artifactId = "act"

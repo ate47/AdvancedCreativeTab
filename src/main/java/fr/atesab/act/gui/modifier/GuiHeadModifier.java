@@ -68,21 +68,21 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
             err.add(this.errType.get() + ": ");
         }
         for (int i = 0; i < err.size(); i++)
-            GuiUtils.drawCenterString(font, err.get(i), width / 2, name.y - 2 - (font.lineHeight + 1) * (i + 1),
+            GuiUtils.drawCenterString(font, err.get(i), width / 2, name.getY() - 2 - (font.lineHeight + 1) * (i + 1),
                     Color.RED.getRGB());
         font.draw(matrixStack, I18n.get("gui.act.config.name") + " : ", width / 2f - 178,
-                name.y + 10 - font.lineHeight / 2f, (flagName ? Color.RED : Color.WHITE).getRGB());
-        font.draw(matrixStack, I18n.get("gui.act.uuid") + " : ", width / 2f - 178, uuid.y + 10 - font.lineHeight / 2f,
+                name.getY() + 10 - font.lineHeight / 2f, (flagName ? Color.RED : Color.WHITE).getRGB());
+        font.draw(matrixStack, I18n.get("gui.act.uuid") + " : ", width / 2f - 178, uuid.getY() + 10 - font.lineHeight / 2f,
                 (flagUuid ? Color.RED : Color.WHITE).getRGB());
-        font.draw(matrixStack, I18n.get("gui.act.link") + " : ", width / 2f - 178, link.y + 10 - font.lineHeight / 2f,
+        font.draw(matrixStack, I18n.get("gui.act.link") + " : ", width / 2f - 178, link.getY() + 10 - font.lineHeight / 2f,
                 (flagLink ? Color.RED : Color.WHITE).getRGB());
         name.render(matrixStack, mouseX, mouseY, partialTicks);
         uuid.render(matrixStack, mouseX, mouseY, partialTicks);
         link.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawItemStack(itemRenderer, this, stack, uuid.x + uuid.getWidth() + 10,
-                uuid.y + uuid.getHeight() / 2 - 8);
+        GuiUtils.drawItemStack(itemRenderer, this, stack, uuid.getX() + uuid.getWidth() + 10,
+                uuid.getY() + uuid.getHeight() / 2 - 8);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        if (GuiUtils.isHover(uuid.x + uuid.getWidth() + 10, uuid.y + uuid.getHeight() / 2 - 16 / 2, 16, 16, mouseX,
+        if (GuiUtils.isHover(uuid.getX() + uuid.getWidth() + 10, uuid.getY() + uuid.getHeight() / 2 - 16 / 2, 16, 16, mouseX,
                 mouseY))
             renderTooltip(matrixStack, stack, mouseX, mouseY);
     }

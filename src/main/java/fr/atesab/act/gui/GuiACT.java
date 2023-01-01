@@ -1,7 +1,6 @@
 package fr.atesab.act.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.ItemStackButtonWidget.ITooltipRenderer;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ReflectionUtils;
 import net.minecraft.ChatFormatting;
@@ -10,7 +9,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -18,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class GuiACT extends Screen implements ITooltipRenderer {
+public class GuiACT extends Screen {
     public record ACTDevInfo(String title, String[] elements) {
     }
 
@@ -110,11 +108,6 @@ public class GuiACT extends Screen implements ITooltipRenderer {
             }
         }
         super.render(stack, mouseX, mouseY, delta);
-    }
-
-    @Override
-    public void renderTooltip1(PoseStack matrixStack, ItemStack stack, int mouseX, int mouseY) {
-        super.renderTooltip(matrixStack, stack, mouseX, mouseY);
     }
 
     /**

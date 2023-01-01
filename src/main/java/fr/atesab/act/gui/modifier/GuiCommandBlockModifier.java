@@ -88,15 +88,15 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
     @Override
     public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         renderBackground(matrixStack);
-        GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150, command.y,
+        GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150, command.getY(),
                 Color.WHITE.getRGB(), command.getHeight());
-        GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150, name.y,
+        GuiUtils.drawString(font, I18n.get("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150, name.getY(),
                 Color.WHITE.getRGB(), name.getHeight());
         command.render(matrixStack, mouseX, mouseY, partialTicks);
         name.render(matrixStack, mouseX, mouseY, partialTicks);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawItemStack(itemRenderer, this, stack, width / 2 - 10, name.y - 20);
-        if (GuiUtils.isHover(width / 2 - 10, name.y - 20, 20, 20, mouseX, mouseY))
+        GuiUtils.drawItemStack(itemRenderer, this, stack, width / 2 - 10, name.getY() - 20);
+        if (GuiUtils.isHover(width / 2 - 10, name.getY() - 20, 20, 20, mouseX, mouseY))
             renderTooltip(matrixStack, stack, mouseX, mouseY);
     }
 

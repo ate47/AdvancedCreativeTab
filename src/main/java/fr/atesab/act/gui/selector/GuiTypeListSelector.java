@@ -5,9 +5,9 @@ import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.function.Function;
@@ -21,7 +21,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
         public TypeListElement(GuiTypeListSelector parent, ItemStack itemStack) {
             super(24, 24);
             this.itemStack = itemStack;
-            buttonList.add(new ItemStackButtonWidget(parent, 0, 0, itemStack, b -> parent.select(b.getStack())));
+            buttonList.add(new ItemStackButtonWidget(0, 0, itemStack, b -> parent.select(b.getStack())));
         }
 
         @Override
@@ -32,11 +32,11 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
         }
     }
 
-    @SuppressWarnings({"unchecked", "deprecation"})
+    @SuppressWarnings("unchecked")
     public GuiTypeListSelector(Screen parent, Component name, Function<ItemStack, Screen> setter) {
         super(parent, name, new ArrayList<>(), setter, false, new Tuple[0]);
         NonNullList<ItemStack> stacks = NonNullList.create();
-        Registry.ITEM.forEach(i -> // Item.REGISTRY
+        ForgeRegistries.ITEMS.forEach(i -> // Item.REGISTRY
                 stacks.add(new ItemStack(i)));
         stacks.forEach(stack -> addListElement(new TypeListElement(this, stack)));
     }

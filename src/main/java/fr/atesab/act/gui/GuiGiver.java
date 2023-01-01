@@ -68,11 +68,11 @@ public class GuiGiver extends GuiModifier<String> {
     public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         renderBackground(matrixStack);
         code.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawCenterString(font, I18n.get("gui.act.give"), width / 2, code.y - 21, Color.ORANGE.getRGB(), 20);
+        GuiUtils.drawCenterString(font, I18n.get("gui.act.give"), width / 2, code.getY() - 21, Color.ORANGE.getRGB(), 20);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         if (currentItemStack != null) {
-            GuiUtils.drawItemStack(itemRenderer, this, currentItemStack, code.x + code.getWidth() + 5, code.y - 2);
-            if (GuiUtils.isHover(code.x + code.getWidth() + 5, code.y, 20, 20, mouseX, mouseY))
+            GuiUtils.drawItemStack(itemRenderer, this, currentItemStack, code.getX() + code.getWidth() + 5, code.getY() - 2);
+            if (GuiUtils.isHover(code.getX() + code.getWidth() + 5, code.getY(), 20, 20, mouseX, mouseY))
                 renderTooltip(matrixStack, currentItemStack, mouseX, mouseY);
         }
     }
@@ -117,7 +117,9 @@ public class GuiGiver extends GuiModifier<String> {
                 setter.accept(null);
                 getMinecraft().setScreen(parent);
             }));
+
         super.init();
+        tick();
     }
 
     @Override

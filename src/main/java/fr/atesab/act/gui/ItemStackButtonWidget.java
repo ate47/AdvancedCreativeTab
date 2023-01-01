@@ -5,6 +5,7 @@ import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemStackButtonWidget extends AbstractButton {
@@ -13,22 +14,13 @@ public class ItemStackButtonWidget extends AbstractButton {
         void onPress(ItemStackButtonWidget button);
     }
 
-    /**
-     * an wrapper for the render Screen item tool tip method
-     */
-    public interface ITooltipRenderer {
-        void renderTooltip1(PoseStack matrixStack, ItemStack stack, int mouseX, int mouseY);
-    }
-
     private final ItemStack stack;
-    private final ITooltipRenderer parent;
     private final IItemStackPressable pressable;
 
-    public ItemStackButtonWidget(ITooltipRenderer parent, int x, int y, ItemStack stack,
+    public ItemStackButtonWidget(int x, int y, ItemStack stack,
                                  IItemStackPressable pressable) {
         super(x, y, 18, 18, stack.getDisplayName());
         this.stack = stack;
-        this.parent = parent;
         this.pressable = pressable;
     }
 
@@ -43,18 +35,13 @@ public class ItemStackButtonWidget extends AbstractButton {
 
     @Override
     public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTick) {
-        GuiUtils.drawItemStack(Minecraft.getInstance().getItemRenderer(), stack, x + 1, y + 1);
+        GuiUtils.drawItemStack(Minecraft.getInstance().getItemRenderer(), stack, getX() + 1, getY() + 1);
         if (isHoveredOrFocused())
-            GuiUtils.drawRect(matrixStack, x, y, x + 18, y + 18, 0x55cccccc);
+            GuiUtils.drawRect(matrixStack, getX(), getY(), getX() + 18, getY() + 18, 0x55cccccc);
     }
 
     @Override
-    public void renderToolTip(PoseStack matrixStack, int mouseX, int mouseY) {
-        parent.renderTooltip1(matrixStack, getStack(), mouseX, mouseY);
-        super.renderToolTip(matrixStack, mouseX, mouseY);
-    }
-
-    @Override
-    public void updateNarration(NarrationElementOutput p_169152_) {
+    protected void updateWidgetNarration(NarrationElementOutput out) {
+        this.defaultButtonNarrationText(out);
     }
 }

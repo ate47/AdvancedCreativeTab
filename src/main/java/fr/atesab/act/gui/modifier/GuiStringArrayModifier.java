@@ -131,7 +131,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         for (int i = page * elms; i < (page + 1) * elms && i < tfs.length; i++) {
             EditBox tf = tfs[i];
-            GuiUtils.drawRightString(font, i + " : ", tf.x, tf.y, Objects.requireNonNull(ChatFormatting.WHITE.getColor()), tf.getHeight());
+            GuiUtils.drawRightString(font, i + " : ", tf.getX(), tf.getY(), Objects.requireNonNull(ChatFormatting.WHITE.getColor()), tf.getHeight());
             tf.render(matrixStack, mouseX, mouseY, partialTicks);
         }
     }
