@@ -8,6 +8,8 @@ import fr.atesab.act.utils.ChatUtils;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.Tuple;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -154,7 +156,25 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
                     currentItemStack.setTag(compound = new CompoundTag());
                 compound.put("Explosion", exp.getTag());
             }, ItemUtils.getExplosionInformation(currentItemStack.getOrCreateTagElement("Explosion"))))));
-        else if (ItemUtils.isContainer(currentItemStack))
+        else if (currentItemStack.getItem().equals(Items.LIGHT)) {
+            addRenderableWidget(new AbstractSliderButton(width / 2 - 100, height / 2 + 21, 200, 20, Component.empty(), ItemUtils.getLightLevel(currentItemStack) / 15.0) {
+                {
+                    updateMessage();
+                }
+                @Override
+                protected void updateMessage() {
+                    setMessage(Component.translatable("gui.act.modifier.light")
+                            .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                            .append(Component.literal("" + (int) (value * 15)).withStyle(ChatFormatting.GOLD)));
+                }
+
+                @Override
+                protected void applyValue() {
+                    ItemUtils.setLightLevel(currentItemStack, (int) (value * 15));
+                }
+
+            });
+        } else if (ItemUtils.isContainer(currentItemStack))
             addRenderableWidget(new ACTButton(width / 2 - 100, height / 2 + 21, 200, 20,
                     Component.translatable("gui.act.modifier.inventory"), b -> getMinecraft()
                     .setScreen(new GuiContainerModifier(this, currentItemStack.getHoverName(), data -> ItemUtils.setContainerData(currentItemStack, data), Objects.requireNonNull(ItemUtils.fetchContainerData(currentItemStack))))));

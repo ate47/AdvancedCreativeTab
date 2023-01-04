@@ -119,6 +119,7 @@
   "gui.act.modifier.tag.editor.intArray": "Integer array",
   "gui.act.modifier.tag.editor.longArray": "Long array",
   "gui.act.modifier.inventory": "Inventory editor",
+  "gui.act.modifier.light": "Lightness",
 
   "gui.act.modifier.string.registry.items": "Items",
   "gui.act.modifier.string.registry.blocks": "Blocks",

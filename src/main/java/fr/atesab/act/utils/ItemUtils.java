@@ -2,7 +2,6 @@ package fr.atesab.act.utils;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonParseException;
-import com.google.gson.internal.LinkedTreeMap;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.atesab.act.ACTMod;
 import fr.atesab.act.internalcommand.InternalCommandModule;
@@ -10,7 +9,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -1287,6 +1285,40 @@ public class ItemUtils {
         });
         stack.getOrCreateTag().put(book ? NBT_CHILD_BOOK_ENCHANTMENTS : NBT_CHILD_ENCHANTMENTS, nbttaglist);
         return stack;
+    }
+
+    /**
+     * get the light level of a light
+     *
+     * @param stack light stack
+     * @return light level 0-15
+     */
+    public static int getLightLevel(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag == null) {
+            return 15;
+        }
+
+        CompoundTag blockStateTag = tag.getCompound("BlockStateTag");
+
+        if (!blockStateTag.contains("level")) {
+            return 15;
+        }
+
+        return blockStateTag.getInt("level");
+    }
+
+    /**
+     * set the light level of a light
+     *
+     * @param stack light stack
+     * @param level level
+     */
+    public static void setLightLevel(ItemStack stack, int level) {
+        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag blockStateTag = tag.getCompound("BlockStateTag");
+        blockStateTag.putInt("level", level);
+        tag.put("BlockStateTag", blockStateTag);
     }
 
     /**
