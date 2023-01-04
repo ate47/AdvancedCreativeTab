@@ -18,8 +18,14 @@ public class GuiConfig extends GuiACT {
         addRenderableWidget(new GuiBooleanButton(width / 2 - 100, height / 2 - 24, 200, 20,
                 Component.translatable("gui.act.disableToolTip"), ACTMod::setDoesDisableToolTip,
                 ACTMod::doesDisableToolTip));
+        addRenderableWidget(new GuiBooleanButton(width / 2 - 100, height / 2, 200, 20,
+                Component.translatable("cmd.act.instantclick"), ACTMod::setInstantMineEnabled,
+                ACTMod::isInstantMineEnabled));
+        addRenderableWidget(new GuiBooleanButton(width / 2 - 100, height / 2 + 24, 200, 20,
+                Component.translatable("cmd.act.instantplace"), ACTMod::setInstantPlaceEnabled,
+                ACTMod::isInstantPlaceEnabled));
         addRenderableWidget(
-                new ACTButton(width / 2 - 100, height / 2, 200, 20, Component.translatable("gui.done"), b -> {
+                new ACTButton(width / 2 - 100, height / 2 + 52, 200, 20, Component.translatable("gui.done"), b -> {
                     ACTMod.saveConfigs();
                     mc.setScreen(parent);
                 }));
