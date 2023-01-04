@@ -10,6 +10,7 @@
 -------------------------------------------------------
 
 - update lightness of a light item
+- add /act instantclick [true|false] and /act instantplace [true|false] commands
 
 -------------------------------------------------------
 --------------- ACT 2.7.1 -- (MC1.19.3) ---------------

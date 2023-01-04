@@ -205,6 +205,8 @@
   "cmd.act.color.set.hex": "Hex",
   "cmd.act.unbreakable": "Définir incassable",
   "cmd.act.palette": "Palette du chat",
+  "cmd.act.instantclick": "Clique instantané",
+  "cmd.act.instantplace": "Placement instantané",
 
   "cmd.act.error.noargument": "Cette commande prend des arguments!",
   "cmd.act.argument.player.unknown": "Joueur inconnu ! '%s'",

@@ -21,6 +21,8 @@ import fr.atesab.act.gui.modifier.GuiModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
 import fr.atesab.act.internalcommand.InternalCommandExecutor;
+import fr.atesab.act.mixin.MinecraftMixin;
+import fr.atesab.act.mixin.MultiPlayerGameModeMixin;
 import fr.atesab.act.utils.ItemUtils;
 import fr.atesab.act.utils.*;
 import net.minecraft.ChatFormatting;
@@ -45,7 +47,6 @@ import net.minecraft.network.protocol.game.ServerboundTeleportToEntityPacket;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameType;
@@ -138,6 +139,8 @@ public class ACTMod {
     @Deprecated
     public static final String MOD_FACTORY = "fr.atesab.act.gui.ModGuiFactory";
     private static ModdedCommandACT modCommand;
+    private static boolean instantMineEnabled = false;
+    private static boolean instantPlaceEnabled = false;
     private static final AdvancedCreativeTab ADVANCED_CREATIVE_TAB = new AdvancedCreativeTab();
     public static final String TEMPLATE_TAG_NAME = "TemplateData";
     public static final Random RANDOM = new Random();
@@ -445,6 +448,22 @@ public class ACTMod {
         return modLink;
     }
 
+    public static boolean isInstantMineEnabled() {
+        return instantMineEnabled;
+    }
+
+    public static void setInstantMineEnabled(boolean instantMineEnabled) {
+        ACTMod.instantMineEnabled = instantMineEnabled;
+    }
+
+    public static boolean isInstantPlaceEnabled() {
+        return instantPlaceEnabled;
+    }
+
+    public static void setInstantPlaceEnabled(boolean instantPlaceEnabled) {
+        ACTMod.instantPlaceEnabled = instantPlaceEnabled;
+    }
+
     public static ModdedCommandACT getModCommand() {
         return modCommand;
     }
@@ -733,8 +752,15 @@ public class ACTMod {
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent ev) {
+        Minecraft mc = Minecraft.getInstance();
         if (ev.phase == TickEvent.Phase.END) {
-            checkModList(Minecraft.getInstance().screen);
+            checkModList(mc.screen);
+        }
+        if (instantPlaceEnabled) {
+            ((MinecraftMixin) mc).setRightClickDelay(0);
+        }
+        if (instantMineEnabled && mc.gameMode != null) {
+            ((MultiPlayerGameModeMixin) mc.gameMode).setDestroyDelay(0);
         }
     }
 

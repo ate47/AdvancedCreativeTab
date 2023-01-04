@@ -205,6 +205,8 @@
   "cmd.act.color.set.hex": "Hex",
   "cmd.act.unbreakable": "Set unbreakable",
   "cmd.act.palette": "Chat palette",
+  "cmd.act.instantclick": "Instant click",
+  "cmd.act.instantplace": "Instant place",
 
   "cmd.act.error.noargument": "This command takes argument(s)!",
   "cmd.act.argument.player.unknown": "Unknown player '%s'",

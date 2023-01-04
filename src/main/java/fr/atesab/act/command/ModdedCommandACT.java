@@ -20,6 +20,8 @@ public class ModdedCommandACT extends ModdedCommand {
     public final ModdedCommandSpTp SC_SPTP;
     public final ModdedCommandUnbreakable SC_UNBREAKABLE;
     public final ModdedCommandPalette SC_PALETTE;
+    public final ModdedCommandInstantClick SC_INSTANT_CLICK;
+    public final ModdedCommandInstantPlace SC_INSTANT_PLACE;
 
     public ModdedCommandACT() {
         super(ACTMod.MOD_ID);
@@ -41,5 +43,7 @@ public class ModdedCommandACT extends ModdedCommand {
         registerSubCommand(SC_COLOR = new ModdedCommandColor());
         registerSubCommand(SC_UNBREAKABLE = new ModdedCommandUnbreakable());
         registerSubCommand(SC_PALETTE = new ModdedCommandPalette());
+        registerSubCommand(SC_INSTANT_CLICK = new ModdedCommandInstantClick());
+        registerSubCommand(SC_INSTANT_PLACE = new ModdedCommandInstantPlace());
     }
 }
