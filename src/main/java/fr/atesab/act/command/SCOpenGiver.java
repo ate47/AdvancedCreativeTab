@@ -13,7 +13,8 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 
 public class SCOpenGiver extends SubCommand {
 
@@ -45,7 +46,7 @@ public class SCOpenGiver extends SubCommand {
 	public void processSubCommand(ICommandSender sender, String[] args, MainCommand mainCommand)
 			throws CommandException {
 		GuiUtils.displayScreen(new GuiGiver(null, args.length > 0 ? CommandBase.buildString(args, 0)
-				: ItemUtils.getGiveCode(Minecraft.getMinecraft().thePlayer.getHeldItem())));
+				: ItemUtils.getGiveCode(Minecraft.getMinecraft().thePlayer.getHeldItem(EnumHand.MAIN_HAND))));
 	}
 
 }

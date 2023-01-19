@@ -13,7 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class ColorList {
 	private GuiScreen parent;
@@ -58,10 +58,10 @@ public class ColorList {
 			int y = offsetY + (16) * (i / sizeX);
 			if (GuiUtils.isHover(x, y, 15, 15, mouseX, mouseY)) {
 				List<String> text = Arrays.asList(
-						EnumChatFormatting.GOLD + "[" + EnumChatFormatting.YELLOW + I18n.format("gui.act.leftClick")
-								+ EnumChatFormatting.GOLD + "] " + EnumChatFormatting.YELLOW + I18n.format("gui.act.edit"),
-						EnumChatFormatting.GOLD + "[" + EnumChatFormatting.YELLOW + I18n.format("gui.act.rightClick")
-								+ EnumChatFormatting.GOLD + "] " + EnumChatFormatting.YELLOW + I18n.format("gui.act.delete"));
+						TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.format("gui.act.leftClick")
+								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.format("gui.act.edit"),
+						TextFormatting.GOLD + "[" + TextFormatting.YELLOW + I18n.format("gui.act.rightClick")
+								+ TextFormatting.GOLD + "] " + TextFormatting.YELLOW + I18n.format("gui.act.delete"));
 				int width = text.stream().mapToInt(fontRenderer::getStringWidth).max().getAsInt(),
 						height = text.size() * (fontRenderer.FONT_HEIGHT + 1);
 				Tuple<Integer, Integer> pos = GuiUtils.getRelativeBoxPos(mouseX, mouseY, width, height, parent.width,

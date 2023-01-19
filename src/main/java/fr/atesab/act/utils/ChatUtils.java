@@ -3,15 +3,15 @@ package fr.atesab.act.utils;
 import fr.atesab.act.ACTMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.ClickEvent.Action;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.util.text.event.ClickEvent.Action;
 
 /**
  * A set of tools to help to communicate in chat with the player
@@ -41,9 +41,9 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getPrefix()
 	 */
-	public static IChatComponent getErrorPrefix() {
-		return getPrefix(new ChatComponentText(I18n.format("gui.act.error"))
-				.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)), EnumChatFormatting.WHITE);
+	public static ITextComponent getErrorPrefix() {
+		return getPrefix(new TextComponentString(I18n.format("gui.act.error"))
+				.setStyle(new Style().setColor(TextFormatting.RED)), TextFormatting.WHITE);
 	}
 
 	/**
@@ -53,21 +53,21 @@ public class ChatUtils {
 	 * @since 2.0
 	 * @see ChatUtils#getErrorPrefix()
 	 */
-	public static IChatComponent getPrefix() {
+	public static ITextComponent getPrefix() {
 		return getPrefix(null, null);
 	}
 
-	private static IChatComponent getPrefix(IChatComponent notif, EnumChatFormatting endColor) {
-		IChatComponent p = new ChatComponentText("")
-				.setChatStyle(new ChatStyle().setColor(endColor != null ? endColor : EnumChatFormatting.WHITE))
-				.appendSibling(new ChatComponentText("[").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED))
-						.appendSibling(new ChatComponentText(ACTMod.MOD_LITTLE_NAME)
-								.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GOLD))));
+	private static ITextComponent getPrefix(ITextComponent notif, TextFormatting endColor) {
+		ITextComponent p = new TextComponentString("")
+				.setStyle(new Style().setColor(endColor != null ? endColor : TextFormatting.WHITE))
+				.appendSibling(new TextComponentString("[").setStyle(new Style().setColor(TextFormatting.RED))
+						.appendSibling(new TextComponentString(ACTMod.MOD_LITTLE_NAME)
+								.setStyle(new Style().setColor(TextFormatting.GOLD))));
 		if (notif != null)
-			p.appendSibling(new ChatComponentText("/").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.WHITE)))
+			p.appendSibling(new TextComponentString("/").setStyle(new Style().setColor(TextFormatting.WHITE)))
 					.appendSibling(notif);
-		return p.appendSibling(new ChatComponentText("]").setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)))
-				.appendSibling(new ChatComponentText(" "));
+		return p.appendSibling(new TextComponentString("]").setStyle(new Style().setColor(TextFormatting.RED)))
+				.appendSibling(new TextComponentString(" "));
 	}
 
 	/**
@@ -81,13 +81,13 @@ public class ChatUtils {
 		if (itemStack != null)
 			send(getPrefix()
 					.appendSibling(
-							new ChatComponentText(I18n.format("gui.act.give.msg") + " (" + itemStack.getDisplayName()
-									+ EnumChatFormatting.RESET + ")")
-											.setChatStyle(
-													new ChatStyle()
-															.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM,
-																	new ChatComponentText("{id:\""
-																			+ Item.itemRegistry
+							new TextComponentString(I18n.format("gui.act.give.msg") + " (" + itemStack.getDisplayName()
+									+ TextFormatting.RESET + ")")
+											.setStyle(
+													new Style()
+															.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM,
+																	new TextComponentString("{id:\""
+																			+ Item.REGISTRY
 																					.getNameForObject(
 																							itemStack.getItem())
 																					.toString()
@@ -97,7 +97,7 @@ public class ChatUtils {
 																							.getTagCompound().toString()
 																					: "")
 																			+ "}")))
-															.setChatClickEvent(new ClickEvent(Action.RUN_COMMAND,
+															.setClickEvent(new ClickEvent(Action.RUN_COMMAND,
 																	"/" + ACTMod.ACT_COMMAND.getCommandName() + " "
 																			+ ACTMod.ACT_COMMAND.SC_OPEN_GIVER.getName()
 																			+ " "
@@ -107,17 +107,17 @@ public class ChatUtils {
 	}
 
 	/**
-	 * Send a {@link ChatComponentText} to chat
+	 * Send a {@link ITextComponent} to chat
 	 * 
-	 * @param iChatComponent
-	 *            The {@link ChatComponentText}
+	 * @param message
+	 *            The {@link ITextComponent}
 	 * @since 2.0
 	 * @see ChatUtils#show(String)
 	 * @see ChatUtils#error(String)
 	 */
-	public static void send(IChatComponent iChatComponent) {
+	public static void send(ITextComponent message) {
 		if (Minecraft.getMinecraft().thePlayer != null)
-			Minecraft.getMinecraft().thePlayer.addChatMessage(iChatComponent);
+			Minecraft.getMinecraft().thePlayer.addChatMessage(message);
 	}
 
 	/**
