@@ -1,32 +1,27 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
 import fr.atesab.act.gui.modifier.GuiListModifier;
-import net.minecraft.nbt.ByteTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
 
 public class NBTByteElement extends NBTNumericElement<Byte> {
 
-    public NBTByteElement(GuiListModifier<?> parent, String key, Byte value) {
-        this(parent, key, 200, 21, value);
-    }
+	public NBTByteElement(GuiListModifier<?> parent, String key, Byte value) {
+		this(parent, key, 200, 21, value);
+	}
 
-    public NBTByteElement(GuiListModifier<?> parent, String key, int sizeX, int sizeY, Byte value) {
-        super("byte", parent, key, sizeX, sizeY, value);
-    }
+	public NBTByteElement(GuiListModifier<?> parent, String key, int sizeX, int sizeY, Byte value) {
+		super("byte", parent, key, sizeX, sizeY, value);
+	}
 
-    @Override
-    public Tag get(Byte value) {
-        return ByteTag.valueOf(value);
-    }
+	@Override
+	public NBTBase get(Byte value) {
+		return new NBTTagByte(value);
+	}
 
-    @Override
-    public void setNull() {
-        setValue((byte) 0);
-    }
-
-    @Override
-    public Byte parseValue(String text) {
-        return text.isEmpty() ? 0 : Byte.parseByte(text);
-    }
+	@Override
+	public Byte parseValue(String text) {
+		return text.isEmpty() ? 0 : Byte.parseByte(text);
+	}
 
 }

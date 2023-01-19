@@ -1,74 +1,69 @@
 package fr.atesab.act.gui.modifier;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.components.ACTButton;
-import fr.atesab.act.utils.ChatUtils;
-import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.network.chat.Component;
-
-import java.awt.*;
+import java.awt.Color;
+import java.io.IOException;
 import java.util.function.Consumer;
 
+import fr.atesab.act.utils.ChatUtils;
+import fr.atesab.act.utils.GuiUtils;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.resources.I18n;
+
 public class GuiStringModifier extends GuiModifier<String> {
-    private EditBox field;
-    private String value;
+	private GuiTextField field;
+	private String name;
 
-    public GuiStringModifier(Screen parent, Component name, String value, Consumer<String> setter) {
-        super(parent, name, setter);
-        this.value = value;
-    }
+	public GuiStringModifier(GuiScreen parent, String name, Consumer<String> setter) {
+		super(parent, setter);
+		this.name = name;
+	}
 
-    @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(matrixStack);
-        field.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawRightString(font, I18n.get("gui.act.text") + " : ", field.getX(), field.getY(), Color.ORANGE.getRGB(),
-                field.getHeight());
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-    }
+	protected void actionPerformed(GuiButton button) throws IOException {
+		if (button.id == 0)
+			mc.displayGuiScreen(parent);
+		else if (button.id == 1) {
+			set(name = field.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
+			mc.displayGuiScreen(parent);
+		}
+		super.actionPerformed(button);
+	}
 
-    @Override
-    public void init() {
-        field = new EditBox(font, width / 2 - 99, height / 2 - 20, 198, 18, Component.literal(""));
-        field.setMaxLength(Integer.MAX_VALUE);
-        field.setValue(value.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
-        field.setFocus(true);
-        field.setCanLoseFocus(false);
-        addRenderableWidget(
-                new ACTButton(width / 2 - 100, height / 2, 200, 20, Component.translatable("gui.done"), b -> {
-                    set(value = field.getValue().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
-                    getMinecraft().setScreen(parent);
-                }));
-        addRenderableWidget(new ACTButton(width / 2 - 100, height / 2 + 21, 200, 20,
-                Component.translatable("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
-        super.init();
-    }
+	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+		drawDefaultBackground();
+		field.drawTextBox();
+		GuiUtils.drawRightString(fontRendererObj, I18n.format("gui.act.text") + " : ", field.xPosition, field.yPosition,
+				Color.ORANGE.getRGB(), field.height);
+		super.drawScreen(mouseX, mouseY, partialTicks);
+	}
 
-    @Override
-    public boolean charTyped(char key, int modifiers) {
-        return field.charTyped(key, modifiers) || super.charTyped(key, modifiers);
-    }
+	public void initGui() {
+		field = new GuiTextField(0, fontRendererObj, width / 2 - 99, height / 2 - 20, 198, 18);
+		field.setMaxStringLength(Integer.MAX_VALUE);
+		field.setText(name.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
+		field.setFocused(true);
+		field.setCanLoseFocus(false);
+		buttonList.add(new GuiButton(1, width / 2 - 100, height / 2, I18n.format("gui.done")));
+		buttonList.add(new GuiButton(0, width / 2 - 100, height / 2 + 21, I18n.format("gui.act.cancel")));
+		super.initGui();
+	}
 
-    @Override
-    public boolean keyPressed(int key, int scanCode, int modifiers) {
-        return field.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
-    }
+	protected void keyTyped(char typedChar, int keyCode) throws IOException {
+		field.textboxKeyTyped(typedChar, keyCode);
+		super.keyTyped(typedChar, keyCode);
+	}
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-        field.mouseClicked(mouseX, mouseY, mouseButton);
-        if (GuiUtils.isHover(field, (int) mouseX, (int) mouseY) && mouseButton == 1)
-            field.setValue("");
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
+	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		field.mouseClicked(mouseX, mouseY, mouseButton);
+		if(GuiUtils.isHover(field, mouseX, mouseY) && mouseButton == 1)
+			field.setText("");
+		super.mouseClicked(mouseX, mouseY, mouseButton);
+	}
 
-    @Override
-    public void tick() {
-        value = field.getValue();
-        field.tick();
-        super.tick();
-    }
+	public void updateScreen() {
+		name = field.getText();
+		field.updateCursorCounter();
+		super.updateScreen();
+	}
 }

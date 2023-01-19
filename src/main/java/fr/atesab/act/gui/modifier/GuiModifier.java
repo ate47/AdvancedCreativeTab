@@ -1,30 +1,49 @@
 package fr.atesab.act.gui.modifier;
 
-import fr.atesab.act.gui.GuiACT;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-
 import java.util.function.Consumer;
 
-public class GuiModifier<T> extends GuiACT {
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.ResourceLocation;
 
-    protected Consumer<T> setter;
+public class GuiModifier<T> extends GuiScreen {
+	public static void playClick() {
+		Minecraft.getMinecraft().getSoundHandler()
+				.playSound(PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+	}
 
-    public GuiModifier(Screen parent, Component name, Consumer<T> setter) {
-        super(parent, name);
-        this.setter = setter;
-    }
+	protected GuiScreen parent;
 
-    @Override
-    public boolean isPauseScreen() {
-        return true;
-    }
+	protected Consumer<T> setter;
 
-    public void set(T value) {
-        setter.accept(value);
-    }
+	public GuiModifier(GuiScreen parent, Consumer<T> setter) {
+		this.parent = parent;
+		this.setter = setter;
+	}
 
-    public void setSetter(Consumer<T> setter) {
-        this.setter = setter;
-    }
+	@Override
+	public boolean doesGuiPauseGame() {
+		return true;
+	}
+
+	public GuiScreen getParent() {
+		return parent;
+	}
+
+	public void set(T value) {
+		setter.accept(value);
+	}
+
+	public void setParent(GuiScreen parent) {
+		this.parent = parent;
+	}
+
+	public void setSetter(Consumer<T> setter) {
+		this.setter = setter;
+	}
+
+	public float getZLevel() {
+		return zLevel;
+	}
 }

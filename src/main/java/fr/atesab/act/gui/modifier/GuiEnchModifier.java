@@ -1,117 +1,120 @@
 package fr.atesab.act.gui.modifier;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.components.ACTButton;
-import fr.atesab.act.utils.GuiUtils;
-import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.enchantment.Enchantment;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import fr.atesab.act.utils.GuiUtils;
+import fr.atesab.act.utils.Tuple;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.enchantment.Enchantment;
+
 public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Integer>>> {
 
-    static class EnchListElement extends ListElement {
-        private final Enchantment enchantment;
-        private int level;
-        private final EditBox textField;
-        private boolean err = false;
+	static class EnchListElement extends ListElement {
+		private Enchantment enchantment;
+		private int level;
+		private GuiTextField textField;
+		private boolean err = false;
 
-        public EnchListElement(Enchantment enchantment, int level) {
-            super(200, 21);
-            this.enchantment = enchantment;
-            this.level = level;
-            this.textField = new EditBox(font, 112, 1, 46, 18, Component.literal(""));
-            textField.setMaxLength(6);
-            textField.setValue(String.valueOf(level == 0 ? "" : level));
-            buttonList.add(new ACTButton(160, 0, 40, 20, Component.translatable("gui.act.modifier.ench.max"), b -> textField.setValue(String.valueOf(enchantment.getMaxLevel()))));
-        }
+		public EnchListElement(Enchantment enchantment, int level) {
+			super(200, 21);
+			this.enchantment = enchantment;
+			this.level = level;
+			this.textField = new GuiTextField(0, fontRenderer, 112, 1, 46, 18);
+			textField.setMaxStringLength(6);
+			textField.setText(String.valueOf(level == 0 ? "" : level));
+			buttonList.add(new GuiButton(0, 160, 0, 40, 20, I18n.format("gui.act.modifier.ench.max")));
+		}
 
-        @Override
-        public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-            GuiUtils.drawRelative(matrixStack, textField, offsetX, offsetY, mouseX, mouseY, partialTicks);
-            GuiUtils.drawRightString(font, I18n.get(enchantment.getDescriptionId()) + " : ", offsetX + textField.getX(),
-                    offsetY + textField.getY(), (err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(),
-                    textField.getHeight());
-            super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
-        }
+		@Override
+		protected void actionPerformed(GuiButton button) {
+			if (button.id == 0) {
+				textField.setText(String.valueOf(enchantment.getMaxLevel()));
+			}
+			super.actionPerformed(button);
+		}
 
-        public void init() {
-            textField.setFocus(false);
-        }
+		@Override
+		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+			GuiUtils.drawRelative(textField, offsetX, offsetY);
+			GuiUtils.drawRightString(fontRenderer,
+					I18n.format(enchantment.getName()) + " : ",
+					offsetX + textField.xPosition, offsetY + textField.yPosition,
+					(err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(), textField.height);
+			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
+		}
 
-        @Override
-        public boolean isFocused() {
-            return textField.isFocused();
-        }
+		public void init() {
+			textField.setFocused(false);
+		}
 
-        @Override
-        public boolean charTyped(char key, int modifiers) {
-            return textField.charTyped(key, modifiers) || super.charTyped(key, modifiers);
-        }
+		@Override
+		public boolean isFocused() {
+			return textField.isFocused();
+		}
 
-        @Override
-        public boolean keyPressed(int key, int scanCode, int modifiers) {
-            return textField.keyPressed(key, scanCode, modifiers) || super.keyPressed(key, scanCode, modifiers);
-        }
+		@Override
+		public void keyTyped(char typedChar, int keyCode) {
+			textField.textboxKeyTyped(typedChar, keyCode);
+			super.keyTyped(typedChar, keyCode);
+		}
 
-        @Override
-        public boolean match(String search) {
-            return I18n.get(enchantment.getDescriptionId()).toLowerCase().contains(search.toLowerCase());
-        }
+		@Override
+		public boolean match(String search) {
+			return I18n.format(enchantment.getName()).toLowerCase()
+					.contains(search.toLowerCase());
+		}
 
-        @Override
-        public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-            textField.mouseClicked(mouseX, mouseY, mouseButton);
-            if (mouseButton == 1 && GuiUtils.isHover(textField, mouseX, mouseY))
-                textField.setValue("");
-            super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
+		@Override
+		public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+			textField.mouseClicked(mouseX, mouseY, mouseButton);
+			if (mouseButton == 1 && GuiUtils.isHover(textField, mouseX, mouseY))
+				textField.setText("");
+			super.mouseClicked(mouseX, mouseY, mouseButton);
+		}
 
-        @Override
-        public void update() {
-            textField.tick();
-            try {
-                level = textField.getValue().isEmpty() ? 0 : Integer.parseInt(textField.getValue());
-                err = false;
-            } catch (NumberFormatException e) {
-                err = true;
-            }
-            super.update();
-        }
-    }
+		@Override
+		public void update() {
+			textField.updateCursorCounter();
+			try {
+				level = textField.getText().isEmpty() ? 0 : Integer.valueOf(textField.getText());
+				err = false;
+			} catch (NumberFormatException e) {
+				err = true;
+			}
+			super.update();
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-    public GuiEnchModifier(Screen parent, List<Tuple<Enchantment, Integer>> ench,
-                           Consumer<List<Tuple<Enchantment, Integer>>> setter) {
-        super(parent, Component.translatable("gui.act.modifier.ench"), new ArrayList<>(), setter, null);
-        buttons = new Tuple[]{new Tuple<String, Tuple<Runnable, Runnable>>(I18n.get("gui.act.modifier.ench.max"),
-                new Tuple<>(
-                        () -> getElements().stream().map(le -> (EnchListElement) le)
-                                .forEach(ele -> ele.textField
-                                        .setValue(String.valueOf(ele.level = ele.enchantment.getMaxLevel()))),
-                        () -> getElements().stream().map(le -> (EnchListElement) le).forEach(ele -> {
-                            ele.textField.setValue("");
-                            ele.level = 0;
-                        })))};
-        ench.forEach(e -> addListElement(new EnchListElement(e.a, e.b)));
+	public GuiEnchModifier(GuiScreen parent, List<Tuple<Enchantment, Integer>> ench,
+			Consumer<List<Tuple<Enchantment, Integer>>> setter) {
+		super(parent, new ArrayList<>(), setter);
+		buttons = new Tuple[] { new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("gui.act.modifier.ench.max"),
+				new Tuple<>(
+						() -> elements.stream().map(le -> (EnchListElement) le)
+								.forEach(ele -> ele.textField
+										.setText(String.valueOf(ele.level = ele.enchantment.getMaxLevel()))),
+						() -> elements.stream().map(le -> (EnchListElement) le).forEach(ele -> {
+							ele.textField.setText("");
+							ele.level = 0;
+						}))) };
+		ench.forEach(e -> elements.add(new EnchListElement(e.a, e.b)));
 
-    }
+	}
 
-    @Override
-    protected List<Tuple<Enchantment, Integer>> get() {
-        List<Tuple<Enchantment, Integer>> list = new ArrayList<>();
-        getElements().forEach(le -> {
-            EnchListElement ele = ((EnchListElement) le);
-            list.add(new Tuple<>(ele.enchantment, ele.level));
-        });
-        return list;
-    }
+	@Override
+	protected List<Tuple<Enchantment, Integer>> get() {
+		List<Tuple<Enchantment, Integer>> list = new ArrayList<>();
+		elements.forEach(le -> {
+			EnchListElement ele = ((EnchListElement) le);
+			list.add(new Tuple<>(ele.enchantment, ele.level));
+		});
+		return list;
+	}
 
 }

@@ -1,37 +1,48 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
-import fr.atesab.act.gui.components.ACTButton;
+import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTListModifier;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagList;
 
 public class NBTListElement extends NBTElement {
-    private ListTag value;
+	private NBTTagList value;
 
-    public NBTListElement(GuiListModifier<?> parent, String key, ListTag value) {
-        super(parent, key, 200, 21);
-        this.value = value;
-        buttonList.add(new ACTButton(0, 0, 200, 20, Component.translatable("gui.act.modifier.tag.editor.list"), b -> mc.setScreen(new GuiNBTListModifier(Component.literal(parent.getStringTitle() + key + "/"), parent,
-                tag -> NBTListElement.this.value = tag, value.copy()))));
-    }
+	public NBTListElement(GuiListModifier<?> parent, String key, NBTTagList value) {
+		super(parent, key, 200, 21);
+		this.value = value;
+		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.list")));
+	}
 
-    @Override
-    public NBTElement clone() {
-        return new NBTListElement(parent, key, value.copy());
-    }
+	@Override
+	protected void actionPerformed(GuiButton button) {
+		if (button.id == 0)
+			mc.displayGuiScreen(new GuiNBTListModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
+					tag -> value = tag, (NBTTagList) value.copy()));
+		super.actionPerformed(button);
+	}
 
-    @Override
-    public Tag get() {
-        return value.copy();
-    }
+	@Override
+	public NBTElement clone() {
+		return new NBTListElement(parent, key, (NBTTagList) value.copy());
+	}
 
-    @Override
-    public String getType() {
-        return value.getType().getName().toLowerCase() + " " + I18n.get("gui.act.modifier.tag.editor.list") + "["
-                + value.size() + "]";
-    }
+	@Override
+	public NBTBase get() {
+		return value.copy();
+	}
+
+	public static String getTagTypeName(int i) {
+		return i >= 0 && i < NBTBase.NBT_TYPES.length ? NBTBase.NBT_TYPES[i] : "UNKNOWN";
+	}
+
+	@Override
+	public String getType() {
+		return getTagTypeName(value.getTagType()) + " " + I18n.format("gui.act.modifier.tag.editor.list") + "["
+				+ value.tagCount() + "]";
+	}
 
 }

@@ -1,228 +1,232 @@
 package fr.atesab.act.gui.modifier;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.components.ACTButton;
-import fr.atesab.act.gui.selector.GuiButtonListSelector;
-import fr.atesab.act.utils.GuiUtils;
-import fr.atesab.act.utils.ItemUtils;
-import fr.atesab.act.utils.ItemUtils.PotionInformation;
-import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Registry;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraftforge.registries.ForgeRegistries;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import fr.atesab.act.gui.selector.GuiButtonListSelector;
+import fr.atesab.act.gui.selector.GuiTypeListSelector;
+import fr.atesab.act.utils.GuiUtils;
+import fr.atesab.act.utils.Tuple;
+import fr.atesab.act.utils.ItemUtils.PotionInformation;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemPotion;
+import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.potion.PotionHelper;
+import net.minecraft.util.StatCollector;
+
 public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
-    private static class CustomPotionListElement extends ListElement {
-        private final EditBox duration;
-        private final EditBox amplifier;
-        private MobEffect potion;
-        private int durationTime, amplifierValue;
-        private boolean ambient;
-        private final boolean showIcon;
-        private boolean showParticles;
-        private boolean errDur = false, errAmp = false;
-        private final Button type;
+	private static class CustomPotionListElement extends ListElement {
+		private GuiPotionModifier parent;
+		private PotionEffect effect;
+		private GuiTextField duration, amplifier;
+		private boolean errDur = false, errAmp = false;
+		private GuiButton type, ambient, showParticles;
 
-        public CustomPotionListElement(GuiPotionModifier parent, MobEffectInstance potionEffect) {
-            super(400, 50);
-            int l = 5 + Math.max(font.width(I18n.get("gui.act.modifier.meta.potion.duration") + " : "),
-                    font.width(I18n.get("gui.act.modifier.meta.potion.amplifier") + " : "));
-            potion = potionEffect.getEffect();
-            durationTime = potionEffect.getDuration();
-            amplifierValue = potionEffect.getAmplifier();
-            ambient = potionEffect.isAmbient();
-            showIcon = potionEffect.showIcon();
-            showParticles = potionEffect.isVisible();
+		public CustomPotionListElement(GuiPotionModifier parent, PotionEffect effect) {
+			super(400, 50);
+			this.parent = parent;
+			this.effect = effect;
+			int l = 5 + Math.max(
+					fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.potion.duration") + " : "),
+					fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.potion.amplifier") + " : "));
+			duration = new GuiTextField(0, fontRenderer, l, 1, 150 - l, 18);
+			duration.setText(String.valueOf(effect.getDuration()));
+			amplifier = new GuiTextField(0, fontRenderer, l, 22, 150 - l, 18);
+			amplifier.setText(String.valueOf(effect.getAmplifier()));
+			buttonList.add(type = new GuiButton(0, 153, 0, I18n.format("gui.act.modifier.meta.potion.type")));
+			buttonList.add(
+					ambient = new GuiButton(1, 153, 21, 100, 20, I18n.format("gui.act.modifier.meta.potion.ambient")));
+			buttonList.add(showParticles = new GuiButton(2, 255, 21, 99, 20,
+					I18n.format("gui.act.modifier.meta.potion.showParticles")));
+			buttonList.add(new RemoveElementButton(parent, 355, 0, 20, 20, this));
+			buttonList.add(new AddElementButton(parent, 377, 0, 20, 20, this, parent.supplier));
+			buttonList.add(new AddElementButton(parent, 355, 21, 43, 20, I18n.format("gui.act.give.copy"), this,
+					() -> new CustomPotionListElement(parent, getEffect())));
+			setButtonText();
+		}
 
-            duration = new EditBox(font, l, 1, 150 - l, 18, Component.literal(""));
-            duration.setValue(String.valueOf(durationTime));
-            amplifier = new EditBox(font, l, 22, 150 - l, 18, Component.literal(""));
-            amplifier.setValue(String.valueOf(amplifierValue));
-            buttonList.add(type = new ACTButton(153, 0, 200, 20,
-                    Component.translatable("gui.act.modifier.meta.potion.type"), b -> {
-                List<Tuple<String, MobEffect>> pots = new ArrayList<>();
-                // Potion.REGISTRY
-                ForgeRegistries.MOB_EFFECTS
-                        .forEach(pot -> pots.add(new Tuple<>(I18n.get(pot.getDescriptionId()), pot)));
-                mc.setScreen(new GuiButtonListSelector<>(parent,
-                        Component.translatable("gui.act.modifier.meta.potion.type"), pots, pot -> {
-                    potion = pot;
-                    setButtonText();
-                    return null;
-                }));
-            }));
-            buttonList.add(new GuiBooleanButton(153, 21, 100, 20,
-                    Component.translatable("gui.act.modifier.meta.potion.ambient"), b -> ambient = b,
-                    () -> ambient));
-            buttonList.add(new GuiBooleanButton(255, 21, 99, 20,
-                    Component.translatable("gui.act.modifier.meta.potion.showParticles"), b -> showParticles = b,
-                    () -> showParticles));
-            buttonList.add(new RemoveElementButton(parent, 355, 0, 20, 20, this));
-            buttonList.add(new AddElementButton(parent, 377, 0, 20, 20, this, parent.supplier));
-            buttonList.add(new AddElementButton(parent, 355, 21, 43, 20, Component.translatable("gui.act.give.copy"),
-                    this, () -> new CustomPotionListElement(parent, getEffect())));
-            setButtonText();
-        }
+		@Override
+		protected void actionPerformed(GuiButton button) {
+			switch (button.id) {
+			case 0: // type
+				List<Tuple<String, Potion>> pots = new ArrayList<>();
+				Potion.func_181168_c().forEach(rl -> {
+					Potion pot = Potion.getPotionFromResourceLocation(rl.toString());
+					pots.add(new Tuple<>(I18n.format(pot.getName()), pot));
+				});
+				mc.displayGuiScreen(new GuiButtonListSelector<Potion>(parent, pots, pot -> {
+					effect = new PotionEffect(pot.id, effect.getDuration(), effect.getAmplifier(),
+							effect.getIsAmbient(), effect.getIsShowParticles());
+					setButtonText();
+					return null;
+				}));
+				break;
+			case 1: // ambient
+				effect = new PotionEffect(effect.getPotionID(), effect.getDuration(), effect.getAmplifier(),
+						!effect.getIsAmbient(), effect.getIsShowParticles());
+				break;
+			case 2: // showParticles
+				effect = new PotionEffect(effect.getPotionID(), effect.getDuration(), effect.getAmplifier(),
+						effect.getIsAmbient(), !effect.getIsShowParticles());
+				break;
+			}
+			setButtonText();
+			super.actionPerformed(button);
+		}
 
-        @Override
-        public void draw(PoseStack stack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-            GuiUtils.drawRelative(stack, amplifier, offsetX, offsetY, mouseX, mouseY, partialTicks);
-            GuiUtils.drawRelative(stack, duration, offsetX, offsetY, mouseX, mouseY, partialTicks);
-            GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.potion.duration") + " : ", duration,
-                    (errDur ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
-            GuiUtils.drawRightString(font, I18n.get("gui.act.modifier.meta.potion.amplifier") + " : ", amplifier,
-                    (errAmp ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
-            super.draw(stack, offsetX, offsetY, mouseX, mouseY, partialTicks);
-        }
+		@Override
+		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+			GuiUtils.drawRelative(amplifier, offsetX, offsetY);
+			GuiUtils.drawRelative(duration, offsetX, offsetY);
+			GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.modifier.meta.potion.duration") + " : ",
+					duration, (errDur ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
+			GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.modifier.meta.potion.amplifier") + " : ",
+					amplifier, (errAmp ? Color.RED : Color.WHITE).getRGB(), offsetX, offsetY);
+			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
+		}
 
-        public MobEffectInstance getEffect() {
-            return new MobEffectInstance(potion, durationTime, amplifierValue, ambient, showParticles, showIcon);
-        }
+		public PotionEffect getEffect() {
+			return new PotionEffect(effect);
+		}
 
-        @Override
-        public void init() {
-            amplifier.setFocus(false);
-            duration.setFocus(false);
-            super.init();
-        }
+		@Override
+		public void init() {
+			amplifier.setFocused(false);
+			duration.setFocused(false);
+			super.init();
+		}
 
-        @Override
-        public boolean isFocused() {
-            return amplifier.isFocused() || duration.isFocused();
-        }
+		@Override
+		public boolean isFocused() {
+			return amplifier.isFocused() || duration.isFocused();
+		}
 
-        @Override
-        public boolean charTyped(char key, int modifiers) {
-            return amplifier.charTyped(key, modifiers) || duration.charTyped(key, modifiers)
-                    || super.charTyped(key, modifiers);
-        }
+		@Override
+		public void keyTyped(char typedChar, int keyCode) {
+			amplifier.textboxKeyTyped(typedChar, keyCode);
+			duration.textboxKeyTyped(typedChar, keyCode);
+			super.keyTyped(typedChar, keyCode);
+		}
 
-        @Override
-        public boolean keyPressed(int key, int scanCode, int modifiers) {
-            return amplifier.keyPressed(key, scanCode, modifiers) || duration.keyPressed(key, scanCode, modifiers)
-                    || super.keyPressed(key, scanCode, modifiers);
-        }
+		@Override
+		public boolean match(String search) {
+			return I18n.format(effect.getEffectName()).toLowerCase().contains(search.toLowerCase());
+		}
 
-        @Override
-        public boolean match(String search) {
-            return (potion == null ? "" : I18n.get(potion.getDescriptionId()).toLowerCase())
-                    .contains(search.toLowerCase());
-        }
+		@Override
+		public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+			amplifier.mouseClicked(mouseX, mouseY, mouseButton);
+			duration.mouseClicked(mouseX, mouseY, mouseButton);
+			super.mouseClicked(mouseX, mouseY, mouseButton);
+		}
 
-        @Override
-        public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-            amplifier.mouseClicked(mouseX, mouseY, mouseButton);
-            duration.mouseClicked(mouseX, mouseY, mouseButton);
-            super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
+		private void setButtonText() {
+			type.displayString = I18n.format("gui.act.modifier.meta.potion.type") + " ("
+					+ I18n.format(effect.getEffectName()) + ")";
+			ambient.packedFGColour = GuiUtils.getRedGreen(effect.getIsAmbient());
+			showParticles.packedFGColour = GuiUtils.getRedGreen(effect.getIsShowParticles());
+		}
 
-        private void setButtonText() {
-            type.setMessage(Component.translatable("gui.act.modifier.meta.potion.type").append(" (").append(
-                            potion == null ? Component.literal("null") : Component.translatable(potion.getDescriptionId()))
-                    .append(")"));
-        }
+		@Override
+		public void update() {
+			amplifier.updateCursorCounter();
+			duration.updateCursorCounter();
+			int dur = effect.getDuration();
+			int amp = effect.getAmplifier();
+			try {
+				dur = Integer.valueOf(duration.getText());
+				errAmp = false;
+			} catch (Exception e) {
+				errAmp = true;
+			}
+			try {
+				int i = Integer.valueOf(amplifier.getText());
+				if (!(errAmp = i < -128 || i > 127))
+					amp = i;
+			} catch (Exception e) {
+				errAmp = true;
+			}
+			effect = new PotionEffect(effect.getPotionID(), dur, amp, effect.getIsAmbient(),
+					effect.getIsShowParticles());
+			super.update();
+		}
 
-        @Override
-        public void update() {
-            amplifier.tick();
-            duration.tick();
-            try {
-                durationTime = Integer.parseInt(duration.getValue());
-                errDur = false;
-            } catch (Exception e) {
-                errDur = true;
-            }
-            try {
-                int i = Integer.parseInt(amplifier.getValue());
-                if (!(errAmp = i < -128 || i > 127))
-                    amplifierValue = i;
-            } catch (Exception e) {
-                errAmp = true;
-            }
-            super.update();
-        }
+	}
 
-    }
+	private static class MainPotionListElement extends ListElement {
+		private static String getPotionName(int meta) {
+			List<PotionEffect> list = PotionHelper.getPotionEffects(meta, false);
+			if (list == null || list.isEmpty())
+				return null;
+			return StatCollector.translateToLocal(((PotionEffect) list.get(0)).getEffectName() + ".postfix").trim();
+		}
 
-    private static class MainPotionListElement extends ListElement {
-        private static String getPotionName(Potion pot) {
-            String name = pot.getName("");
-            String registry = ItemUtils.getRegistry(ForgeRegistries.POTIONS, pot).toString();
-            return name + (registry.contains("long_")
-                    ? " (" + I18n.get("gui.act.modifier.meta.potion.long") + ")"
-                    : registry.contains("strong_") ? " II" : "");
-        }
+		private GuiPotionModifier parent;
 
-        private final GuiPotionModifier parent;
+		private GuiButton type;
 
-        private final Button type;
+		public MainPotionListElement(GuiPotionModifier parent) {
+			super(200, 29);
+			this.parent = parent;
+			buttonList.add(type = new GuiButton(1, 0, 0, 199, 20, ""));
+			defineButton();
+		}
 
-        public MainPotionListElement(GuiPotionModifier parent) {
-            super(400, 29);
-            this.parent = parent;
-            buttonList.add(new ACTButton(0, 0, 200, 20, Component.translatable("gui.act.modifier.meta.setColor"),
-                    b -> mc.setScreen(
-                            new GuiColorModifier(parent, i -> parent.customColor = i, parent.customColor, true))));
-            buttonList.add(type = new ACTButton(201, 0, 199, 20, Component.literal(""), b -> {
-                List<Tuple<String, Potion>> pots = new ArrayList<>();
-                // PotionType.REGISTRY
-                ForgeRegistries.POTIONS.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
-                mc.setScreen(new GuiButtonListSelector<>(parent,
-                        Component.translatable("gui.act.modifier.meta.potion.type"), pots, pot -> {
-                    parent.main = pot;
-                    defineButton();
-                    return null;
-                }));
-            }));
-            defineButton();
-        }
+		@Override
+		protected void actionPerformed(GuiButton button) {
+			switch (button.id) {
+			case 1:
+				List<ItemStack> pots = new ArrayList<>();
+				for (int i = 0; i < 15; i++) {
+					if (i != 7)
+						pots.add(new ItemStack(Items.potionitem, 1, i | (parent.meta & (~15))));
+				}
+				mc.displayGuiScreen(new GuiTypeListSelector(parent, pot -> {
+					parent.meta = pot.getItemDamage();
+					defineButton();
+					return null;
+				}, pots));
+				break;
+			}
+			super.actionPerformed(button);
+		}
 
-        private void defineButton() {
-            type.setMessage(Component.translatable("gui.act.modifier.meta.potion.type").append(" (")
-                    .append(getPotionName(parent.main)).append(")"));
-        }
+		private void defineButton() {
+			String name = getPotionName(parent.meta);
+			type.displayString = I18n.format("gui.act.modifier.meta.potion.type")
+					+ (name != null ? " (" + getPotionName(parent.meta) + ")" : "");
+		}
 
-    }
+	}
 
-    private OptionalInt customColor;
+	private int meta;
 
-    private Potion main;
+	private final Supplier<ListElement> supplier = () -> new CustomPotionListElement(this,
+			new PotionEffect(Potion.moveSpeed.id, 0));
 
-    private final Supplier<ListElement> supplier = () -> new CustomPotionListElement(this,
-            new MobEffectInstance(MobEffects.MOVEMENT_SPEED));
+	public GuiPotionModifier(GuiScreen parent, Consumer<PotionInformation> setter, PotionInformation info) {
+		super(parent, new ArrayList<>(), setter);
+		this.meta = info.getMeta();
+		elements.add(new MainPotionListElement(this));
+		info.getCustomEffects().forEach(t -> elements.add(new CustomPotionListElement(this, t)));
+		elements.add(new AddElementList(this, supplier));
+	}
 
-    @SuppressWarnings("unchecked")
-    public GuiPotionModifier(Screen parent, Consumer<PotionInformation> setter, PotionInformation info) {
-        super(parent, Component.translatable("gui.act.modifier.meta.potion"), new ArrayList<>(), setter,
-                new Tuple[0]);
-        this.customColor = info.getCustomColor();
-        this.main = info.getMain();
-        addListElement(new MainPotionListElement(this));
-        info.getCustomEffects().forEach(t -> addListElement(new CustomPotionListElement(this, t)));
-        addListElement(new AddElementList(this, supplier));
-    }
-
-    @Override
-    protected PotionInformation get() {
-        List<MobEffectInstance> customEffects = new ArrayList<>();
-        getElements().stream().filter(le -> le instanceof CustomPotionListElement)
-                .map(le -> (CustomPotionListElement) le).forEach(cpl -> customEffects.add(cpl.getEffect()));
-        return new PotionInformation(customColor, main, customEffects);
-    }
+	@Override
+	protected PotionInformation get() {
+		List<PotionEffect> customEffects = new ArrayList<>();
+		elements.stream().filter(le -> le instanceof CustomPotionListElement)
+				.forEach(le -> customEffects.add(((CustomPotionListElement) le).getEffect()));
+		return new PotionInformation(meta, customEffects);
+	}
 
 }

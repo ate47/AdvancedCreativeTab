@@ -1,134 +1,149 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.modifier.GuiListModifier;
-import fr.atesab.act.gui.modifier.GuiListModifier.AddElementButton;
-import fr.atesab.act.gui.modifier.GuiListModifier.ListElement;
-import fr.atesab.act.gui.modifier.GuiListModifier.RemoveElementButton;
-import fr.atesab.act.gui.modifier.GuiListModifier.RunElementButton;
-import fr.atesab.act.gui.modifier.GuiStringModifier;
-import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
-import fr.atesab.act.utils.GuiUtils;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.*;
-import net.minecraft.network.chat.Component;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import fr.atesab.act.gui.modifier.GuiListModifier;
+import fr.atesab.act.gui.modifier.GuiStringModifier;
+import fr.atesab.act.gui.modifier.GuiListModifier.AddElementButton;
+import fr.atesab.act.gui.modifier.GuiListModifier.ListElement;
+import fr.atesab.act.gui.modifier.GuiListModifier.RemoveElementButton;
+import fr.atesab.act.gui.modifier.GuiListModifier.RunElementButton;
+import fr.atesab.act.gui.modifier.nbt.GuiNBTModifier;
+import fr.atesab.act.utils.GuiUtils;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.NBTTagFloat;
+import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagIntArray;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.NBTTagShort;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.EnumChatFormatting;
 
 public abstract class NBTElement extends ListElement implements Cloneable {
-    private static boolean isList(Object object) {
-        return object.getClass().isAnnotationPresent(GuiNBTList.class);
-    }
+	private static boolean isList(Object object) {
+		return object.getClass().isAnnotationPresent(GuiNBTList.class);
+	}
 
-    protected String key;
+	protected String key;
 
-    protected GuiListModifier<?> parent;
+	protected GuiListModifier<?> parent;
 
-    public NBTElement(GuiListModifier<?> parent, String key, int sizeX, int sizeY) {
-        super(sizeX + 82, Math.max(isList(parent) ? 22 : 43, sizeY));
-        this.key = key;
-        this.parent = parent;
-        buttonList.add(new RemoveElementButton(parent, sizeX + 1, 0, 20, 20, this));
-        buttonList.add(new AddElementButton(parent, sizeX + 22, 0, 20, 20,
-                Component.literal("+").withStyle(ChatFormatting.GREEN), this, i -> {
-            GuiNBTModifier.ADD_ELEMENT.accept(i, parent);
-            return null;
-        }));
-        buttonList.add(new AddElementButton(parent, sizeX + 43, 0, 37, 20,
-                Component.translatable("gui.act.give.copy"), this, i -> {
-            parent.addListElement(i, getElementByBase(parent, key, this.get()));
-            return null;
-        }));
-        if (!isList(parent))
-            buttonList
-                    .add(new RunElementButton(sizeX + 1, 21, 79, 20, Component.translatable("gui.act.config.name"),
-                            () -> mc.setScreen(new GuiStringModifier(parent,
-                                    Component.translatable("gui.act.config.name"), getKey(), nk -> this.key = nk)),
-                            null));
-    }
+	public NBTElement(GuiListModifier<?> parent, String key, int sizeX, int sizeY) {
+		super(sizeX + 82, Math.max(isList(parent) ? 22 : 43, sizeY));
+		this.key = key;
+		this.parent = parent;
+		buttonList.add(new RemoveElementButton(parent, sizeX + 1, 0, 20, 20, this));
+		buttonList.add(new AddElementButton(parent, sizeX + 22, 0, 20, 20, EnumChatFormatting.GREEN + "+", this, i -> {
+			GuiNBTModifier.ADD_ELEMENT.accept(i, parent);
+			return null;
+		}));
+		buttonList
+				.add(new AddElementButton(parent, sizeX + 43, 0, 37, 20, I18n.format("gui.act.give.copy"), this, i -> {
+					parent.addListElement(i, getElementByBase(parent, key, this.get()));
+					return null;
+				}));
+		if (!isList(parent))
+			buttonList.add(new RunElementButton(sizeX + 1, 21, 79, 20, I18n.format("gui.act.config.name"),
+					() -> mc.displayGuiScreen(new GuiStringModifier(parent, getKey(), nk -> this.key = nk)), null));
+	}
 
-    @Override
-    public abstract NBTElement clone();
+	@Override
+	public abstract NBTElement clone();
 
-    @Override
-    public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-        GuiUtils.drawGradientRect(matrixStack, offsetX - 2, offsetY - (6 + font.lineHeight), offsetX + getSizeX() - 1,
-                offsetY - 2, 0x88dddddd, 0x88aaaaaa, parent.getZLevel());
-        GuiUtils.drawGradientRect(matrixStack, offsetX - 2, offsetY - 2, offsetX + getSizeX() - 1,
-                offsetY + getSizeY() + 2, 0x88000000, 0x88000000, parent.getZLevel());
-        String s = getType();
-        if (!isList(parent))
-            s = key + " (" + s + ")";
-        GuiUtils.drawString(font, s, offsetX + 2, offsetY - font.lineHeight - 4, 0xffffffff, font.lineHeight + 2);
-        super.draw(matrixStack, offsetX, offsetY, mouseX, mouseY, partialTicks);
-    }
+	@Override
+	public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		GuiUtils.drawGradientRect(offsetX - 2, offsetY - (6 + fontRenderer.FONT_HEIGHT), offsetX + getSizeX() - 1,
+				offsetY - 2, 0x88dddddd, 0x88aaaaaa, parent.getZLevel());
+		GuiUtils.drawGradientRect(offsetX - 2, offsetY - 2, offsetX + getSizeX() - 1, offsetY + getSizeY() + 2,
+				0x88000000, 0x88000000, parent.getZLevel());
+		String s = getType();
+		if (!isList(parent))
+			s = key + " (" + s + ")";
+		GuiUtils.drawString(fontRenderer, s, offsetX + 2, offsetY - fontRenderer.FONT_HEIGHT - 4, 0xffffffff,
+				fontRenderer.FONT_HEIGHT + 2);
+		super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
+	}
 
-    /**
-     * Create a {@link Tag} from this {@link NBTElement}
-     *
-     * @return the base
-     */
-    public abstract Tag get();
+	/**
+	 * Create a {@link NBTBase} from this {@link NBTElement}
+	 * 
+	 * @return the base
+	 */
+	public abstract NBTBase get();
 
-    public String getKey() {
-        return key;
-    }
+	public String getKey() {
+		return key;
+	}
 
-    /**
-     * Get the type of the NBTElement
-     *
-     * @return the type name
-     * @since 2.1
-     */
-    public abstract String getType();
+	/**
+	 * Get the type of the NBTElement
+	 * 
+	 * @since 2.1
+	 */
+	public abstract String getType();
 
-    @Override
-    public boolean match(String search) {
-        return (key + " (" + I18n.get("gui.act.modifier.tag.editor." + getType()) + ")").toLowerCase()
-                .contains(search.toLowerCase());
-    }
+	@Override
+	public boolean match(String search) {
+		return (key + " (" + I18n.format("gui.act.modifier.tag.editor." + getType()) + ")").toLowerCase()
+				.contains(search.toLowerCase());
+	}
 
-    /**
-     * Get a {@link NBTElement} with a base
-     *
-     * @param parent parent modifier
-     * @param key    the key of the tag
-     * @param base   the tag
-     * @return the {@link NBTElement} from this tag
-     * @since 2.1
-     */
-    public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, Tag base) {
-        return switch (base.getId()) {
-            case Tag.TAG_END -> new NBTTagElement(parent, key, new CompoundTag());
-            case Tag.TAG_BYTE -> new NBTByteElement(parent, key, ((ByteTag) base).getAsByte());
-            case Tag.TAG_SHORT -> new NBTShortElement(parent, key, ((ShortTag) base).getAsShort());
-            case Tag.TAG_INT -> new NBTIntegerElement(parent, key, ((IntTag) base).getAsInt());
-            case Tag.TAG_LONG -> new NBTLongElement(parent, key, ((LongTag) base).getAsLong());
-            case Tag.TAG_FLOAT -> new NBTFloatElement(parent, key, ((FloatTag) base).getAsFloat());
-            case Tag.TAG_DOUBLE -> new NBTDoubleElement(parent, key, ((DoubleTag) base).getAsDouble());
-            case Tag.TAG_STRING -> new NBTStringElement(parent, key, base.getAsString());
-            case Tag.TAG_LIST -> new NBTListElement(parent, key, ((ListTag) base));
-            case Tag.TAG_COMPOUND -> new NBTTagElement(parent, key, (CompoundTag) base);
-            case Tag.TAG_INT_ARRAY -> new NBTIntArrayElement(parent, key, (IntArrayTag) base);
-            case Tag.TAG_LONG_ARRAY -> new NBTLongArrayElement(parent, key, (LongArrayTag) base);
-            default -> new NBTUnknownElement(parent, key, base);
-        };
-    }
+	/**
+	 * Get a {@link NBTElement} with a base
+	 * 
+	 * @param parent
+	 * @param key
+	 * @param base
+	 * @return
+	 * @since 2.1
+	 */
+	public static NBTElement getElementByBase(GuiListModifier<?> parent, String key, NBTBase base) {
+		switch (base.getId()) {
+		case 0:
+			return new NBTTagElement(parent, key, new NBTTagCompound());
+		case 1:
+			return new NBTByteElement(parent, key, ((NBTTagByte) base).getByte());
+		case 2:
+			return new NBTShortElement(parent, key, ((NBTTagShort) base).getShort());
+		case 3:
+			return new NBTIntegerElement(parent, key, ((NBTTagInt) base).getInt());
+		case 4:
+			return new NBTLongElement(parent, key, ((NBTTagLong) base).getLong());
+		case 5:
+			return new NBTFloatElement(parent, key, ((NBTTagFloat) base).getFloat());
+		case 6:
+			return new NBTDoubleElement(parent, key, ((NBTTagDouble) base).getDouble());
+		case 8:
+			return new NBTStringElement(parent, key, ((NBTTagString) base).getString());
+		case 9:
+			return new NBTListElement(parent, key, ((NBTTagList) base));
+		case 10:
+			return new NBTTagElement(parent, key, (NBTTagCompound) base);
+		case 11:
+			return new NBTIntArrayElement(parent, key, (NBTTagIntArray) base);
+		default:
+			return new NBTUnknownElement(parent, key, base);
+		}
+	}
 
-    /**
-     * Say to {@link NBTElement} in an {@link GuiListModifier} with this annotation
-     * that key isn't needed
-     *
-     * @author ATE47
-     * @since 2.1
-     */
-    @Retention(RUNTIME)
-    @Target(TYPE)
-    public @interface GuiNBTList {
-    }
+	/**
+	 * Say to {@link NBTElement} in an {@link GuiListModifier} with this annotation
+	 * that key isn't needed
+	 * 
+	 * @author ATE47
+	 * @since 2.1
+	 */
+	@Retention(RUNTIME)
+	@Target(TYPE)
+	public static @interface GuiNBTList {
+	}
 }

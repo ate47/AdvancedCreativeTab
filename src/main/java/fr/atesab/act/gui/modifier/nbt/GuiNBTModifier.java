@@ -1,106 +1,134 @@
 package fr.atesab.act.gui.modifier.nbt;
 
-import fr.atesab.act.gui.modifier.GuiListModifier;
-import fr.atesab.act.gui.modifier.GuiStringModifier;
-import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
-import fr.atesab.act.gui.selector.GuiButtonListSelector;
-import fr.atesab.act.utils.Tuple;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.*;
-import net.minecraft.network.chat.Component;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class GuiNBTModifier extends GuiListModifier<CompoundTag> {
+import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
+import fr.atesab.act.gui.modifier.GuiListModifier;
+import fr.atesab.act.gui.modifier.GuiStringModifier;
+import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
+import fr.atesab.act.gui.selector.GuiButtonListSelector;
+import fr.atesab.act.utils.Tuple;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.NBTTagFloat;
+import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagIntArray;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.NBTTagShort;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.EnumChatFormatting;
 
-    public static final BiConsumer<Integer, GuiListModifier<?>> ADD_ELEMENT = (i, lm) -> {
-        final GuiStringModifier modifier = new GuiStringModifier(lm, Component.translatable("gui.act.modifier.name"),
-                "", null);
-        modifier.setSetter(key -> {
-            if (!key.isEmpty())
-                modifier.setParent(addElement(i == null ? lm.getElements().size() - 1 : i, lm, key));
-        });
-        lm.getMinecraft().setScreen(modifier);
-    };
+public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements GuiArrayModifierTitle {
 
-    public static GuiButtonListSelector<Tag> addElement(int i, GuiListModifier<?> lm, String key) {
-        return new GuiButtonListSelector<>(lm, Component.translatable("gui.act.modifier.tag.editor"), Arrays.asList(
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.tag"), new CompoundTag()),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.string"), StringTag.valueOf("")),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.int"), IntTag.valueOf(0)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.long"), LongTag.valueOf(0L)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.float"), FloatTag.valueOf(0F)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.double"), DoubleTag.valueOf(0D)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.short"), ShortTag.valueOf((short) 0)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.intArray"), new IntArrayTag(new int[0])),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.longArray"),
-                        new LongArrayTag(new long[0])),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.byte"), ByteTag.valueOf((byte) 0)),
-                new Tuple<>(I18n.get("gui.act.modifier.tag.editor.list"), new ListTag())), base -> {
-            lm.addListElement(i, NBTElement.getElementByBase(lm, key, base));
-            return null;
-        });
-    }
+	public static final BiConsumer<Integer, GuiListModifier<?>> ADD_ELEMENT = (i, lm) -> {
+		final GuiStringModifier modifier = new GuiStringModifier(lm, "", null);
+		modifier.setSetter(key -> {
+			if (!key.isEmpty())
+				modifier.setParent(addElement(i == null ? lm.getElements().size() - 1 : i, lm, key));
+		});
+		lm.mc.displayGuiScreen(modifier);
+	};
 
-    public static Tag getDefaultElement(int id) {
-        return switch (id) {
-            case 1 -> ByteTag.valueOf((byte) 0);
-            case 2 -> ShortTag.valueOf((short) 0);
-            case 3 -> IntTag.valueOf(0);
-            case 4 -> LongTag.valueOf(0L);
-            case 5 -> FloatTag.valueOf(0F);
-            case 6 -> DoubleTag.valueOf(0D);
-            case 8 -> StringTag.valueOf("");
-            case 9 -> new ListTag();
-            case 10 -> new CompoundTag();
-            case 11 -> new IntArrayTag(new int[0]);
-            case 12 -> new LongArrayTag(new long[0]);
-            default -> null;
-        };
-    }
+	public static GuiButtonListSelector<NBTBase> addElement(int i, GuiListModifier<?> lm, String key) {
+		return new GuiButtonListSelector<NBTBase>(lm, Arrays.asList(
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.tag"), new NBTTagCompound()),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.string"), new NBTTagString()),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.int"), new NBTTagInt(0)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.long"), new NBTTagLong(0L)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.float"), new NBTTagFloat(0F)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.double"), new NBTTagDouble(0D)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.short"),
+						new NBTTagShort((short) 0)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.intArray"),
+						new NBTTagIntArray(new int[0])),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.byte"), new NBTTagByte((byte) 0)),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.list"), new NBTTagList())),
+				base -> {
+					lm.addListElement(i, NBTElement.getElementByBase(lm, key, base));
+					return null;
+				});
+	}
 
-    public GuiNBTModifier(Screen parent, Consumer<CompoundTag> setter, CompoundTag tag) {
-        this(Component.literal("/"), parent, setter, tag);
-    }
+	public static NBTBase getDefaultElement(int id) {
+		switch (id) {
+		case 1:
+			new NBTTagByte((byte) 0);
+		case 2:
+			return new NBTTagShort((short) 0);
+		case 3:
+			return new NBTTagInt(0);
+		case 4:
+			return new NBTTagLong(0L);
+		case 5:
+			return new NBTTagFloat(0F);
+		case 6:
+			return new NBTTagDouble(0D);
+		case 8:
+			return new NBTTagString("");
+		case 9:
+			return new NBTTagList();
+		case 10:
+			return new NBTTagCompound();
+		case 11:
+			return new NBTTagIntArray(new int[0]);
+		default:
+			return null;
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-    public GuiNBTModifier(Component title, Screen parent, Consumer<CompoundTag> setter, CompoundTag tag) {
-        super(parent, title, new ArrayList<>(), setter, true, true, new Tuple[0]);
-        addListElement(new ButtonElementList(200, 21, 200, 20, Component.literal("+").withStyle(ChatFormatting.GREEN),
-                () -> ADD_ELEMENT.accept(null, this), null));
-        tag.getAllKeys().forEach(key -> addElement(key, tag.get(key)));
-        setPaddingLeft(5);
-        setPaddingTop(13 + Minecraft.getInstance().font.lineHeight);
-        setNoAdaptativeSize(true);
-    }
+	private String title = "";
 
-    private void addElement(int i, String key, Tag base) {
-        if (getElements().stream().anyMatch(le -> le instanceof NBTElement && ((NBTElement) le).getKey().equals(key))) {
-            addElement(key + "_", base);
-            return;
-        }
-        addListElement(i, NBTElement.getElementByBase(this, key, base));
+	public GuiNBTModifier(GuiScreen parent, Consumer<NBTTagCompound> setter, NBTTagCompound tag) {
+		this("/", parent, setter, tag);
+	}
 
-    }
+	public GuiNBTModifier(String title, GuiScreen parent, Consumer<NBTTagCompound> setter, NBTTagCompound tag) {
+		super(parent, new ArrayList<>(), setter, true, true);
+		elements.add(new ButtonElementList(200, 21, 200, 20, EnumChatFormatting.GREEN + "+",
+				() -> ADD_ELEMENT.accept(null, this), null));
+		tag.getKeySet().forEach(key -> addElement(key, tag.getTag(key)));
+		setPaddingLeft(5);
+		setPaddingTop(13 + Minecraft.getMinecraft().fontRendererObj.FONT_HEIGHT);
+		setNoAdaptativeSize(true);
+		this.title = title;
+	}
 
-    private void addElement(String key, Tag base) {
-        addElement(getElements().size() - 1, key, base);
-    }
+	private void addElement(int i, String key, NBTBase base) {
+		if (elements.stream().filter(le -> le instanceof NBTElement && ((NBTElement) le).getKey().equals(key))
+				.findFirst().isPresent()) {
+			addElement(key + "_", base);
+			return;
+		}
+		addListElement(i, NBTElement.getElementByBase(this, key, base));
 
-    @Override
-    protected CompoundTag get() {
-        CompoundTag tag = new CompoundTag();
-        getElements().stream().filter(le -> le instanceof NBTElement).forEach(le -> {
-            NBTElement elem = ((NBTElement) le);
-            tag.put(elem.getKey(), elem.get());
-        });
-        return tag;
-    }
+	}
+
+	private void addElement(String key, NBTBase base) {
+		addElement(elements.size() - 1, key, base);
+	}
+
+	@Override
+	protected NBTTagCompound get() {
+		NBTTagCompound tag = new NBTTagCompound();
+		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> {
+			NBTElement elem = ((NBTElement) le);
+			tag.setTag(elem.getKey(), elem.get());
+		});
+		return tag;
+	}
+
+	@Override
+	public String getTitle() {
+		return title;
+	}
 
 }
