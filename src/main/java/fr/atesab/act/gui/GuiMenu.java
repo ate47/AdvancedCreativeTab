@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import net.minecraft.util.ChatComponentText;
 import org.lwjgl.input.Keyboard;
 
 import fr.atesab.act.ACTMod;
@@ -100,8 +101,11 @@ public class GuiMenu extends GuiListModifier<Object> {
 		super(parent, new ArrayList<>(), o -> {
 		}, true, false);
 		Tuple btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("cmd.act.edit"), new Tuple<>(() -> {
-			final int slot = mc.thePlayer.inventory.currentItem;
-			mc.displayGuiScreen(new GuiItemStackModifier(this, mc.thePlayer.getHeldItem().copy(),
+			int slot = mc.thePlayer.inventory.currentItem;
+			if (mc.thePlayer.inventory.getCurrentItem() == null)
+				Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("[ACT] Tried to edit null item !"));
+			if (mc.thePlayer.inventory.getCurrentItem() != null)
+				mc.displayGuiScreen(new GuiItemStackModifier(this, mc.thePlayer.getHeldItem().copy(),
 					is -> ItemUtils.give(mc, is, 36 + slot)));
 		}, () -> {
 		}));

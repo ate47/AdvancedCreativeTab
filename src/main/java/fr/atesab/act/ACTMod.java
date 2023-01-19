@@ -1,5 +1,6 @@
 package fr.atesab.act;
 
+import net.minecraft.util.ChatComponentText;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -85,7 +86,7 @@ import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfessio
 public class ACTMod {
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.1";
+	public static final String MOD_VERSION = "2.1a";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 	/**
 	 * Link to {@link ModGuiFactory}
@@ -108,16 +109,16 @@ public class ACTMod {
 	private static Map<String, Map<String, Consumer<StringModifier>>> stringModifier = new HashMap<>();
 	private static Configuration config;
 
+	private Minecraft mc;
+
 	private static <T> void forEachMatchIn(Object obj, Class<T> cls, Consumer<T> consumer) {
 		for (Field field : obj.getClass().getDeclaredFields()) {
 			if (field.getType().equals(cls)) {
 				field.setAccessible(true);
 				try {
 					consumer.accept((T) field.get(obj));
-				} catch (IllegalArgumentException e) {
-					;
-				} catch (IllegalAccessException e) {
-					;
+				} catch (Exception e){
+					e.printStackTrace();
 				}
 			}
 		}
@@ -129,7 +130,7 @@ public class ACTMod {
 	/**
 	 * Get all registered {@link IAttribute}
 	 * <p>
-	 * To add Attributes, use {@link HashSet#add(IAttribute)}
+	 * To add Attributes, use @link HashSet#add(IAttribute)
 	 * </p>
 	 * 
 	 * @since 2.1

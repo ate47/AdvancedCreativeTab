@@ -14,6 +14,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
 
 public class SCRename extends SubCommand {
 
@@ -46,8 +47,10 @@ public class SCRename extends SubCommand {
 			throws CommandException {
 		Minecraft mc = Minecraft.getMinecraft();
 		ItemStack is = mc.thePlayer.getHeldItem();
-		if (is == null)
+		if (is == null) {
+			Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("[ACT] You cannot rename your hand !"));
 			return;
+		}
 		if (args.length == 0)
 			is.clearCustomName();
 		else
