@@ -16,6 +16,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 
 public class GuiGiver extends GuiModifier<String> {
 	private GuiButton giveButton, saveButton, doneButton;
@@ -28,8 +29,9 @@ public class GuiGiver extends GuiModifier<String> {
 	public GuiGiver(GuiScreen parent) {
 		super(parent, s -> {
 		});
-		if ((mc = Minecraft.getMinecraft()).thePlayer != null) {
-			this.currentItemStack = mc.thePlayer.getHeldItem();
+		if ((mc = Minecraft.getMinecraft()).player != null) {
+			ItemStack mainHand = mc.player.getHeldItem(EnumHand.MAIN_HAND);
+			this.currentItemStack = mainHand != null ? mainHand : mc.player.getHeldItem(EnumHand.OFF_HAND);
 			this.preText = ItemUtils.getGiveCode(this.currentItemStack);
 		}
 	}
@@ -74,7 +76,7 @@ public class GuiGiver extends GuiModifier<String> {
 		} else if (button.id == 5) { // delete
 			setter.accept(null);
 			mc.displayGuiScreen(parent);
-		} else if (button.id == 6) { // save
+		} else if (button.id == 6) {
 			if (parent instanceof GuiMenu)
 				((GuiMenu) parent).get();
 			ACTMod.getCustomItems().add(code.getText());
@@ -92,20 +94,19 @@ public class GuiGiver extends GuiModifier<String> {
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
 		code.drawTextBox();
-		GuiUtils.drawCenterString(fontRendererObj, I18n.format("gui.act.give"), width / 2, code.yPosition - 21,
+		GuiUtils.drawCenterString(fontRenderer, I18n.format("gui.act.give"), width / 2, code.y - 21,
 				Color.ORANGE.getRGB(), 20);
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		if (currentItemStack != null) {
-			GuiUtils.drawItemStack(itemRender, zLevel, this, currentItemStack, code.xPosition + code.width + 5,
-					code.yPosition - 2);
-			if (GuiUtils.isHover(code.xPosition + code.width + 5, code.yPosition, 20, 20, mouseX, mouseY))
+			GuiUtils.drawItemStack(itemRender, zLevel, this, currentItemStack, code.x + code.width + 5, code.y - 2);
+			if (GuiUtils.isHover(code.x + code.width + 5, code.y, 20, 20, mouseX, mouseY))
 				renderToolTip(currentItemStack, mouseX, mouseY);
 		}
 	}
 
 	@Override
 	public void initGui() {
-		code = new GuiTextField(0, fontRendererObj, width / 2 - 178, height / 2 + 2, 356, 16);
+		code = new GuiTextField(0, fontRenderer, width / 2 - 178, height / 2 + 2, 356, 16);
 		code.setMaxStringLength(Integer.MAX_VALUE);
 		if (preText != null)
 			code.setText(preText.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
@@ -167,7 +168,7 @@ public class GuiGiver extends GuiModifier<String> {
 		code.updateCursorCounter();
 		this.currentItemStack = ItemUtils
 				.getFromGiveCode(code.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
-		this.giveButton.enabled = this.currentItemStack != null && mc.thePlayer != null && mc.thePlayer.capabilities.isCreativeMode;
+		this.giveButton.enabled = this.currentItemStack != null && mc.player != null && mc.player.isCreative();
 		this.doneButton.enabled = (setter != null && this.currentItemStack != null) || setter == null;
 		if (saveButton != null)
 			saveButton.enabled = this.currentItemStack != null;

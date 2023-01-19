@@ -33,13 +33,13 @@ public class GuiStringModifier extends GuiModifier<String> {
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
 		field.drawTextBox();
-		GuiUtils.drawRightString(fontRendererObj, I18n.format("gui.act.text") + " : ", field.xPosition, field.yPosition,
+		GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.text") + " : ", field.x, field.y,
 				Color.ORANGE.getRGB(), field.height);
 		super.drawScreen(mouseX, mouseY, partialTicks);
 	}
 
 	public void initGui() {
-		field = new GuiTextField(0, fontRendererObj, width / 2 - 99, height / 2 - 20, 198, 18);
+		field = new GuiTextField(0, fontRenderer, width / 2 - 99, height / 2 - 20, 198, 18);
 		field.setMaxStringLength(Integer.MAX_VALUE);
 		field.setText(name.replaceAll(String.valueOf(ChatUtils.MODIFIER), "&"));
 		field.setFocused(true);

@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public class SCHead extends SubCommand {
 

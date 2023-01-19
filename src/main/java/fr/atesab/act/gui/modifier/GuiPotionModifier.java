@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import fr.atesab.act.gui.selector.GuiButtonListSelector;
-import fr.atesab.act.gui.selector.GuiTypeListSelector;
 import fr.atesab.act.utils.GuiUtils;
 import fr.atesab.act.utils.Tuple;
 import fr.atesab.act.utils.ItemUtils.PotionInformation;
@@ -15,13 +14,9 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemPotion;
-import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.potion.PotionHelper;
-import net.minecraft.util.StatCollector;
+import net.minecraft.potion.PotionType;
 
 public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 	private static class CustomPotionListElement extends ListElement {
@@ -59,24 +54,21 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			switch (button.id) {
 			case 0: // type
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
-				Potion.func_181168_c().forEach(rl -> {
-					Potion pot = Potion.getPotionFromResourceLocation(rl.toString());
-					pots.add(new Tuple<>(I18n.format(pot.getName()), pot));
-				});
+				Potion.REGISTRY.forEach(pot -> pots.add(new Tuple<>(I18n.format(pot.getName()), pot)));
 				mc.displayGuiScreen(new GuiButtonListSelector<Potion>(parent, pots, pot -> {
-					effect = new PotionEffect(pot.id, effect.getDuration(), effect.getAmplifier(),
-							effect.getIsAmbient(), effect.getIsShowParticles());
+					effect = new PotionEffect(pot, effect.getDuration(), effect.getAmplifier(), effect.getIsAmbient(),
+							effect.doesShowParticles());
 					setButtonText();
 					return null;
 				}));
 				break;
 			case 1: // ambient
-				effect = new PotionEffect(effect.getPotionID(), effect.getDuration(), effect.getAmplifier(),
-						!effect.getIsAmbient(), effect.getIsShowParticles());
+				effect = new PotionEffect(effect.getPotion(), effect.getDuration(), effect.getAmplifier(),
+						!effect.getIsAmbient(), effect.doesShowParticles());
 				break;
 			case 2: // showParticles
-				effect = new PotionEffect(effect.getPotionID(), effect.getDuration(), effect.getAmplifier(),
-						effect.getIsAmbient(), !effect.getIsShowParticles());
+				effect = new PotionEffect(effect.getPotion(), effect.getDuration(), effect.getAmplifier(),
+						effect.getIsAmbient(), !effect.doesShowParticles());
 				break;
 			}
 			setButtonText();
@@ -119,7 +111,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
 		@Override
 		public boolean match(String search) {
-			return I18n.format(effect.getEffectName()).toLowerCase().contains(search.toLowerCase());
+			return I18n.format(effect.getPotion().getName()).toLowerCase().contains(search.toLowerCase());
 		}
 
 		@Override
@@ -131,9 +123,9 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 
 		private void setButtonText() {
 			type.displayString = I18n.format("gui.act.modifier.meta.potion.type") + " ("
-					+ I18n.format(effect.getEffectName()) + ")";
+					+ I18n.format(effect.getPotion().getName()) + ")";
 			ambient.packedFGColour = GuiUtils.getRedGreen(effect.getIsAmbient());
-			showParticles.packedFGColour = GuiUtils.getRedGreen(effect.getIsShowParticles());
+			showParticles.packedFGColour = GuiUtils.getRedGreen(effect.doesShowParticles());
 		}
 
 		@Override
@@ -155,19 +147,18 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			} catch (Exception e) {
 				errAmp = true;
 			}
-			effect = new PotionEffect(effect.getPotionID(), dur, amp, effect.getIsAmbient(),
-					effect.getIsShowParticles());
+			effect = new PotionEffect(effect.getPotion(), dur, amp, effect.getIsAmbient(), effect.doesShowParticles());
 			super.update();
 		}
 
 	}
 
 	private static class MainPotionListElement extends ListElement {
-		private static String getPotionName(int meta) {
-			List<PotionEffect> list = PotionHelper.getPotionEffects(meta, false);
-			if (list == null || list.isEmpty())
-				return null;
-			return StatCollector.translateToLocal(((PotionEffect) list.get(0)).getEffectName() + ".postfix").trim();
+		private static String getPotionName(PotionType pot) {
+			String name = pot.getNamePrefixed("");
+			return name + (pot.getRegistryName().toString().contains("long_")
+					? " (" + I18n.format("gui.act.modifier.meta.potion.long") + ")"
+					: pot.getRegistryName().toString().contains("strong_") ? " II" : "");
 		}
 
 		private GuiPotionModifier parent;
@@ -175,47 +166,50 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 		private GuiButton type;
 
 		public MainPotionListElement(GuiPotionModifier parent) {
-			super(200, 29);
+			super(400, 29);
 			this.parent = parent;
-			buttonList.add(type = new GuiButton(1, 0, 0, 199, 20, ""));
+			buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.meta.setColor")));
+			buttonList.add(type = new GuiButton(1, 201, 0, 199, 20, ""));
 			defineButton();
 		}
 
 		@Override
 		protected void actionPerformed(GuiButton button) {
 			switch (button.id) {
+			case 0:
+				mc.displayGuiScreen(new GuiColorModifier(parent, i -> parent.customColor = i, parent.customColor, -1));
+				break;
 			case 1:
-				List<ItemStack> pots = new ArrayList<>();
-				for (int i = 0; i < 15; i++) {
-					if (i != 7)
-						pots.add(new ItemStack(Items.potionitem, 1, i | (parent.meta & (~15))));
-				}
-				mc.displayGuiScreen(new GuiTypeListSelector(parent, pot -> {
-					parent.meta = pot.getItemDamage();
+				List<Tuple<String, PotionType>> pots = new ArrayList<>();
+				PotionType.REGISTRY.forEach(type -> pots.add(new Tuple<>(getPotionName(type), type)));
+				mc.displayGuiScreen(new GuiButtonListSelector<PotionType>(parent, pots, pot -> {
+					parent.main = pot;
 					defineButton();
 					return null;
-				}, pots));
+				}));
 				break;
 			}
 			super.actionPerformed(button);
 		}
 
 		private void defineButton() {
-			String name = getPotionName(parent.meta);
-			type.displayString = I18n.format("gui.act.modifier.meta.potion.type")
-					+ (name != null ? " (" + getPotionName(parent.meta) + ")" : "");
+			type.displayString = I18n.format("gui.act.modifier.meta.potion.type") + " (" + getPotionName(parent.main)
+					+ ")";
 		}
 
 	}
 
-	private int meta;
+	private int customColor = -1;
+
+	private PotionType main;
 
 	private final Supplier<ListElement> supplier = () -> new CustomPotionListElement(this,
-			new PotionEffect(Potion.moveSpeed.id, 0));
+			new PotionEffect(Potion.REGISTRY.getObjectById(1)));
 
 	public GuiPotionModifier(GuiScreen parent, Consumer<PotionInformation> setter, PotionInformation info) {
 		super(parent, new ArrayList<>(), setter);
-		this.meta = info.getMeta();
+		this.customColor = info.getCustomColor();
+		this.main = info.getMain();
 		elements.add(new MainPotionListElement(this));
 		info.getCustomEffects().forEach(t -> elements.add(new CustomPotionListElement(this, t)));
 		elements.add(new AddElementList(this, supplier));
@@ -224,9 +218,9 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 	@Override
 	protected PotionInformation get() {
 		List<PotionEffect> customEffects = new ArrayList<>();
-		elements.stream().filter(le -> le instanceof CustomPotionListElement)
-				.forEach(le -> customEffects.add(((CustomPotionListElement) le).getEffect()));
-		return new PotionInformation(meta, customEffects);
+		elements.stream().filter(le -> le instanceof CustomPotionListElement).map(le -> (CustomPotionListElement) le)
+				.forEach(cpl -> customEffects.add(cpl.getEffect()));
+		return new PotionInformation(customColor, main, customEffects);
 	}
 
 }

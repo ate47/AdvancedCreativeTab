@@ -20,7 +20,7 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RunElementButton extends GuiButton {
@@ -45,7 +45,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class AddElementButton extends RunElementButton {
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
 				Supplier<ListElement> builder) {
-			this(parent, x, y, widthIn, heightIn, EnumChatFormatting.GREEN + "+", element, builder);
+			this(parent, x, y, widthIn, heightIn, TextFormatting.GREEN + "+", element, builder);
 		}
 
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
@@ -83,7 +83,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			super(sizeX, Math.max(21, sizeY));
 			this.parent = parent;
 			this.supplier = builder;
-			buttonList.add(new GuiButton(0, 0, 0, getSizeX(), 20, EnumChatFormatting.GREEN + "+"));
+			buttonList.add(new GuiButton(0, 0, 0, getSizeX(), 20, TextFormatting.GREEN + "+"));
 		}
 
 		@Override
@@ -135,7 +135,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		public ListElement(int sizeX, int sizeY) {
 			this.sizeX = sizeX;
 			this.sizeY = sizeY;
-			fontRenderer = (mc = Minecraft.getMinecraft()).fontRendererObj;
+			fontRenderer = (mc = Minecraft.getMinecraft()).fontRenderer;
 		}
 
 		protected void actionPerformed(GuiButton button) {
@@ -235,7 +235,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RemoveElementButton extends RunElementButton {
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
 				ListElement element) {
-			super(x, y, widthIn, heightIn, EnumChatFormatting.RED + "-", () -> {
+			super(x, y, widthIn, heightIn, TextFormatting.RED + "-", () -> {
 				parent.elements.remove(element);
 				parent.needRedefine = true;
 			}, null);
@@ -299,7 +299,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		this.buttons = buttons;
 		this.doneButton = doneButton;
 		this.cancelButton = cancelButton;
-		search = new GuiTextField(0, Minecraft.getMinecraft().fontRendererObj, 0, 0, 0, 0);
+		search = new GuiTextField(0, Minecraft.getMinecraft().fontRenderer, 0, 0, 0, 0);
 	}
 
 	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
@@ -413,9 +413,9 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		search.drawTextBox();
 		if (this instanceof GuiArrayModifierTitle)
-			GuiUtils.drawCenterString(fontRendererObj, ((GuiArrayModifierTitle) this).getTitle(), width / 2, 22,
+			GuiUtils.drawCenterString(fontRenderer, ((GuiArrayModifierTitle) this).getTitle(), width / 2, 22,
 					0xFFFFFFFF, 10);
-		GuiUtils.drawRightString(fontRendererObj, I18n.format("gui.act.search") + " : ", search.xPosition, search.yPosition,
+		GuiUtils.drawRightString(fontRenderer, I18n.format("gui.act.search") + " : ", search.x, search.y,
 				Color.ORANGE.getRGB(), search.height);
 		if (mc.currentScreen.equals(this))
 			for (int i = 0; i < visibleElements.length; i++) {
@@ -460,10 +460,10 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			buttonList.add(new GuiButton(1, dl + 100 * (i + l), height - 21, 99, 20, I18n.format("gui.act.cancel")));
 		buttonList.add(lastPage = new GuiButton(2, dl - 21, height - 21, 20, 20, "<-"));
 		buttonList.add(nextPage = new GuiButton(3, dr, height - 21, 20, 20, "->"));
-		int m = fontRendererObj.getStringWidth(I18n.format("gui.act.search") + " : ");
+		int m = fontRenderer.getStringWidth(I18n.format("gui.act.search") + " : ");
 		int n = Math.min(600, width - 20);
-		search.xPosition = (width - n) / 2 + 6 + m;
-		search.yPosition = this instanceof GuiArrayModifierTitle ? 2 : 18;
+		search.x = (width - n) / 2 + 6 + m;
+		search.y = this instanceof GuiArrayModifierTitle ? 2 : 18;
 		search.width = n - 18 - m;
 		search.height = 18;
 		elements.forEach(ListElement::init);
@@ -504,7 +504,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 		}
 		search.mouseClicked(mouseX, mouseY, mouseButton);
 		if (mouseButton == 1) {
-			if (GuiUtils.isHover(search.xPosition, search.yPosition, search.width, search.height, mouseX, mouseY)) {
+			if (GuiUtils.isHover(search.x, search.y, search.width, search.height, mouseX, mouseY)) {
 				search.setText("");
 				page = 0;
 				define();

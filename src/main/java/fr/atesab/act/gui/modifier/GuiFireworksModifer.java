@@ -21,7 +21,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiFireworksModifer extends GuiListModifier<NBTTagCompound> {
 	private static class FireworkMainListElement extends ListElement {
@@ -125,7 +125,7 @@ public class GuiFireworksModifer extends GuiListModifier<NBTTagCompound> {
 		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			if (GuiUtils.isHover(0, 0, 200, 20, mouseX, mouseY)) {
 				List<String> data = new ArrayList<>();
-				String type = I18n.format("gui.act.modifier.type") + " : " + EnumChatFormatting.YELLOW
+				String type = I18n.format("gui.act.modifier.type") + " : " + TextFormatting.YELLOW
 						+ I18n.format("item.fireworksCharge.type." + exp.getType());
 				String trail = I18n.format("item.fireworksCharge.trail");
 				String flicker = I18n.format("item.fireworksCharge.flicker");
@@ -292,8 +292,8 @@ public class GuiFireworksModifer extends GuiListModifier<NBTTagCompound> {
 	public GuiFireworksModifer(GuiScreen parent, Consumer<NBTTagCompound> setter, NBTTagCompound tag) {
 		super(parent, new ArrayList<>(), setter);
 		elements.add(main = new FireworkMainListElement(tag.hasKey("Flight") ? tag.getInteger("Flight") : 1));
-		ItemUtils.forEachInNBTTagList(tag.getTagList("Explosions", 10),
-				base -> elements.add(new ExplosionListElement(this, (NBTTagCompound) base)));
+		tag.getTagList("Explosions", 10)
+				.forEach(base -> elements.add(new ExplosionListElement(this, (NBTTagCompound) base)));
 		elements.add(new AddElementList(this, builder));
 	}
 
