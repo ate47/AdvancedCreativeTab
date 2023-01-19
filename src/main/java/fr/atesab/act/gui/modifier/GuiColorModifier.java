@@ -18,7 +18,7 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
 public class GuiColorModifier extends GuiModifier<Integer> {
@@ -85,16 +85,16 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			drawRect(width / 2 - 100, height / 2 - 80, width / 2 + 100, height / 2 + 80, 0x99000000);
 		}
 		if (advanced) {
-			GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.red") + ":", r.xPosition + 1, r.yPosition - 10, 0xffffffff, 10);
+			GuiUtils.drawString(fontRenderer, I18n.format("gui.act.red") + ":", r.x + 1, r.y - 10, 0xffffffff, 10);
 			tfr.drawTextBox();
-			GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.green") + ":", g.xPosition + 1, g.yPosition - 10, 0xffffffff, 10);
+			GuiUtils.drawString(fontRenderer, I18n.format("gui.act.green") + ":", g.x + 1, g.y - 10, 0xffffffff, 10);
 			tfg.drawTextBox();
-			GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.blue") + ":", b.xPosition + 1, b.yPosition - 10, 0xffffffff, 10);
+			GuiUtils.drawString(fontRenderer, I18n.format("gui.act.blue") + ":", b.x + 1, b.y - 10, 0xffffffff, 10);
 			tfb.drawTextBox();
-			GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.setColor.intColor") + ":",
-					intColor.xPosition - 1, intColor.yPosition - 11, 0xffffffff, 10);
-			GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.setColor.hexColor") + ":",
-					hexColor.xPosition - 1, hexColor.yPosition - 11, 0xffffffff, 10);
+			GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.setColor.intColor") + ":",
+					intColor.x - 1, intColor.y - 11, 0xffffffff, 10);
+			GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.setColor.hexColor") + ":",
+					hexColor.x - 1, hexColor.y - 11, 0xffffffff, 10);
 
 			intColor.drawTextBox();
 			hexColor.drawTextBox();
@@ -103,16 +103,16 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			drawRect(width / 2 - 120, height / 2 - 100, width / 2 + 120, height / 2 - 80, color + 0xff000000);
 		Runnable show = () -> {
 		};
-		for (int i = 0; i < ItemDye.dyeColors.length; ++i) {
+		for (int i = 0; i < ItemDye.DYE_COLORS.length; ++i) {
 			int x = width / 2 - 120 + (i % 2) * 220;
 			int y = height / 2 - 80 + (i / 2) * 20;
-			drawRect(x, y, x + 20, y + 20, 0xff000000 + ItemDye.dyeColors[i]);
+			drawRect(x, y, x + 20, y + 20, 0xff000000 + ItemDye.DYE_COLORS[i]);
 			if (GuiUtils.isHover(x, y, 20, 20, mouseX, mouseY)) {
 				final int j = i;
-				show = () -> GuiUtils.drawTextBox(fontRendererObj, mouseX, mouseY, width, height, zLevel,
+				show = () -> GuiUtils.drawTextBox(fontRenderer, mouseX, mouseY, width, height, zLevel,
 						I18n.format("item.fireworksCharge." + EnumDyeColor.byDyeDamage(j).getUnlocalizedName()));
 			}
-			GuiUtils.drawItemStack(itemRender, zLevel, this, new ItemStack(Items.dye, 1, i), x + 2, y + 2);
+			GuiUtils.drawItemStack(itemRender, zLevel, this, new ItemStack(Items.DYE, 1, i), x + 2, y + 2);
 		}
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		show.run();
@@ -143,18 +143,18 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		};
 		buttonList.add(r = new GuiSlider(3, width / 2 - 99, height / 2 - 70, 158, 20, I18n.format("gui.act.red"), "", 0,
 				255, color >> 16 & 0xFF, false, false, changer));
-		tfr = new GuiTextField(0, fontRendererObj, r.xPosition + r.width + 2, r.yPosition + 1, 36, 18);
+		tfr = new GuiTextField(0, fontRenderer, r.x + r.width + 2, r.y + 1, 36, 18);
 
 		buttonList.add(g = new GuiSlider(4, width / 2 - 99, height / 2 - 38, 158, 20, I18n.format("gui.act.green"), "",
 				0, 255, color >> 8 & 0xFF, false, false, changer));
-		tfg = new GuiTextField(0, fontRendererObj, g.xPosition + g.width + 2, g.yPosition + 1, 36, 18);
+		tfg = new GuiTextField(0, fontRenderer, g.x + g.width + 2, g.y + 1, 36, 18);
 
 		buttonList.add(b = new GuiSlider(5, width / 2 - 99, height / 2 - 3, 158, 20, I18n.format("gui.act.blue"), "", 0,
 				255, color >> 0 & 0xFF, false, false, changer));
-		tfb = new GuiTextField(0, fontRendererObj, b.xPosition + b.width + 2, b.yPosition + 1, 36, 18);
+		tfb = new GuiTextField(0, fontRenderer, b.x + b.width + 2, b.y + 1, 36, 18);
 
-		intColor = new GuiTextField(0, fontRendererObj, width / 2 - 97, height / 2 + 28, 194, 18);
-		hexColor = new GuiTextField(0, fontRendererObj, width / 2 - 97, height / 2 + 60, 194, 18);
+		intColor = new GuiTextField(0, fontRenderer, width / 2 - 97, height / 2 + 28, 194, 18);
+		hexColor = new GuiTextField(0, fontRenderer, width / 2 - 97, height / 2 + 60, 194, 18);
 
 		tfr.setMaxStringLength(4);
 		tfg.setMaxStringLength(4);
@@ -230,10 +230,10 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		} else if (GuiUtils.isHover(width / 2 - 120, height / 2 - 100, 240, 20, mouseX, mouseY))
 			updateColor(defaultColor);
 		else
-			for (int i = 0; i < ItemDye.dyeColors.length; ++i)
+			for (int i = 0; i < ItemDye.DYE_COLORS.length; ++i)
 				if (GuiUtils.isHover(width / 2 - 120 + (i % 2) * 220, height / 2 - 80 + (i / 2) * 20, 20, 20, mouseX,
 						mouseY))
-					updateColor(ItemDye.dyeColors[i]);
+					updateColor(ItemDye.DYE_COLORS[i]);
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 
@@ -245,7 +245,7 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	private void updateColor(int value) {
-		color = value == defaultColor ? value : MathHelper.clamp_int(value, 0, 0xffffff);
+		color = value == defaultColor ? value : MathHelper.clamp(value, 0, 0xffffff);
 		int r = color >> 16 & 0xFF;
 		int g = color >> 8 & 0xFF;
 		int b = color >> 0 & 0xFF;
@@ -261,26 +261,26 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 	}
 
 	private void setColor(int mouseX, int mouseY) {
-		int rx = MathHelper.clamp_int(mouseX - (width / 2 - 100), 0, 199);
-		int ry = MathHelper.clamp_int(MathHelper.clamp_int(mouseY - (height / 2 - 100), 0, 160) * 20 / 16, 0, 199);
+		int rx = MathHelper.clamp(mouseX - (width / 2 - 100), 0, 199);
+		int ry = MathHelper.clamp(MathHelper.clamp(mouseY - (height / 2 - 100), 0, 160) * 20 / 16, 0, 199);
 		int[] data = new int[3];
 		pickerImage.getRaster().getPixel(rx, ry, data);
 		updateColor((data[0] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[2] & 0xFF) << 0);
 	}
 
 	private void updateRed(int v) {
-		v = MathHelper.clamp_int(v, 0, 255);
+		v = MathHelper.clamp(v, 0, 255);
 		updateColor((v & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
 	}
 
 	private void updateGreen(int v) {
-		v = MathHelper.clamp_int(v, 0, 255);
+		v = MathHelper.clamp(v, 0, 255);
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | (v & 0xFF) << 8 | ((color >> 0 & 0xFF) & 0xFF) << 0);
 
 	}
 
 	private void updateBlue(int v) {
-		v = MathHelper.clamp_int(v, 0, 255);
+		v = MathHelper.clamp(v, 0, 255);
 		updateColor(((color >> 16 & 0xFF) & 0xFF) << 16 | ((color >> 8 & 0xFF) & 0xFF) << 8 | (v & 0xFF) << 0);
 	}
 }

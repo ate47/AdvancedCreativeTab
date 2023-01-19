@@ -1,8 +1,5 @@
 package fr.atesab.act.utils;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
-import static org.lwjgl.opengl.GL13.GL_SAMPLE_ALPHA_TO_COVERAGE;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -11,20 +8,16 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -145,19 +138,17 @@ public class GuiUtils {
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
 		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
+				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-		worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181706_f);
-		worldrenderer.func_181662_b((double) right, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) bottom, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) right, (double) bottom, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
+		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
@@ -192,19 +183,17 @@ public class GuiUtils {
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
 		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
+				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-		worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181706_f);
-		worldrenderer.func_181662_b((double) right, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) top, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) bottom, (double) zLevel).func_181666_a(f9, f10, f11, f8)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) right, (double) bottom, (double) zLevel).func_181666_a(f13, f14, f15, f12)
-				.func_181675_d();
+		BufferBuilder bufferbuilder = tessellator.getBuffer();
+		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f9, f10, f11, f8).endVertex();
+		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f13, f14, f15, f12).endVertex();
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
@@ -219,11 +208,11 @@ public class GuiUtils {
 	 */
 	public static void drawItemStack(RenderItem itemRender, float zLevel, GuiScreen gui, ItemStack itemstack, int x,
 			int y) {
-		if (itemstack == null || itemstack.getItem().equals(Item.getItemFromBlock(Blocks.air)))
+		if (itemstack == null || itemstack.isEmpty())
 			return;
 		GlStateManager.enableDepth();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
-		itemRender.renderItemOverlayIntoGUI(gui.mc.fontRendererObj, itemstack, x, y, null);
+		itemRender.renderItemOverlayIntoGUI(gui.mc.fontRenderer, itemstack, x, y, null);
 		GlStateManager.disableBlend();
 		GlStateManager.disableLighting();
 	}
@@ -235,11 +224,11 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static void drawRelative(GuiTextField field, int offsetX, int offsetY) {
-		field.xPosition += offsetX;
-		field.yPosition += offsetY;
+		field.x += offsetX;
+		field.y += offsetY;
 		field.drawTextBox();
-		field.xPosition -= offsetX;
-		field.yPosition -= offsetY;
+		field.x -= offsetX;
+		field.y -= offsetY;
 	}
 
 	/**
@@ -250,11 +239,11 @@ public class GuiUtils {
 	 */
 	public static void drawRelative(Minecraft mc, GuiButton button, int offsetX, int offsetY, int mouseX, int mouseY,
 			float partialTicks) {
-		button.xPosition += offsetX;
-		button.yPosition += offsetY;
-		button.drawButton(mc, mouseX + offsetX, mouseY + offsetY);
-		button.xPosition -= offsetX;
-		button.yPosition -= offsetY;
+		button.x += offsetX;
+		button.y += offsetY;
+		button.drawButton(mc, mouseX + offsetX, mouseY + offsetY, partialTicks);
+		button.x -= offsetX;
+		button.y -= offsetY;
 	}
 
 	/**
@@ -264,7 +253,7 @@ public class GuiUtils {
 	 * @see #drawRightString(FontRenderer, String, GuiTextField, int, int, int)
 	 */
 	public static void drawRightString(FontRenderer fontRenderer, String text, GuiTextField field, int color) {
-		drawRightString(fontRenderer, text, field.xPosition, field.yPosition, color, field.height);
+		drawRightString(fontRenderer, text, field.x, field.y, color, field.height);
 	}
 
 	/**
@@ -275,7 +264,7 @@ public class GuiUtils {
 	 */
 	public static void drawRightString(FontRenderer fontRenderer, String text, GuiTextField field, int color,
 			int offsetX, int offsetY) {
-		drawRightString(fontRenderer, text, field.xPosition + offsetX, field.yPosition + offsetY, color, field.height);
+		drawRightString(fontRenderer, text, field.x + offsetX, field.y + offsetY, color, field.height);
 	}
 
 	/**
@@ -353,19 +342,6 @@ public class GuiUtils {
 		});
 	}
 
-	public static void drawBox(int left, int top, int right, int bottom, int color) {
-		float r = (color >> 16 & 0xFF) / 255F;
-		float g = (color >> 8 & 0xFF) / 255F;
-		float b = (color & 0xFF) / 255F;
-		GlStateManager.color(r, g, b);
-		glColor4f(r, g, b, 0.9F);
-		Gui.drawRect(left, top, right, top + 1, color);
-		Gui.drawRect(left, top, left + 1, bottom, color);
-		Gui.drawRect(right - 1, top, right, bottom, color);
-		Gui.drawRect(left, bottom - 1, right, bottom, color);
-		GlStateManager.color(1.0F, 1.0F, 1.0F);
-	}
-
 	/**
 	 * Draw a box on the screen
 	 * 
@@ -413,7 +389,7 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static boolean isHover(GuiButton button, int mouseX, int mouseY) {
-		return isHover(button.xPosition, button.yPosition, button.width, button.height, mouseX, mouseY);
+		return isHover(button.x, button.y, button.width, button.height, mouseX, mouseY);
 	}
 
 	/**
@@ -425,7 +401,7 @@ public class GuiUtils {
 	 * @since 2.0
 	 */
 	public static boolean isHover(GuiTextField field, int mouseX, int mouseY) {
-		return isHover(field.xPosition, field.yPosition, field.width, field.height, mouseX, mouseY);
+		return isHover(field.x, field.y, field.width, field.height, mouseX, mouseY);
 	}
 
 	/**
@@ -439,5 +415,4 @@ public class GuiUtils {
 	public static boolean isHover(int X, int Y, int sizeX, int sizeY, int mouseX, int mouseY) {
 		return mouseX >= X && mouseX <= X + sizeX && mouseY >= Y && mouseY <= Y + sizeY;
 	}
-
 }

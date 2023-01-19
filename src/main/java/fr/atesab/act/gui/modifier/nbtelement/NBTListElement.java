@@ -21,13 +21,13 @@ public class NBTListElement extends NBTElement {
 	protected void actionPerformed(GuiButton button) {
 		if (button.id == 0)
 			mc.displayGuiScreen(new GuiNBTListModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
-					tag -> value = tag, (NBTTagList) value.copy()));
+					tag -> value = tag, value.copy()));
 		super.actionPerformed(button);
 	}
 
 	@Override
 	public NBTElement clone() {
-		return new NBTListElement(parent, key, (NBTTagList) value.copy());
+		return new NBTListElement(parent, key, value.copy());
 	}
 
 	@Override
@@ -35,13 +35,9 @@ public class NBTListElement extends NBTElement {
 		return value.copy();
 	}
 
-	public static String getTagTypeName(int i) {
-		return i >= 0 && i < NBTBase.NBT_TYPES.length ? NBTBase.NBT_TYPES[i] : "UNKNOWN";
-	}
-
 	@Override
 	public String getType() {
-		return getTagTypeName(value.getTagType()) + " " + I18n.format("gui.act.modifier.tag.editor.list") + "["
+		return NBTBase.getTagTypeName(value.getTagType()) + " " + I18n.format("gui.act.modifier.tag.editor.list") + "["
 				+ value.tagCount() + "]";
 	}
 

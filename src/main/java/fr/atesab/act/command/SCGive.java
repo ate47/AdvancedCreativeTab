@@ -14,7 +14,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public class SCGive extends SubCommand {
 	public SCGive() {
@@ -46,7 +46,7 @@ public class SCGive extends SubCommand {
 	public void processSubCommand(ICommandSender sender, String[] args, MainCommand mainCommand)
 			throws CommandException {
 		if (args.length == 0) {
-			ChatUtils.error("/" + mainCommand.getCommandName() + " " + getSubCommandUsage(sender));
+			ChatUtils.error("/" + mainCommand.getName() + " " + getSubCommandUsage(sender));
 			return;
 		}
 		ItemStack is = ItemUtils.getFromGiveCode(CommandBase.buildString(args, 0));

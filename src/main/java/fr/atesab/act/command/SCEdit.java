@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public class SCEdit extends SubCommand {
 
@@ -44,9 +44,8 @@ public class SCEdit extends SubCommand {
 	public void processSubCommand(ICommandSender sender, String[] args, MainCommand mainCommand)
 			throws CommandException {
 		Minecraft mc = Minecraft.getMinecraft();
-		final int slot = mc.thePlayer.inventory.currentItem;
-		GuiUtils.displayScreen(new GuiItemStackModifier(null,
-				mc.thePlayer.getHeldItem() != null ? mc.thePlayer.getHeldItem().copy() : null,
+		final int slot = mc.player.inventory.currentItem;
+		GuiUtils.displayScreen(new GuiItemStackModifier(null, mc.player.getHeldItemMainhand().copy(),
 				is -> ItemUtils.give(mc, is, 36 + slot)));
 	}
 

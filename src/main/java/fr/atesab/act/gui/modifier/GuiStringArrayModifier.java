@@ -13,7 +13,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	private ArrayList<String> values;
@@ -70,16 +70,16 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 		btsAdd = new GuiValueButton[values.size() + 1];
 		int i;
 		for (i = 0; i < values.size(); i++) {
-			tfs[i] = new GuiTextField(0, fontRendererObj, width / 2 - 178, 21 + 21 * i % (elms * 21) + 2, 340, 16);
+			tfs[i] = new GuiTextField(0, fontRenderer, width / 2 - 178, 21 + 21 * i % (elms * 21) + 2, 340, 16);
 			tfs[i].setMaxStringLength(Integer.MAX_VALUE);
 			tfs[i].setText(values.get(i));
 			buttonList.add(btsDel[i] = new GuiValueButton<Integer>(5, width / 2 + 165, 21 + 21 * i % (elms * 21), 20,
-					20, EnumChatFormatting.RED + "-", i));
+					20, TextFormatting.RED + "-", i));
 			buttonList.add(btsAdd[i] = new GuiValueButton<Integer>(6, width / 2 + 187, 21 + 21 * i % (elms * 21), 20,
-					20, EnumChatFormatting.GREEN + "+", i));
+					20, TextFormatting.GREEN + "+", i));
 		}
 		buttonList.add(btsAdd[i] = new GuiValueButton<Integer>(6, width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
-				EnumChatFormatting.GREEN + "+", i));
+				TextFormatting.GREEN + "+", i));
 
 	}
 
@@ -89,7 +89,7 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 		GlStateManager.color(1.0F, 1.0F, 1.0F);
 		for (int i = page * elms; i < (page + 1) * elms && i < tfs.length; i++) {
 			GuiTextField tf = tfs[i];
-			GuiUtils.drawRightString(fontRendererObj, i + " : ", tf.xPosition, tf.yPosition, Color.WHITE.getRGB(), tf.height);
+			GuiUtils.drawRightString(fontRenderer, i + " : ", tf.x, tf.y, Color.WHITE.getRGB(), tf.height);
 			tf.drawTextBox();
 		}
 	}

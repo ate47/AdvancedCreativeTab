@@ -6,8 +6,6 @@ key.act.edit=Editer l'objet en main
 
 itemGroup.act=Advanced Creative Tab
 
-gui.act.bad=Bonjour utilisateur de %mod%, vous utilisez une version dépassée de Minecraft depuis plusieurs années, ce popup est juste là pour vous le signalez. Voilà bisous et câlins
-gui.act.bad.skip=Accepter ma condition de dégénéré et passer
 gui.act.error=Erreur
 gui.act.cancel=Annuler
 gui.act.config.name=Nom

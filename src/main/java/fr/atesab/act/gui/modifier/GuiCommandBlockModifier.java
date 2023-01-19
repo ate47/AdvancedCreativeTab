@@ -2,8 +2,6 @@ package fr.atesab.act.gui.modifier;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import fr.atesab.act.gui.selector.GuiTypeListSelector;
@@ -20,6 +18,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 
 public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
@@ -33,7 +32,7 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	}
 
 	private void setData() {
-		NBTTagCompound tag = ItemUtils.getOrCreateSubCompound(stack, "BlockEntityTag");
+		NBTTagCompound tag = stack.getOrCreateSubCompound("BlockEntityTag");
 		tag.setString("CustomName",
 				name.getText().isEmpty() ? "@" : name.getText().replaceAll("&", "" + ChatUtils.MODIFIER));
 		tag.setString("Command", command.getText().replaceAll("&", "" + ChatUtils.MODIFIER));
@@ -41,7 +40,7 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	}
 
 	private void loadData() {
-		NBTTagCompound tag = ItemUtils.getOrCreateSubCompound(stack, "BlockEntityTag");
+		NBTTagCompound tag = stack.getOrCreateSubCompound("BlockEntityTag");
 		name.setText((tag.hasKey("CustomName", 8) ? tag.getString("CustomName") : "@")
 				.replaceAll("" + ChatUtils.MODIFIER, "&"));
 		command.setText(
@@ -51,10 +50,10 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 
 	@Override
 	public void initGui() {
-		int l = Math.max(fontRendererObj.getStringWidth(I18n.format("gui.act.modifier.meta.command.cmd") + " : "),
-				fontRendererObj.getStringWidth(I18n.format("gui.act.modifier.meta.command.name") + " : ")) + 5;
-		name = new GuiTextField(0, fontRendererObj, width / 2 - 148 + l, height / 2 - 19, 296 - l, 16);
-		command = new GuiTextField(0, fontRendererObj, width / 2 - 148 + l, height / 2 + 2, 296 - l, 16);
+		int l = Math.max(fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.command.cmd") + " : "),
+				fontRenderer.getStringWidth(I18n.format("gui.act.modifier.meta.command.name") + " : ")) + 5;
+		name = new GuiTextField(0, fontRenderer, width / 2 - 148 + l, height / 2 - 19, 296 - l, 16);
+		command = new GuiTextField(0, fontRenderer, width / 2 - 148 + l, height / 2 + 2, 296 - l, 16);
 		name.setMaxStringLength(Integer.MAX_VALUE);
 		command.setMaxStringLength(Integer.MAX_VALUE);
 		buttonList.add(auto = new GuiButton(2, width / 2 + 1, height / 2 + 21, 149, 20,
@@ -81,9 +80,11 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 			break;
 		case 3:
 			setData();
-			List<ItemStack> potionType = new ArrayList<>();
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.command_block)));
-			potionType.add(new ItemStack(Items.command_block_minecart));
+			NonNullList<ItemStack> potionType = NonNullList.create();
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.REPEATING_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.CHAIN_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
 				stack = ItemUtils.setItem(is.getItem(), stack);
 				return null;
@@ -96,15 +97,15 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
-		GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150,
-				command.yPosition, Color.WHITE.getRGB(), command.height);
-		GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150,
-				name.yPosition, Color.WHITE.getRGB(), name.height);
+		GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150,
+				command.y, Color.WHITE.getRGB(), command.height);
+		GuiUtils.drawString(fontRenderer, I18n.format("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150,
+				name.y, Color.WHITE.getRGB(), name.height);
 		command.drawTextBox();
 		name.drawTextBox();
 		super.drawScreen(mouseX, mouseY, partialTicks);
-		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, width / 2 - 10, name.yPosition - 20);
-		if (GuiUtils.isHover(width / 2 - 10, name.yPosition - 20, 20, 20, mouseX, mouseY))
+		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, width / 2 - 10, name.y - 20);
+		if (GuiUtils.isHover(width / 2 - 10, name.y - 20, 20, 20, mouseX, mouseY))
 			renderToolTip(stack, mouseX, mouseY);
 		GlStateManager.color(1.0F, 1.0F, 1.0F);
 	}

@@ -23,9 +23,10 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.NBTTagLongArray;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements GuiArrayModifierTitle {
 
@@ -50,6 +51,8 @@ public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements G
 						new NBTTagShort((short) 0)),
 				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.intArray"),
 						new NBTTagIntArray(new int[0])),
+				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.longArray"),
+						new NBTTagLongArray(new long[0])),
 				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.byte"), new NBTTagByte((byte) 0)),
 				new Tuple<String, NBTBase>(I18n.format("gui.act.modifier.tag.editor.list"), new NBTTagList())),
 				base -> {
@@ -80,6 +83,8 @@ public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements G
 			return new NBTTagCompound();
 		case 11:
 			return new NBTTagIntArray(new int[0]);
+		case 12:
+			return new NBTTagLongArray(new long[0]);
 		default:
 			return null;
 		}
@@ -93,11 +98,11 @@ public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements G
 
 	public GuiNBTModifier(String title, GuiScreen parent, Consumer<NBTTagCompound> setter, NBTTagCompound tag) {
 		super(parent, new ArrayList<>(), setter, true, true);
-		elements.add(new ButtonElementList(200, 21, 200, 20, EnumChatFormatting.GREEN + "+",
+		elements.add(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
 				() -> ADD_ELEMENT.accept(null, this), null));
 		tag.getKeySet().forEach(key -> addElement(key, tag.getTag(key)));
 		setPaddingLeft(5);
-		setPaddingTop(13 + Minecraft.getMinecraft().fontRendererObj.FONT_HEIGHT);
+		setPaddingTop(13 + Minecraft.getMinecraft().fontRenderer.FONT_HEIGHT);
 		setNoAdaptativeSize(true);
 		this.title = title;
 	}
