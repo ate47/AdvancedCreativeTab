@@ -59,7 +59,7 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			switch (button.id) {
 			case 0: // type
 				List<Tuple<String, Potion>> pots = new ArrayList<>();
-				Potion.func_181168_c().forEach(rl -> {
+				Potion.getPotionLocations().forEach(rl -> {
 					Potion pot = Potion.getPotionFromResourceLocation(rl.toString());
 					pots.add(new Tuple<>(I18n.format(pot.getName()), pot));
 				});
@@ -144,9 +144,9 @@ public class GuiPotionModifier extends GuiListModifier<PotionInformation> {
 			int amp = effect.getAmplifier();
 			try {
 				dur = Integer.valueOf(duration.getText());
-				errAmp = false;
+				errDur = false;
 			} catch (Exception e) {
-				errAmp = true;
+				errDur = true;
 			}
 			try {
 				int i = Integer.valueOf(amplifier.getText());

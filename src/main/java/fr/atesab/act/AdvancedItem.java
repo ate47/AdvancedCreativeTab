@@ -43,9 +43,9 @@ public class AdvancedItem extends Item {
 		subItems.add(sub);
 	}
 
-	@Override
 	public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> items) {
-		if (tab.equals(ACTMod.ADVANCED_CREATIVE_TAB))
-			items.addAll(subItems);
+		//fixed crash with TMI
+		if(tab == (ACTMod.ADVANCED_CREATIVE_TAB)){
+		items.addAll(subItems);}
 	}
 }

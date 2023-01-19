@@ -28,7 +28,7 @@ public class GuiGiver extends GuiModifier<String> {
 	public GuiGiver(GuiScreen parent) {
 		super(parent, s -> {
 		});
-		if ((mc = Minecraft.getMinecraft()).thePlayer != null) {
+		if ((mc = Minecraft.getMinecraft()).thePlayer != null && mc.thePlayer.inventory.getCurrentItem() != null) {
 			this.currentItemStack = mc.thePlayer.getHeldItem();
 			this.preText = ItemUtils.getGiveCode(this.currentItemStack);
 		}

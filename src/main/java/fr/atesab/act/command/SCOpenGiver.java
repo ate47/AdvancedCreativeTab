@@ -14,6 +14,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
 
 public class SCOpenGiver extends SubCommand {
 
@@ -44,7 +45,11 @@ public class SCOpenGiver extends SubCommand {
 	@Override
 	public void processSubCommand(ICommandSender sender, String[] args, MainCommand mainCommand)
 			throws CommandException {
-		GuiUtils.displayScreen(new GuiGiver(null, args.length > 0 ? CommandBase.buildString(args, 0)
+		Minecraft mc = Minecraft.getMinecraft();
+		if (mc.thePlayer.inventory.getCurrentItem() == null)
+			Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("[ACT] There's nothing on your hand !"));
+		if (mc.thePlayer.inventory.getCurrentItem() != null)
+			GuiUtils.displayScreen(new GuiGiver(null, args.length > 0 ? CommandBase.buildString(args, 0)
 				: ItemUtils.getGiveCode(Minecraft.getMinecraft().thePlayer.getHeldItem())));
 	}
 

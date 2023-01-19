@@ -43,8 +43,8 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
@@ -201,6 +201,8 @@ public class ItemUtils {
 	 */
 	private static final Map<String, Tuple<Long, NBTTagCompound>> SKIN_CACHE = new HashMap<>();
 	private static final Map<String, Tuple<Long, String>> UUID_CACHE = new HashMap<>();
+
+	private static Minecraft mc;
 
 	private static String addHyphen(String uuid) {
 		if (uuid.length() < 20)
@@ -411,21 +413,25 @@ public class ItemUtils {
 
 	/**
 	 * Get a give code from a {@link ItemStack} (like after a /give player (code))
-	 * 
-	 * @since 2.0
+	 *
 	 * @see #getFromGiveCode(String)
+	 * @since 2.0
 	 */
+
 	public static String getGiveCode(ItemStack itemStack) {
-		boolean a = itemStack.getTagCompound() != null && !itemStack.getTagCompound().hasNoTags();
-		boolean b = itemStack.getMetadata() == 0 && !a;
+		boolean a;
+		boolean b;
+		a = itemStack.getTagCompound() != null && !itemStack.getTagCompound().hasNoTags();
+		b = itemStack.getMetadata() == 0 && !a;
 		return itemStack == null ? ""
 				: Item.itemRegistry.getNameForObject(itemStack.getItem()).toString()
-						+ ((itemStack.stackSize == 1 || itemStack.stackSize == 0) && b ? ""
-								: " " + itemStack.stackSize
-										+ (b ? ""
-												: " " + itemStack.getMetadata()
-														+ (a ? " " + itemStack.getTagCompound().toString() : "")));
+				+ ((itemStack.stackSize == 1 || itemStack.stackSize == 0) && b ? ""
+				: " " + itemStack.stackSize
+				+ (b ? ""
+				: " " + itemStack.getMetadata()
+				+ (a ? " " + itemStack.getTagCompound().toString() : "")));
 	}
+
 
 	/**
 	 * Change a head with new skin information given by name
