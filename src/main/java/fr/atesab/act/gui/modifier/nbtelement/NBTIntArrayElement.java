@@ -1,37 +1,43 @@
 package fr.atesab.act.gui.modifier.nbtelement;
 
-import fr.atesab.act.gui.components.ACTButton;
+import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbt.GuiNBTIntArrayModifier;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagIntArray;
 
 public class NBTIntArrayElement extends NBTElement {
-    private IntArrayTag value;
+	private NBTTagIntArray value;
 
-    public NBTIntArrayElement(GuiListModifier<?> parent, String key, IntArrayTag value) {
-        super(parent, key, 200, 21);
-        this.value = value;
-        buttonList
-                .add(new ACTButton(0, 0, 200, 20, Component.translatable("gui.act.modifier.tag.editor.intArray"), b -> mc.setScreen(new GuiNBTIntArrayModifier(Component.literal(parent.getStringTitle() + key + "/"),
-                        parent, tag -> NBTIntArrayElement.this.value = tag, value.copy()))));
-    }
+	public NBTIntArrayElement(GuiListModifier<?> parent, String key, NBTTagIntArray value) {
+		super(parent, key, 200, 21);
+		this.value = value;
+		buttonList.add(new GuiButton(0, 0, 0, I18n.format("gui.act.modifier.tag.editor.intArray")));
+	}
 
-    @Override
-    public NBTElement clone() {
-        return new NBTIntArrayElement(parent, key, value.copy());
-    }
+	@Override
+	protected void actionPerformed(GuiButton button) {
+		if (button.id == 0)
+			mc.displayGuiScreen(new GuiNBTIntArrayModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/",
+					parent, tag -> value = tag, (NBTTagIntArray) value.copy()));
+		super.actionPerformed(button);
+	}
 
-    @Override
-    public Tag get() {
-        return value.copy();
-    }
+	@Override
+	public NBTElement clone() {
+		return new NBTIntArrayElement(parent, key, (NBTTagIntArray) value.copy());
+	}
 
-    @Override
-    public String getType() {
-        return I18n.get("gui.act.modifier.tag.editor.intArray") + "[" + value.size() + "]";
-    }
+	@Override
+	public NBTBase get() {
+		return value.copy();
+	}
+
+	@Override
+	public String getType() {
+		return I18n.format("gui.act.modifier.tag.editor.intArray") + "[" + value.getIntArray().length + "]";
+	}
 
 }

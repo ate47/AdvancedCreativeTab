@@ -1,43 +1,43 @@
 package fr.atesab.act.gui.selector;
 
-import fr.atesab.act.gui.modifier.GuiListModifier;
-import fr.atesab.act.utils.Tuple;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-
 import java.util.List;
 import java.util.function.Function;
 
+import fr.atesab.act.gui.modifier.GuiListModifier;
+import fr.atesab.act.utils.Tuple;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.gui.GuiScreen;
+
 public class GuiListSelector<T> extends GuiListModifier<T> {
-    private final Function<T, Screen> selector;
+	private Function<T, GuiScreen> selector;
 
-    public GuiListSelector(Screen parent, Component name, List<ListElement> elements, Function<T, Screen> setter,
-                           boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        super(parent, name, elements, setter::apply, doneButton, cancelButton, buttons);
-        this.selector = setter;
-    }
+	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
+			boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		super(parent, elements, t -> setter.apply(t), doneButton, cancelButton, buttons);
+		this.selector = setter;
+	}
 
-    public GuiListSelector(Screen parent, Component name, List<ListElement> elements, Function<T, Screen> setter,
-                           boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        super(parent, name, elements, setter::apply, doneButton, buttons);
-        this.selector = setter;
-    }
+	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
+			boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		super(parent, elements, t -> setter.apply(t), doneButton, buttons);
+		this.selector = setter;
+	}
 
-    public GuiListSelector(Screen parent, Component name, List<ListElement> elements, Function<T, Screen> setter,
-                           Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        super(parent, name, elements, setter::apply, buttons);
-        this.selector = setter;
-    }
+	public GuiListSelector(GuiScreen parent, List<ListElement> elements, Function<T, GuiScreen> setter,
+			Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		super(parent, elements, t -> setter.apply(t), buttons);
+		this.selector = setter;
+	}
 
-    @Override
-    protected T get() {
-        return null;
-    }
+	@Override
+	protected T get() {
+		return null;
+	}
 
-    public void select(T t) {
-        playClick();
-        Screen screen = selector.apply(t);
-        getMinecraft().setScreen(screen == null ? parent : screen);
-    }
+	public void select(T t) {
+		playClick();
+		GuiScreen screen = selector.apply(t);
+		mc.displayGuiScreen(screen == null ? parent : screen);
+	}
 
 }

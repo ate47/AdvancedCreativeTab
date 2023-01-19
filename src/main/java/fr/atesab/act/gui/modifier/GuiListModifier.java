@@ -1,600 +1,538 @@
 package fr.atesab.act.gui.modifier;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import fr.atesab.act.gui.GuiValueButton;
-import fr.atesab.act.gui.components.ACTButton;
-import fr.atesab.act.utils.GuiUtils;
-import fr.atesab.act.utils.Tuple;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-
-import java.awt.*;
+import java.awt.Color;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import fr.atesab.act.gui.GuiValueButton;
+import fr.atesab.act.utils.GuiUtils;
+import fr.atesab.act.utils.Tuple;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.EnumChatFormatting;
+
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
-    /**
-     * a button to add an element to the list
-     */
-    public static class AddElementButton extends RunElementButton {
-        public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
-                                Supplier<ListElement> builder) {
-            this(parent, x, y, widthIn, heightIn, Component.literal("+"), element, builder);
-        }
-
-        public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, Component text,
-                                ListElement element, Function<Integer, ListElement> builder) {
-            super(x, y, widthIn, heightIn, text, () -> {
-                for (int i = 0; i < parent.elements.size(); i++)
-                    if (parent.elements.get(i).equals(element)) {
-                        ListElement elm = builder.apply(i);
-                        if (elm != null)
-                            parent.addListElement(i, elm);
-                        break;
-                    }
-            }, null);
-            setFGColor(Objects.requireNonNull(ChatFormatting.GREEN.getColor()));
-        }
-
-        public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, Component text,
-                                ListElement element, Supplier<ListElement> builder) {
-            this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
-        }
-
-        @Override
-        protected MutableComponent createNarrationMessage() {
-            return Component.translatable("gui.narrate.button", I18n.get("gui.act.new"));
-        }
-
-    }
-
-    /**
-     * a simple {@link ListElement} with only an {@link AddElementButton} in it
-     */
-    public static class AddElementList extends ListElement {
-
-        public AddElementList(GuiListModifier<?> parent, Supplier<ListElement> builder) {
-            this(parent, builder,
-                    Math.min(200, parent.elements.stream().mapToInt(ListElement::getSizeX).max().orElse(100)), 21);
-        }
-
-        public AddElementList(GuiListModifier<?> parent, Supplier<ListElement> builder, int sizeX, int sizeY) {
-            super(sizeX, Math.max(21, sizeY));
-            buttonList.add(new AddElementButton(parent, 0, (getSizeY() - 20) / 2, getSizeX(), 20, this, builder));
-        }
-    }
-
-    /**
-     * a simple {@link ListElement} with only an {@link Button} in it
-     */
-    public static class ButtonElementList extends ListElement {
-        private final Runnable right;
-
-        public ButtonElementList(int sizeX, int sizeY, int buttonSizeX, int buttonSizeY, Component buttonText,
-                                 Runnable leftAction, Runnable rightAction) {
-            super(sizeX, sizeY);
-            buttonList.add(new ACTButton(0, 0, buttonSizeX, buttonSizeY, buttonText, b -> {
-                if (leftAction != null)
-                    leftAction.run();
-            }));
-            this.right = rightAction;
-        }
-
-        @Override
-        protected void otherActionPerformed(AbstractWidget button, int mouseButton) {
-            if (mouseButton == 1 && right != null)
-                right.run();
-            super.otherActionPerformed(button, mouseButton);
-        }
-
-    }
-
-    /**
-     * a element of the list
-     */
-    public static abstract class ListElement {
-        protected Font font;
-        protected Minecraft mc;
-        protected List<AbstractWidget> buttonList = new ArrayList<>();
-        protected List<EditBox> fieldList = new ArrayList<>();
-        private int sizeX;
-        private int sizeY;
-
-        public ListElement(int sizeX, int sizeY) {
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
-            mc = Minecraft.getInstance();
-            font = mc.font;
-        }
-
-        public boolean charTyped(char key, int modifiers) {
-            for (EditBox field : fieldList)
-                if (field.isVisible() && field.charTyped(key, modifiers))
-                    return true;
-            return false;
-        }
-
-        public void draw(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-            buttonList.forEach(
-                    b -> GuiUtils.drawRelative(matrixStack, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
-            fieldList.stream().filter(EditBox::isVisible).forEach(
-                    tf -> GuiUtils.drawRelative(matrixStack, tf, offsetX, offsetY, mouseX, mouseY, partialTicks));
-        }
-
-
-        public int getSizeX() {
-            return sizeX;
-        }
-
-        public int getSizeY() {
-            return sizeY;
-        }
-
-        public void init() {
-            fieldList.forEach(tf -> tf.setFocus(false));
-        }
-
-        /**
-         * Check if this element is focused for key typing
-         *
-         * @return true if an element in this element is focused
-         */
-        public boolean isFocused() {
-            for (EditBox field : fieldList)
-                if (field.isFocused())
-                    return true;
-            return false;
-        }
-
-        public boolean keyPressed(int key, int scanCode, int modifiers) {
-            for (EditBox field : fieldList)
-                if (field.isVisible() && field.keyPressed(key, scanCode, modifiers))
-                    return true;
-            return false;
-        }
-
-        /**
-         * Check if this element match with the text in the search bar
-         *
-         * @param search Search bar text
-         * @return true if this element match
-         */
-        public boolean match(String search) {
-            return true;
-        }
-
-        public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-            buttonList.forEach(b -> {
-                if (GuiUtils.isHover(b, mouseX, mouseY)) {
-                    if (b instanceof RunElementButton) {
-                        if (((RunElementButton) b).getLeft() != null && mouseButton == 0) {
-                            playClick();
-                            ((RunElementButton) b).getLeft().run();
-                        } else if (((RunElementButton) b).getLeft() != null && mouseButton == 1) {
-                            playClick();
-                            ((RunElementButton) b).getRight().run();
-                        }
-                    } else if (mouseButton == 0) {
-                        playClick();
-                        b.onClick(mouseX, mouseY);
-                    } else
-                        otherActionPerformed(b, mouseButton);
-                }
-            });
-            fieldList.stream().filter(EditBox::isVisible).forEach(tf -> {
-                if (mouseButton == 1 && GuiUtils.isHover(tf, mouseX, mouseY)) {
-                    tf.setValue("");
-                    tf.setFocus(true);
-                } else
-                    tf.mouseClicked(mouseX, mouseY, mouseButton);
-            });
-        }
-
-        protected void otherActionPerformed(AbstractWidget button, int mouseButton) {
-        }
-
-        public void drawNext(PoseStack matrixStack, int offsetX, int offsetY, int mouseX, int mouseY,
-                             float partialTicks) {
-        }
-
-        public void setSizeX(int sizeX) {
-            this.sizeX = sizeX;
-        }
-
-        public void setSizeY(int sizeY) {
-            this.sizeY = sizeY;
-        }
-
-        public void update() {
-            fieldList.stream().filter(EditBox::isVisible).forEach(EditBox::tick);
-        }
-    }
-
-    /**
-     * a button to remove a {@link ListElement}
-     */
-    public static class RemoveElementButton extends RunElementButton {
-        public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
-                                   ListElement element) {
-            super(x, y, widthIn, heightIn, Component.literal("-"), () -> {
-                parent.elements.remove(element);
-                parent.needRedefine = true;
-            }, null);
-            setFGColor(Objects.requireNonNull(ChatFormatting.RED.getColor()));
-        }
-
-        public RemoveElementButton(GuiListModifier<?> parent, int x, int y, ListElement element) {
-            this(parent, x, y, 200, 20, element);
-        }
-
-        @Override
-        protected MutableComponent createNarrationMessage() {
-            return Component.translatable("gui.narrate.button", I18n.get("gui.act.delete"));
-        }
-    }
-
-    /**
-     * a button that run left and right mouse button action
-     */
-    public static class RunElementButton extends ACTButton {
-        private final Runnable left;
-        private final Runnable right;
-
-        public RunElementButton(int x, int y, int widthIn, int heightIn, Component text, Runnable left,
-                                Runnable right) {
-            super(x, y, widthIn, heightIn, text, b -> {
-            });
-            this.left = left;
-            this.right = right;
-        }
-
-        /**
-         * @return the left mouse {@link Runnable}
-         */
-        public Runnable getLeft() {
-            return left;
-        }
-
-        /**
-         * @return the right mouse {@link Runnable}
-         */
-        public Runnable getRight() {
-            return right;
-        }
-    }
-
-    private final List<ListElement> elements;
-    private final List<ListElement> searchedElements = new ArrayList<>();
-    private List<ListElement>[] visibleElements;
-    private final boolean doneButton;
-    private final boolean cancelButton;
-    private int page, maxPage, sizeX;
-
-    private Button lastPage, nextPage;
-
-    private final EditBox search;
-
-    protected Tuple<String, Tuple<Runnable, Runnable>>[] buttons;
-
-    private boolean needRedefine = false;
-
-    private int dSize = 42, paddingLeft = 0, paddingTop = 0;
-    private boolean noAdaptativeSize = false;
-
-    private boolean justStart = true;
-
-    public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
-                           boolean doneButton, boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        super(parent, name, setter);
-        this.elements = elements;
-        this.buttons = buttons;
-        this.doneButton = doneButton;
-        this.cancelButton = cancelButton;
-        this.setter = setter;
-        this.parent = parent;
-        search = new EditBox(Minecraft.getInstance().font, 0, 0, 0, 0, Component.literal(""));
-    }
-
-    public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
-                           boolean doneButton, Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        this(parent, name, elements, setter, doneButton, true, buttons);
-    }
-
-    public GuiListModifier(Screen parent, Component name, List<ListElement> elements, Consumer<T> setter,
-                           Tuple<String, Tuple<Runnable, Runnable>>[] buttons) {
-        this(parent, name, elements, setter, true, buttons);
-    }
-
-    public void addListElement(int i, ListElement elem) {
-        elements.add(i, elem);
-        needRedefine = true;
-    }
-
-    public void addListElement(ListElement elem) {
-        elements.add(elem);
-        needRedefine = true;
-    }
-
-    @Override
-    public boolean charTyped(char key, int modifiers) {
-        boolean flag = false;
-        for (List<ListElement> lel : visibleElements)
-            for (ListElement le : lel)
-                if (le.isFocused()) {
-                    flag = true;
-                    break;
-                }
-        for (List<ListElement> lel : visibleElements)
-            lel.forEach(le -> le.charTyped(key, modifiers));
-        if (!flag && !justStart)
-            search.setFocus(true);
-        else
-            justStart = false;
-        if (search.isFocused()) {
-            search.charTyped(key, modifiers);
-            page = 0;
-            define();
-        }
-        return super.charTyped(key, modifiers);
-
-    }
-
-    @SuppressWarnings("unchecked")
-    private void define() {
-        // removing current visible elements
-        searchedElements.clear();
-        // search...
-        elements.stream().filter(le -> le.match(search.getValue())).forEach(searchedElements::add);
-        sizeX = searchedElements.stream().mapToInt(ListElement::getSizeX).max().orElse(width - 20 - paddingLeft)
-                + paddingLeft;
-        visibleElements = new ArrayList[Math.max(1, (width - 20) / sizeX)];
-        for (int i = 0; i < visibleElements.length; i++)
-            visibleElements[i] = new ArrayList<>();
-        maxPage = 0;
-        int pageHeight = height - 63;
-        int currentSize = 0;
-        int i = 0;
-        for (ListElement elm : searchedElements) {
-            int sy = paddingTop + elm.sizeY;
-            if (currentSize + sy > pageHeight) {
-                if ((i = (i + 1) % visibleElements.length) == 0)
-                    maxPage++;
-                currentSize = sy;
-            } else
-                currentSize += sy;
-            if (page == maxPage)
-                visibleElements[i].add(elm);
-        }
-        maxPage = Math.max(1, maxPage + (currentSize == 0 ? 0 : 1));
-        if (page >= maxPage) {
-            page = maxPage - 1;
-            define();
-        }
-        int j;
-        boolean add = false;
-        if (page == 0)
-            mass:for (j = 0; j < visibleElements.length; j++) {
-                if (visibleElements[j].isEmpty())
-                    break;
-                for (ListElement le : visibleElements[j])
-                    if (le instanceof AddElementList) {
-                        add = true;
-                        break mass;
-                    }
-            }
-        else
-            j = visibleElements.length;
-        dSize = (!(add || noAdaptativeSize) && j == 1 && maxPage == 1
-                ? height / 2 - visibleElements[0].stream().mapToInt(ListElement::getSizeY).sum() / 2
-                : 42) + paddingTop;
-        lastPage.active = page != 0;
-        nextPage.active = page + 1 < maxPage;
-    }
-
-    protected abstract T get();
-
-    public List<ListElement> getElements() {
-        return Collections.unmodifiableList(elements);
-    }
-
-    private int getOffsetX() {
-        int i;
-        if (page == 0)
-            for (i = 0; i < visibleElements.length; i++) {
-                if (visibleElements[i].isEmpty())
-                    break;
-            }
-        else
-            i = visibleElements.length;
-        return (width - sizeX * (i - 1) + paddingLeft) / 2;
-    }
-
-    public int getPaddingLeft() {
-        return paddingLeft;
-    }
-
-    public int getPaddingTop() {
-        return paddingTop;
-    }
-
-    @Override
-    public void init() {
-        page = 0;
-        int l = (doneButton ? 1 : 0);
-        int d = (buttons.length + l + (cancelButton ? 1 : 0)) * 50;
-        int dl = width / 2 - d;
-        int dr = width / 2 + d;
-        if (doneButton)
-            addRenderableWidget(new ACTButton(dl, height - 21, 99, 20, Component.translatable("gui.done"), b -> {
-                set(get());
-                getMinecraft().setScreen(parent);
-            }));
-        int i;
-        for (i = 0; i < buttons.length; i++)
-            addRenderableWidget(new GuiValueButton<>(dl + 100 * (i + l), height - 21, 99, 20,
-                    Component.literal(buttons[i].a), buttons[i].b, b -> b.getValue().a.run()));
-        if (cancelButton)
-            addRenderableWidget(new ACTButton(dl + 100 * (i + l), height - 21, 99, 20,
-                    Component.translatable("gui.act.cancel"), b -> getMinecraft().setScreen(parent)));
-        addRenderableWidget(lastPage = new ACTButton(dl - 21, height - 21, 20, 20, Component.literal("<-"), b -> {
-            page--;
-            define();
-        }) {
-            @Override
-            protected MutableComponent createNarrationMessage() {
-                return Component.translatable("gui.narrate.button", I18n.get("gui.act.leftArrow"));
-            }
-        });
-        addRenderableWidget(nextPage = new ACTButton(dr, height - 21, 20, 20, Component.literal("->"), b -> {
-            page++;
-            define();
-        }) {
-
-            @Override
-            protected MutableComponent createNarrationMessage() {
-                return Component.translatable("gui.narrate.button", I18n.get("gui.act.rightArrow"));
-            }
-        });
-
-        int m = font.width(I18n.get("gui.act.search") + " : ");
-        int n = Math.min(600, width - 20);
-        search.setX((width - n) / 2 + 6 + m);
-        search.setY(18);
-        search.setWidth(n - 18 - m);
-        search.setHeight(18);
-        elements.forEach(ListElement::init);
-
-        define();
-        super.init();
-
-    }
-
-    public boolean isNoAdaptativeSize() {
-        return noAdaptativeSize;
-    }
-
-    @Override
-    public boolean keyPressed(int key, int scanCode, int modifiers) {
-        boolean flag = false;
-        for (List<ListElement> lel : visibleElements)
-            for (ListElement le : lel)
-                if (le.isFocused()) {
-                    flag = true;
-                    break;
-                }
-        for (List<ListElement> lel : visibleElements)
-            lel.forEach(le -> le.keyPressed(key, scanCode, modifiers));
-        if (!flag)
-            search.setFocus(true);
-        if (search.isFocused()) {
-            search.keyPressed(key, scanCode, modifiers);
-            page = 0;
-            define();
-        }
-        return super.keyPressed(key, scanCode, modifiers);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-        for (int i = 0; i < visibleElements.length; i++) {
-            int currentSize = dSize;
-            for (ListElement le : visibleElements[i]) {
-                int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
-                le.mouseClicked((int) mouseX - offsetX, (int) mouseY - currentSize, mouseButton);
-                currentSize += le.getSizeY() + paddingTop;
-            }
-        }
-        search.mouseClicked(mouseX, mouseY, mouseButton);
-        if (mouseButton == 1) {
-            if (GuiUtils.isHover(search.getX(), search.getY(), search.getWidth(), search.getHeight(), (int) mouseX,
-                    (int) mouseY)) {
-                search.setValue("");
-                page = 0;
-                define();
-            } else
-                children().stream()
-                        .filter(button -> button instanceof GuiValueButton
-                                && GuiUtils.isHover(((Button) button), (int) mouseX, (int) mouseY))
-                        .map(b -> (GuiValueButton<Tuple<Runnable, Runnable>>) b).forEach(b -> b.getValue().b.run());
-        }
-        if (needRedefine) {
-            needRedefine = false;
-            define();
-        }
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    public void removeListElement(ListElement elem) {
-        elements.remove(elem);
-        needRedefine = true;
-    }
-
-    @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(matrixStack);
-        for (int i = 0; i < visibleElements.length; i++) {
-            int currentSize = dSize;
-            for (ListElement le : visibleElements[i]) {
-                int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
-                le.draw(matrixStack, offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
-                currentSize += le.getSizeY() + paddingTop;
-            }
-        }
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        search.render(matrixStack, mouseX, mouseY, partialTicks);
-        GuiUtils.drawCenterString(font, getStringTitle(), width / 2, 2, 0xFFFFFFFF, 10);
-        GuiUtils.drawRightString(font, I18n.get("gui.act.search") + " : ", search.getX(), search.getY(), Color.ORANGE.getRGB(),
-                search.getHeight());
-        if (equals(getMinecraft().screen)) {
-            for (int i = 0; i < visibleElements.length; i++) {
-                int currentSize = dSize;
-                for (ListElement le : visibleElements[i]) {
-                    int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
-                    le.drawNext(matrixStack, offsetX, currentSize, mouseX - offsetX, mouseY - currentSize,
-                            partialTicks);
-                    currentSize += le.getSizeY() + paddingTop;
-                }
-            }
-        }
-    }
-
-    public void setNoAdaptativeSize(boolean noAdaptativeSize) {
-        this.noAdaptativeSize = noAdaptativeSize;
-    }
-
-    public void setPaddingLeft(int paddingLeft) {
-        this.paddingLeft = paddingLeft;
-    }
-
-    public void setPaddingTop(int paddingTop) {
-        this.paddingTop = paddingTop;
-    }
-
-    @Override
-    public void tick() {
-        search.tick();
-        for (List<ListElement> lel : visibleElements)
-            lel.forEach(ListElement::update);
-        super.tick();
-    }
-
-    @Override
-    protected void generateDev(List<ACTDevInfo> entries, int mouseX, int mouseY) {
-        entries.add(devInfo("List", this.elements.size() + " element(s)", (page + 1) + "/" + maxPage));
-        super.generateDev(entries, mouseX, mouseY);
-    }
+	public static class RunElementButton extends GuiButton {
+		private Runnable left;
+		private Runnable right;
+
+		public RunElementButton(int x, int y, int widthIn, int heightIn, String text, Runnable left, Runnable right) {
+			super(0, x, y, widthIn, heightIn, text);
+			this.left = left;
+			this.right = right;
+		}
+
+		public Runnable getLeft() {
+			return left;
+		}
+
+		public Runnable getRight() {
+			return right;
+		}
+	}
+
+	public static class AddElementButton extends RunElementButton {
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
+				Supplier<ListElement> builder) {
+			this(parent, x, y, widthIn, heightIn, EnumChatFormatting.GREEN + "+", element, builder);
+		}
+
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
+				ListElement element, Supplier<ListElement> builder) {
+			this(parent, x, y, widthIn, heightIn, text, element, i -> builder.get());
+		}
+
+		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
+				ListElement element, Function<Integer, ListElement> builder) {
+			super(x, y, widthIn, heightIn, text, () -> {
+				for (int i = 0; i < parent.elements.size(); i++)
+					if (parent.elements.get(i).equals(element)) {
+						ListElement elm = builder.apply(i);
+						if (elm != null)
+							parent.elements.add(i, elm);
+						break;
+					}
+				parent.needRedefine = true;
+			}, null);
+		}
+
+	}
+
+	public static class AddElementList extends ListElement {
+		private Supplier<ListElement> supplier;
+		private GuiListModifier<?> parent;
+
+		public AddElementList(GuiListModifier<?> parent, Supplier<ListElement> builder) {
+			this(parent, builder,
+					Math.min(200, getOrDefault(parent.elements.stream().mapToInt(ListElement::getSizeX).max(), 100)),
+					21);
+		}
+
+		public AddElementList(GuiListModifier<?> parent, Supplier<ListElement> builder, int sizeX, int sizeY) {
+			super(sizeX, Math.max(21, sizeY));
+			this.parent = parent;
+			this.supplier = builder;
+			buttonList.add(new GuiButton(0, 0, 0, getSizeX(), 20, EnumChatFormatting.GREEN + "+"));
+		}
+
+		@Override
+		protected void actionPerformed(GuiButton button) {
+			ListElement elm = supplier.get();
+			if (elm != null)
+				parent.elements.add(parent.elements.size() - 1, supplier.get());
+			parent.needRedefine = true;
+			parent.page = parent.maxPage - 1;
+			super.actionPerformed(button);
+		}
+	}
+
+	public static class ButtonElementList extends ListElement {
+		private Runnable left, right;
+
+		public ButtonElementList(int sizeX, int sizeY, int buttonSizeX, int buttonSizeY, String buttonText,
+				Runnable leftAction, Runnable rightAction) {
+			super(sizeX, sizeY);
+			buttonList.add(new GuiButton(0, 0, 0, buttonSizeX, buttonSizeY, buttonText));
+			this.left = leftAction;
+			this.right = rightAction;
+		}
+
+		@Override
+		protected void actionPerformed(GuiButton button) {
+			if (left != null)
+				left.run();
+			super.actionPerformed(button);
+		}
+
+		@Override
+		protected void otherActionPerformed(GuiButton button, int mouseButton) {
+			if (mouseButton == 1 && right != null)
+				right.run();
+			super.otherActionPerformed(button, mouseButton);
+		}
+
+	}
+
+	public static class ListElement {
+		protected FontRenderer fontRenderer;
+		protected Minecraft mc;
+		protected List<GuiButton> buttonList = new ArrayList<>();
+		protected List<GuiTextField> fieldList = new ArrayList<>();
+		private int sizeX;
+		private int sizeY;
+
+		public ListElement(int sizeX, int sizeY) {
+			this.sizeX = sizeX;
+			this.sizeY = sizeY;
+			fontRenderer = (mc = Minecraft.getMinecraft()).fontRendererObj;
+		}
+
+		protected void actionPerformed(GuiButton button) {
+		}
+
+		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+			buttonList.forEach(b -> GuiUtils.drawRelative(mc, b, offsetX, offsetY, mouseX, mouseY, partialTicks));
+			fieldList.stream().filter(GuiTextField::getVisible)
+					.forEach(tf -> GuiUtils.drawRelative(tf, offsetX, offsetY));
+		}
+
+		public void drawNext(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
+		}
+
+		public int getSizeX() {
+			return sizeX;
+		}
+
+		public int getSizeY() {
+			return sizeY;
+		}
+
+		public void setSizeX(int sizeX) {
+			this.sizeX = sizeX;
+		}
+
+		public void setSizeY(int sizeY) {
+			this.sizeY = sizeY;
+		}
+
+		public void init() {
+			fieldList.forEach(tf -> tf.setFocused(false));
+		}
+
+		/**
+		 * Check if this element is focused for key typing
+		 * 
+		 * @return true if an element in this element is focused
+		 */
+		public boolean isFocused() {
+			for (GuiTextField field : fieldList)
+				if (field.isFocused())
+					return true;
+			return false;
+		}
+
+		public void keyTyped(char typedChar, int keyCode) {
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(tf -> tf.textboxKeyTyped(typedChar, keyCode));
+		}
+
+		/**
+		 * Check if this element match with the text in the search bar
+		 * 
+		 * @param search
+		 *            Search bar text
+		 * @return true if this element match
+		 */
+		public boolean match(String search) {
+			return true;
+		}
+
+		public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+			buttonList.forEach(b -> {
+				if (b.mousePressed(mc, mouseX, mouseY)) {
+					if (b instanceof RunElementButton) {
+						if (((RunElementButton) b).getLeft() != null && mouseButton == 0) {
+							playClick();
+							((RunElementButton) b).getLeft().run();
+						} else if (((RunElementButton) b).getLeft() != null && mouseButton == 1) {
+							playClick();
+							((RunElementButton) b).getRight().run();
+						}
+					} else if (mouseButton == 0) {
+						playClick();
+						actionPerformed(b);
+					} else
+						otherActionPerformed(b, mouseButton);
+				}
+			});
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(tf -> {
+				if (mouseButton == 1 && GuiUtils.isHover(tf, mouseX, mouseY)) {
+					tf.setText("");
+					tf.setFocused(true);
+				} else
+					tf.mouseClicked(mouseX, mouseY, mouseButton);
+			});
+		}
+
+		protected void otherActionPerformed(GuiButton button, int mouseButton) {
+		}
+
+		public void update() {
+			fieldList.stream().filter(GuiTextField::getVisible).forEach(GuiTextField::updateCursorCounter);
+		}
+	}
+
+	public static class RemoveElementButton extends RunElementButton {
+		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
+				ListElement element) {
+			super(x, y, widthIn, heightIn, EnumChatFormatting.RED + "-", () -> {
+				parent.elements.remove(element);
+				parent.needRedefine = true;
+			}, null);
+		}
+
+		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, ListElement element) {
+			this(parent, x, y, 200, 20, element);
+		}
+
+	}
+
+	private static int getOrDefault(OptionalInt opt, int defaultValue) {
+		return opt.isPresent() ? opt.getAsInt() : defaultValue;
+	}
+
+	protected List<ListElement> elements;
+	protected List<ListElement> searchedElements = new ArrayList<>();
+	protected List<ListElement>[] visibleElements;
+	private boolean doneButton, cancelButton;
+	private int page, maxPage, sizeX;
+
+	private GuiButton lastPage, nextPage;
+
+	private GuiTextField search;
+
+	protected Tuple<String, Tuple<Runnable, Runnable>>[] buttons;
+
+	private boolean needRedefine = false;
+
+	private int dSize = 42, paddingLeft = 0, paddingTop = 0;
+	private boolean noAdaptativeSize = false;
+
+	public void setNoAdaptativeSize(boolean noAdaptativeSize) {
+		this.noAdaptativeSize = noAdaptativeSize;
+	}
+
+	public boolean isNoAdaptativeSize() {
+		return noAdaptativeSize;
+	}
+
+	public int getPaddingLeft() {
+		return paddingLeft;
+	}
+
+	public void setPaddingLeft(int paddingLeft) {
+		this.paddingLeft = paddingLeft;
+	}
+
+	public int getPaddingTop() {
+		return paddingTop;
+	}
+
+	public void setPaddingTop(int paddingTop) {
+		this.paddingTop = paddingTop;
+	}
+
+	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
+			boolean cancelButton, Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		super(parent, setter);
+		this.elements = elements;
+		this.buttons = buttons;
+		this.doneButton = doneButton;
+		this.cancelButton = cancelButton;
+		search = new GuiTextField(0, Minecraft.getMinecraft().fontRendererObj, 0, 0, 0, 0);
+	}
+
+	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter, boolean doneButton,
+			Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		this(parent, elements, setter, doneButton, true, buttons);
+	}
+
+	public GuiListModifier(GuiScreen parent, List<ListElement> elements, Consumer<T> setter,
+			Tuple<String, Tuple<Runnable, Runnable>>... buttons) {
+		this(parent, elements, setter, true, buttons);
+	}
+
+	@Override
+	protected void actionPerformed(GuiButton button) throws IOException {
+		switch (button.id) {
+		case 0:
+			set(get());
+			mc.displayGuiScreen(parent);
+			break;
+		case 1:
+			mc.displayGuiScreen(parent);
+			break;
+		case 2:
+			page--;
+			define();
+			break;
+		case 3:
+			page++;
+			define();
+			break;
+		case 4:
+			((GuiValueButton<Tuple<Runnable, Runnable>>) button).getValue().a.run();
+			break;
+		}
+		super.actionPerformed(button);
+	}
+
+	public void addListElement(ListElement elem) {
+		elements.add(elem);
+		needRedefine = true;
+	}
+
+	public void addListElement(int i, ListElement elem) {
+		elements.add(i, elem);
+		needRedefine = true;
+	}
+
+	private void define() {
+		searchedElements.clear();
+		elements.stream().filter(le -> le.match(search.getText())).forEach(searchedElements::add);
+		sizeX = getOrDefault(searchedElements.stream().mapToInt(ListElement::getSizeX).max(), width - 20 - paddingLeft)
+				+ paddingLeft;
+		visibleElements = new ArrayList[Math.max(1, (width - 20) / sizeX)];
+		for (int i = 0; i < visibleElements.length; i++)
+			visibleElements[i] = new ArrayList<>();
+		maxPage = 0;
+		int pageHeight = height - 63;
+		int currentSize = 0;
+		int i = 0;
+		for (ListElement elm : searchedElements) {
+			int sy = paddingTop + elm.sizeY;
+			if (currentSize + sy > pageHeight) {
+				if ((i = (i + 1) % visibleElements.length) == 0)
+					maxPage++;
+				currentSize = sy;
+			} else
+				currentSize += sy;
+			if (page == maxPage)
+				visibleElements[i].add(elm);
+		}
+		maxPage = Math.max(1, maxPage + (currentSize == 0 ? 0 : 1));
+		if (page >= maxPage) {
+			page = maxPage - 1;
+			define();
+		}
+		int j;
+		boolean add = false;
+		if (page == 0)
+			mass: for (j = 0; j < visibleElements.length; j++) {
+				if (visibleElements[j].isEmpty())
+					break;
+				for (ListElement le : visibleElements[j])
+					if (le instanceof AddElementList) {
+						add = true;
+						break mass;
+					}
+			}
+		else
+			j = visibleElements.length;
+		dSize = (!(add || noAdaptativeSize) && j == 1 && maxPage == 1
+				? height / 2 - visibleElements[0].stream().mapToInt(ListElement::getSizeY).sum() / 2
+				: 42) + paddingTop;
+		lastPage.enabled = page != 0;
+		nextPage.enabled = page + 1 < maxPage;
+	}
+
+	@Override
+	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+		RenderHelper.disableStandardItemLighting();
+		drawDefaultBackground();
+		for (int i = 0; i < visibleElements.length; i++) {
+			int currentSize = dSize;
+			for (ListElement le : visibleElements[i]) {
+				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
+				le.draw(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
+				currentSize += le.getSizeY() + paddingTop;
+			}
+		}
+		GlStateManager.color(0, 1, 1);
+
+		super.drawScreen(mouseX, mouseY, partialTicks);
+		search.drawTextBox();
+		if (this instanceof GuiArrayModifierTitle)
+			GuiUtils.drawCenterString(fontRendererObj, ((GuiArrayModifierTitle) this).getTitle(), width / 2, 22,
+					0xFFFFFFFF, 10);
+		GuiUtils.drawRightString(fontRendererObj, I18n.format("gui.act.search") + " : ", search.xPosition, search.yPosition,
+				Color.ORANGE.getRGB(), search.height);
+		if (mc.currentScreen.equals(this))
+			for (int i = 0; i < visibleElements.length; i++) {
+				int currentSize = dSize;
+				for (ListElement le : visibleElements[i]) {
+					int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
+					le.drawNext(offsetX, currentSize, mouseX - offsetX, mouseY - currentSize, partialTicks);
+					currentSize += le.getSizeY() + paddingTop;
+				}
+			}
+		GlStateManager.color(1, 1, 1);
+	}
+
+	protected abstract T get();
+
+	private int getOffsetX() {
+		int i;
+		if (page == 0)
+			for (i = 0; i < visibleElements.length; i++) {
+				if (visibleElements[i].isEmpty())
+					break;
+			}
+		else
+			i = visibleElements.length;
+		return (width - sizeX * (i - 1) + paddingLeft) / 2;
+	}
+
+	@Override
+	public void initGui() {
+		page = 0;
+		int l = (doneButton ? 1 : 0);
+		int d = (buttons.length + l + (cancelButton ? 1 : 0)) * 50;
+		int dl = width / 2 - d;
+		int dr = width / 2 + d;
+		if (doneButton)
+			buttonList.add(new GuiButton(0, dl, height - 21, 99, 20, I18n.format("gui.done")));
+		int i;
+		for (i = 0; i < buttons.length; i++)
+			buttonList.add(new GuiValueButton<Tuple<Runnable, Runnable>>(4, dl + 100 * (i + l), height - 21, 99, 20,
+					buttons[i].a, buttons[i].b));
+		if (cancelButton)
+			buttonList.add(new GuiButton(1, dl + 100 * (i + l), height - 21, 99, 20, I18n.format("gui.act.cancel")));
+		buttonList.add(lastPage = new GuiButton(2, dl - 21, height - 21, 20, 20, "<-"));
+		buttonList.add(nextPage = new GuiButton(3, dr, height - 21, 20, 20, "->"));
+		int m = fontRendererObj.getStringWidth(I18n.format("gui.act.search") + " : ");
+		int n = Math.min(600, width - 20);
+		search.xPosition = (width - n) / 2 + 6 + m;
+		search.yPosition = this instanceof GuiArrayModifierTitle ? 2 : 18;
+		search.width = n - 18 - m;
+		search.height = 18;
+		elements.forEach(ListElement::init);
+		define();
+		super.initGui();
+	}
+
+	@Override
+	protected void keyTyped(char typedChar, int keyCode) throws IOException {
+		boolean flag = false;
+		for (List<ListElement> lel : visibleElements)
+			for (ListElement le : lel)
+				if (le.isFocused()) {
+					flag = true;
+					break;
+				}
+		for (List<ListElement> lel : visibleElements)
+			lel.forEach(le -> le.keyTyped(typedChar, keyCode));
+		if (!flag)
+			search.setFocused(true);
+		if (search.isFocused()) {
+			search.textboxKeyTyped(typedChar, keyCode);
+			page = 0;
+			define();
+		}
+		super.keyTyped(typedChar, keyCode);
+	}
+
+	@Override
+	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		for (int i = 0; i < visibleElements.length; i++) {
+			int currentSize = dSize;
+			for (ListElement le : visibleElements[i]) {
+				int offsetX = getOffsetX() + sizeX * i - le.getSizeX() / 2;
+				le.mouseClicked(mouseX - offsetX, mouseY - currentSize, mouseButton);
+				currentSize += le.getSizeY() + paddingTop;
+			}
+		}
+		search.mouseClicked(mouseX, mouseY, mouseButton);
+		if (mouseButton == 1) {
+			if (GuiUtils.isHover(search.xPosition, search.yPosition, search.width, search.height, mouseX, mouseY)) {
+				search.setText("");
+				page = 0;
+				define();
+			} else
+				buttonList.stream().filter(button -> button.id == 4 && GuiUtils.isHover(button, mouseX, mouseY))
+						.map(b -> (GuiValueButton<Tuple<Runnable, Runnable>>) b).forEach(b -> b.getValue().b.run());
+		}
+		if (needRedefine) {
+			needRedefine = false;
+			define();
+		}
+		super.mouseClicked(mouseX, mouseY, mouseButton);
+	}
+
+	public void removeListElement(ListElement elem) {
+		elements.remove(elem);
+		needRedefine = true;
+	}
+
+	@Override
+	public void updateScreen() {
+		search.updateCursorCounter();
+		for (List<ListElement> lel : visibleElements)
+			lel.forEach(ListElement::update);
+		super.updateScreen();
+	}
+
+	public List<ListElement> getElements() {
+		return elements;
+	}
 }

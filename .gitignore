@@ -23,3 +23,13 @@ run
 
 # Files from Forge MDK
 forge*changelog.txt
+
+CREDITS-fml.txt
+LICENSE-fml.txt
+MinecraftForge-Credits.txt
+MinecraftForge-License.txt
+Paulscode IBXM Library License.txt
+Paulscode SoundSystem CodecIBXM License.txt
+build.bat
+eclipse.bat
+setupWP.bat
