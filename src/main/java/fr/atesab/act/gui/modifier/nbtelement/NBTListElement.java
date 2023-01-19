@@ -21,13 +21,13 @@ public class NBTListElement extends NBTElement {
 	protected void actionPerformed(GuiButton button) {
 		if (button.id == 0)
 			mc.displayGuiScreen(new GuiNBTListModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
-					tag -> value = tag, (NBTTagList) value.copy()));
+					tag -> value = tag, value.copy()));
 		super.actionPerformed(button);
 	}
 
 	@Override
 	public NBTElement clone() {
-		return new NBTListElement(parent, key, (NBTTagList) value.copy());
+		return new NBTListElement(parent, key, value.copy());
 	}
 
 	@Override

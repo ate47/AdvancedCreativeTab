@@ -10,11 +10,12 @@ import fr.atesab.act.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -51,7 +52,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		public boolean match(String search) {
 			String s = search.toLowerCase();
 			return itemStack.getDisplayName().toLowerCase().contains(s)
-					|| I18n.format(itemStack.getItem().getUnlocalizedName() + ".name").toLowerCase().contains(s);
+					|| itemStack.getItem().getRegistryName().toString().toLowerCase().contains(s);
 		}
 
 		@Override
@@ -64,16 +65,15 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 
 	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter) {
 		super(parent, new ArrayList<>(), setter, false);
-		List<ItemStack> stacks = new ArrayList();
-		Item.itemRegistry.forEach(e -> {
-			Item i = (Item) e;
+		NonNullList<ItemStack> stacks = NonNullList.create();
+		Item.REGISTRY.forEach(i -> {
 			if (i.equals(ACTMod.ADVANCED_ITEM))
 				return;
-			List<ItemStack> subStack = new ArrayList();
-			i.getSubItems(i, i.getCreativeTab() == null ? CreativeTabs.tabAllSearch : i.getCreativeTab(), subStack);
+			NonNullList<ItemStack> subStack = NonNullList.create();
+			i.getSubItems(i, i.getCreativeTab() == null ? CreativeTabs.SEARCH : i.getCreativeTab(), subStack);
 			boolean f = true;
 			for (ItemStack sub : subStack)
-				if (sub.getItem().equals(i) && sub.stackSize == 1 && sub.getMetadata() == 0
+				if (sub.getItem().equals(i) && sub.getCount() == 1 && sub.getMetadata() == 0
 						&& (sub.getTagCompound() == null || sub.getTagCompound().hasNoTags())) {
 					f = false;
 					break;
@@ -85,7 +85,7 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 		stacks.forEach(stack -> elements.add(new TypeListElement(this, stack)));
 	}
 
-	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter, List<ItemStack> stacks) {
+	public GuiTypeListSelector(GuiScreen parent, Function<ItemStack, GuiScreen> setter, NonNullList<ItemStack> stacks) {
 		this(parent, setter, stacks.stream());
 	}
 
@@ -100,14 +100,14 @@ public class GuiTypeListSelector extends GuiListSelector<ItemStack> {
 	}
 
 	private void renderToolTipBasic(ItemStack stack, int x, int y) {
-		if (mc.thePlayer != null)
+		if (mc.player != null)
 			renderToolTip(stack, x, y);
 		else {
 			List<String> tt = new ArrayList<>();
 			tt.add(stack.getDisplayName());
 			ACTMod.instance
 					.onRenderTooltip(new ItemTooltipEvent(stack, null, tt, mc.gameSettings.advancedItemTooltips));
-			GuiUtils.drawTextBox(fontRendererObj, x, y, width, height, zLevel + 100, tt.toArray(new String[tt.size()]));
+			GuiUtils.drawTextBox(fontRendererObj, x, y, width, height, zLevel+100, tt.toArray(new String[tt.size()]));
 		}
 	}
 }

@@ -5,12 +5,12 @@ import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.init.SoundEvents;
 
 public class GuiModifier<T> extends GuiScreen {
 	public static void playClick() {
 		Minecraft.getMinecraft().getSoundHandler()
-				.playSound(PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+				.playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 	}
 
 	protected GuiScreen parent;

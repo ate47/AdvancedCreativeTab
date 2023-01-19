@@ -21,13 +21,13 @@ public class NBTTagElement extends NBTElement {
 	protected void actionPerformed(GuiButton button) {
 		if (button.id == 0)
 			mc.displayGuiScreen(new GuiNBTModifier(((GuiArrayModifierTitle) parent).getTitle() + key + "/", parent,
-					tag -> value = tag, (NBTTagCompound) value.copy()));
+					tag -> value = tag, value.copy()));
 		super.actionPerformed(button);
 	}
 
 	@Override
 	public NBTElement clone() {
-		return new NBTTagElement(parent, key, (NBTTagCompound) value.copy());
+		return new NBTTagElement(parent, key, value.copy());
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class NBTTagElement extends NBTElement {
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.getKeySet().size() + "]";
+		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.getSize() + "]";
 	}
 
 }

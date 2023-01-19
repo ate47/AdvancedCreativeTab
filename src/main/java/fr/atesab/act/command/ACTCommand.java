@@ -34,18 +34,23 @@ public class ACTCommand extends MainCommand {
 	}
 
 	@Override
-	public List<String> getCommandAliases() {
+	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+		return true;
+	}
+
+	@Override
+	public List<String> getAliases() {
 		return new ArrayList<String>();
 	}
 
 	@Override
-	public String getCommandName() {
+	public String getName() {
 		return "act";
 	}
 
 	@Override
-	public String getCommandUsage(ICommandSender sender) {
-		return getCommandName();
+	public String getUsage(ICommandSender sender) {
+		return getName();
 	}
 
 }

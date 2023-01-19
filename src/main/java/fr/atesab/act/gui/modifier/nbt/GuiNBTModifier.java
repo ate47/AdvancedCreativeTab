@@ -25,7 +25,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements GuiArrayModifierTitle {
 
@@ -93,7 +93,7 @@ public class GuiNBTModifier extends GuiListModifier<NBTTagCompound> implements G
 
 	public GuiNBTModifier(String title, GuiScreen parent, Consumer<NBTTagCompound> setter, NBTTagCompound tag) {
 		super(parent, new ArrayList<>(), setter, true, true);
-		elements.add(new ButtonElementList(200, 21, 200, 20, EnumChatFormatting.GREEN + "+",
+		elements.add(new ButtonElementList(200, 21, 200, 20, TextFormatting.GREEN + "+",
 				() -> ADD_ELEMENT.accept(null, this), null));
 		tag.getKeySet().forEach(key -> addElement(key, tag.getTag(key)));
 		setPaddingLeft(5);

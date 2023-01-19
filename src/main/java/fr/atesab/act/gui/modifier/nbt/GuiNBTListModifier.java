@@ -7,7 +7,6 @@ import fr.atesab.act.gui.modifier.GuiArrayModifierTitle;
 import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement;
 import fr.atesab.act.gui.modifier.nbtelement.NBTElement.GuiNBTList;
-import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTBase;
@@ -21,9 +20,11 @@ public class GuiNBTListModifier extends GuiListModifier<NBTTagList> implements G
 	public GuiNBTListModifier(String title, GuiScreen parent, Consumer<NBTTagList> setter, NBTTagList list) {
 		super(parent, new ArrayList<>(), setter);
 		this.title = title;
-		this.list = (NBTTagList) list.copy();
+		this.list = list.copy();
 		String k = "...";
-		ItemUtils.forEachInNBTTagList(list, base -> elements.add(NBTElement.getElementByBase(this, k, base)));
+		for (NBTBase base : list) {
+			elements.add(NBTElement.getElementByBase(this, k, base));
+		}
 		elements.add(new AddElementList(this, () -> {
 			if (this.list.getTagType() != 0) {
 				NBTBase base = GuiNBTModifier.getDefaultElement(this.list.getTagType());
@@ -48,7 +49,8 @@ public class GuiNBTListModifier extends GuiListModifier<NBTTagList> implements G
 	@Override
 	protected NBTTagList get() {
 		NBTTagList list = new NBTTagList();
-		elements.stream().filter(le -> le instanceof NBTElement).forEach(le -> list.appendTag(((NBTElement) le).get()));
+		elements.stream().filter(le -> le instanceof NBTElement)
+				.forEach(le -> list.appendTag(((NBTElement) le).get()));
 		return list;
 	}
 

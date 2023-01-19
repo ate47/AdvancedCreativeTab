@@ -26,7 +26,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public abstract class NBTElement extends ListElement implements Cloneable {
 	private static boolean isList(Object object) {
@@ -42,7 +42,7 @@ public abstract class NBTElement extends ListElement implements Cloneable {
 		this.key = key;
 		this.parent = parent;
 		buttonList.add(new RemoveElementButton(parent, sizeX + 1, 0, 20, 20, this));
-		buttonList.add(new AddElementButton(parent, sizeX + 22, 0, 20, 20, EnumChatFormatting.GREEN + "+", this, i -> {
+		buttonList.add(new AddElementButton(parent, sizeX + 22, 0, 20, 20, TextFormatting.GREEN + "+", this, i -> {
 			GuiNBTModifier.ADD_ELEMENT.accept(i, parent);
 			return null;
 		}));

@@ -1,8 +1,5 @@
 package fr.atesab.act.utils;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
-import static org.lwjgl.opengl.GL13.GL_SAMPLE_ALPHA_TO_COVERAGE;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -11,21 +8,19 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -145,19 +140,17 @@ public class GuiUtils {
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
 		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
+				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-		worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181706_f);
-		worldrenderer.func_181662_b((double) right, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) bottom, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) right, (double) bottom, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
+		VertexBuffer bufferbuilder = tessellator.getBuffer();
+		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f5, f6, f7, f4).endVertex();
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
@@ -192,19 +185,17 @@ public class GuiUtils {
 		GlStateManager.disableTexture2D();
 		GlStateManager.enableBlend();
 		GlStateManager.disableAlpha();
-		GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+				GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
+				GlStateManager.DestFactor.ZERO);
 		GlStateManager.shadeModel(7425);
 		Tessellator tessellator = Tessellator.getInstance();
-		WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-		worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181706_f);
-		worldrenderer.func_181662_b((double) right, (double) top, (double) zLevel).func_181666_a(f1, f2, f3, f)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) top, (double) zLevel).func_181666_a(f5, f6, f7, f4)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) left, (double) bottom, (double) zLevel).func_181666_a(f9, f10, f11, f8)
-				.func_181675_d();
-		worldrenderer.func_181662_b((double) right, (double) bottom, (double) zLevel).func_181666_a(f13, f14, f15, f12)
-				.func_181675_d();
+		VertexBuffer bufferbuilder = tessellator.getBuffer();
+		bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+		bufferbuilder.pos((double) right, (double) top, (double) zLevel).color(f1, f2, f3, f).endVertex();
+		bufferbuilder.pos((double) left, (double) top, (double) zLevel).color(f5, f6, f7, f4).endVertex();
+		bufferbuilder.pos((double) left, (double) bottom, (double) zLevel).color(f9, f10, f11, f8).endVertex();
+		bufferbuilder.pos((double) right, (double) bottom, (double) zLevel).color(f13, f14, f15, f12).endVertex();
 		tessellator.draw();
 		GlStateManager.shadeModel(7424);
 		GlStateManager.disableBlend();
@@ -219,7 +210,7 @@ public class GuiUtils {
 	 */
 	public static void drawItemStack(RenderItem itemRender, float zLevel, GuiScreen gui, ItemStack itemstack, int x,
 			int y) {
-		if (itemstack == null || itemstack.getItem().equals(Item.getItemFromBlock(Blocks.air)))
+		if (itemstack == null || itemstack.isEmpty())
 			return;
 		GlStateManager.enableDepth();
 		itemRender.renderItemAndEffectIntoGUI(itemstack, x, y);
@@ -351,19 +342,6 @@ public class GuiUtils {
 			fontRenderer.drawString(l, pos.a, pos.b, 0xffffffff);
 			pos.b += (1 + fontRenderer.FONT_HEIGHT);
 		});
-	}
-
-	public static void drawBox(int left, int top, int right, int bottom, int color) {
-		float r = (color >> 16 & 0xFF) / 255F;
-		float g = (color >> 8 & 0xFF) / 255F;
-		float b = (color & 0xFF) / 255F;
-		GlStateManager.color(r, g, b);
-		glColor4f(r, g, b, 0.9F);
-		Gui.drawRect(left, top, right, top + 1, color);
-		Gui.drawRect(left, top, left + 1, bottom, color);
-		Gui.drawRect(right - 1, top, right, bottom, color);
-		Gui.drawRect(left, bottom - 1, right, bottom, color);
-		GlStateManager.color(1.0F, 1.0F, 1.0F);
 	}
 
 	/**

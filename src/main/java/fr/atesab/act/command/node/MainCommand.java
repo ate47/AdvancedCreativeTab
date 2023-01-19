@@ -11,13 +11,13 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
 
 public abstract class MainCommand implements ICommand {
 	public List<SubCommand> subCommands = new ArrayList<SubCommand>();
@@ -34,11 +34,11 @@ public abstract class MainCommand implements ICommand {
 
 	@Override
 	public int compareTo(ICommand p_compareTo_1_) {
-		return this.getCommandName().compareTo(p_compareTo_1_.getCommandName());
+		return this.getName().compareTo(p_compareTo_1_.getName());
 	}
 
 	@Override
-	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 		Minecraft mc = Minecraft.getMinecraft();
 		if (args.length == 0)
 			args = new String[] { defaultCommand };
@@ -55,25 +55,25 @@ public abstract class MainCommand implements ICommand {
 				}
 			}
 		}
-		ChatUtils.send(new ChatComponentText(
-				I18n.format("cmd.act.mc.invalid", "/" + this.getCommandName() + " " + defaultCommand).replaceAll("::", " "))
-						.setChatStyle(new ChatStyle()
-								.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-										"/" + this.getCommandName() + " " + defaultCommand))
-								.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-										new ChatComponentText(I18n.format("cmd.act.help.do"))
-												.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.BLUE))))
-								.setColor(EnumChatFormatting.RED)));
+		ChatUtils.send(new TextComponentString(
+				I18n.format("cmd.act.mc.invalid", "/" + this.getName() + " " + defaultCommand).replaceAll("::", " "))
+						.setStyle(new Style()
+								.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+										"/" + this.getName() + " " + defaultCommand))
+								.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+										new TextComponentString(I18n.format("cmd.act.help.do"))
+												.setStyle(new Style().setColor(TextFormatting.BLUE))))
+								.setColor(TextFormatting.RED)));
 	}
 
 	@Override
-	public abstract List<String> getCommandAliases();
+	public abstract List<String> getAliases();
 
 	@Override
-	public abstract String getCommandName();
+	public abstract String getName();
 
 	@Override
-	public List<String> addTabCompletionOptions(ICommandSender sender, String[] args,
+	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
 			BlockPos targetPos) {
 		ArrayList<String> ls = new ArrayList<String>();
 		subCommands.sort(new Comparator<SubCommand>() {
@@ -107,7 +107,7 @@ public abstract class MainCommand implements ICommand {
 	}
 
 	@Override
-	public abstract String getCommandUsage(ICommandSender arg0);
+	public abstract String getUsage(ICommandSender sender);
 
 	@Override
 	public boolean isUsernameIndex(String[] args, int index) {
