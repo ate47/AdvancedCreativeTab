@@ -16,6 +16,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 
 public class GuiGiver extends GuiModifier<String> {
 	private GuiButton giveButton, saveButton, doneButton;
@@ -29,7 +30,8 @@ public class GuiGiver extends GuiModifier<String> {
 		super(parent, s -> {
 		});
 		if ((mc = Minecraft.getMinecraft()).thePlayer != null) {
-			this.currentItemStack = mc.thePlayer.getHeldItem();
+			ItemStack mainHand = mc.thePlayer.getHeldItem(EnumHand.MAIN_HAND);
+			this.currentItemStack = mainHand != null ? mainHand : mc.thePlayer.getHeldItem(EnumHand.OFF_HAND);
 			this.preText = ItemUtils.getGiveCode(this.currentItemStack);
 		}
 	}
@@ -167,7 +169,7 @@ public class GuiGiver extends GuiModifier<String> {
 		code.updateCursorCounter();
 		this.currentItemStack = ItemUtils
 				.getFromGiveCode(code.getText().replaceAll("&", String.valueOf(ChatUtils.MODIFIER)));
-		this.giveButton.enabled = this.currentItemStack != null && mc.thePlayer != null && mc.thePlayer.capabilities.isCreativeMode;
+		this.giveButton.enabled = this.currentItemStack != null && mc.thePlayer != null && mc.thePlayer.isCreative();
 		this.doneButton.enabled = (setter != null && this.currentItemStack != null) || setter == null;
 		if (saveButton != null)
 			saveButton.enabled = this.currentItemStack != null;

@@ -11,13 +11,13 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
 
 public abstract class MainCommand implements ICommand {
 	public List<SubCommand> subCommands = new ArrayList<SubCommand>();
@@ -38,7 +38,7 @@ public abstract class MainCommand implements ICommand {
 	}
 
 	@Override
-	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 		Minecraft mc = Minecraft.getMinecraft();
 		if (args.length == 0)
 			args = new String[] { defaultCommand };
@@ -55,15 +55,15 @@ public abstract class MainCommand implements ICommand {
 				}
 			}
 		}
-		ChatUtils.send(new ChatComponentText(
+		ChatUtils.send(new TextComponentString(
 				I18n.format("cmd.act.mc.invalid", "/" + this.getCommandName() + " " + defaultCommand).replaceAll("::", " "))
-						.setChatStyle(new ChatStyle()
+						.setChatStyle(new Style()
 								.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
 										"/" + this.getCommandName() + " " + defaultCommand))
 								.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-										new ChatComponentText(I18n.format("cmd.act.help.do"))
-												.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.BLUE))))
-								.setColor(EnumChatFormatting.RED)));
+										new TextComponentString(I18n.format("cmd.act.help.do"))
+												.setChatStyle(new Style().setColor(TextFormatting.BLUE))))
+								.setColor(TextFormatting.RED)));
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public abstract class MainCommand implements ICommand {
 	public abstract String getCommandName();
 
 	@Override
-	public List<String> addTabCompletionOptions(ICommandSender sender, String[] args,
+	public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
 			BlockPos targetPos) {
 		ArrayList<String> ls = new ArrayList<String>();
 		subCommands.sort(new Comparator<SubCommand>() {

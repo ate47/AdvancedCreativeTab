@@ -43,7 +43,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 		public void draw(int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
 			GuiUtils.drawRelative(textField, offsetX, offsetY);
 			GuiUtils.drawRightString(fontRenderer,
-					I18n.format(enchantment.getName()) + " : ",
+					net.minecraft.util.text.translation.I18n.translateToLocal(enchantment.getName()) + " : ",
 					offsetX + textField.xPosition, offsetY + textField.yPosition,
 					(err ? Color.RED : level == 0 ? Color.GRAY : Color.WHITE).getRGB(), textField.height);
 			super.draw(offsetX, offsetY, mouseX, mouseY, partialTicks);
@@ -66,7 +66,7 @@ public class GuiEnchModifier extends GuiListModifier<List<Tuple<Enchantment, Int
 
 		@Override
 		public boolean match(String search) {
-			return I18n.format(enchantment.getName()).toLowerCase()
+			return net.minecraft.util.text.translation.I18n.translateToLocal(enchantment.getName()).toLowerCase()
 					.contains(search.toLowerCase());
 		}
 

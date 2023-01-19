@@ -10,13 +10,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.util.text.event.HoverEvent;
 
 public abstract class SCMainCommand extends SubCommand {
 	public static class SubInterface extends MainCommand {
@@ -28,7 +28,7 @@ public abstract class SCMainCommand extends SubCommand {
 		}
 
 		@Override
-		public boolean canCommandSenderUseCommand(ICommandSender sender) {
+		public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
 			return false;
 		}
 
@@ -109,24 +109,20 @@ public abstract class SCMainCommand extends SubCommand {
 				if (args[0].equalsIgnoreCase(alias.get(j))) {
 					String[] SCargs = new String[args.length - 1];
 					System.arraycopy(args, 1, SCargs, 0, SCargs.length);
-					subCommands.get(i).processSubCommand(sender, SCargs, new SubInterface(subCommands, defaultCommand,
-							mainCommand.getCommandName() + " " + getName()));
+					subCommands.get(i).processSubCommand(sender, SCargs,
+							new SubInterface(subCommands, defaultCommand, mainCommand.getCommandName() + " " + getName()));
 					return;
 				}
 			}
 		}
-		ChatUtils
-				.send(new ChatComponentText(
-						I18n.format("cmd.act.mc.invalid", "/" + defaultCommand).replaceAll("::", " "))
-								.setChatStyle(
-										new ChatStyle()
-												.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-														"/" + mainCommand.getCommandName() + " " + this.getName()
-																+ " help"))
-												.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-														new ChatComponentText(I18n.format("cmd.act.help.do"))
-																.setChatStyle(
-																		new ChatStyle().setColor(EnumChatFormatting.BLUE))))
-												.setColor(EnumChatFormatting.RED)));
+		ChatUtils.send(
+				new TextComponentString(I18n.format("cmd.act.mc.invalid", "/" + defaultCommand).replaceAll("::", " "))
+						.setChatStyle(new Style()
+								.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+										"/" + mainCommand.getCommandName() + " " + this.getName() + " help"))
+								.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+										new TextComponentString(I18n.format("cmd.act.help.do"))
+												.setChatStyle(new Style().setColor(TextFormatting.BLUE))))
+								.setColor(TextFormatting.RED)));
 	}
 }

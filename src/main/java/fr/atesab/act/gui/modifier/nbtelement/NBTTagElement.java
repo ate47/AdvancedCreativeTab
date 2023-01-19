@@ -37,7 +37,7 @@ public class NBTTagElement extends NBTElement {
 
 	@Override
 	public String getType() {
-		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.getKeySet().size() + "]";
+		return I18n.format("gui.act.modifier.tag.editor.tag") + "[" + value.getSize() + "]";
 	}
 
 }

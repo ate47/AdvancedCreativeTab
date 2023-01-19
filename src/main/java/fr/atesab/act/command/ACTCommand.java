@@ -9,6 +9,7 @@ import fr.atesab.act.command.node.SubCommand;
 import fr.atesab.act.gui.GuiMenu;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 
 public class ACTCommand extends MainCommand {
 	public final SCOpenGiver SC_OPEN_GIVER;
@@ -31,6 +32,11 @@ public class ACTCommand extends MainCommand {
 		subCommands.add(SC_HEAD = new SCHead());
 		subCommands.add(SC_RANDOM_FIREWORKS = new SCRandomFireWorks());
 		sort();
+	}
+
+	@Override
+	public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+		return true;
 	}
 
 	@Override

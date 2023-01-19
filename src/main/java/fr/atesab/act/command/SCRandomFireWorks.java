@@ -9,7 +9,7 @@ import fr.atesab.act.utils.ItemUtils;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public class SCRandomFireWorks extends SubCommand {
 	private List<String> aliases;

@@ -25,7 +25,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 	static class GuiMetaModifier extends GuiModifier<ItemStack> {
@@ -145,39 +145,12 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 					ItemUtils.getPotionInformation(currentItemStack)));
 		else if (button.id == 11) { // potion type
 			List<ItemStack> potionType = new ArrayList();
-			potionType.add(new ItemStack(Items.potionitem, 1, (currentItemStack.getItemDamage() & 8191) | 8192)); // normal
-			potionType.add(new ItemStack(Items.potionitem, 1, (currentItemStack.getItemDamage() & 8191) | 16384)); // splash
-			if ((currentItemStack.getItemDamage() & 15) == 0 || (currentItemStack.getItemDamage() & 15) == 7
-					|| (currentItemStack.getItemDamage() & 15) == 15) {
-				for (int j = 0; j < 4; j++) {
-					int k = j * 16;
-					potionType.add(new ItemStack(Items.potionitem, 1, (k & 8191) | 8192));
-					potionType.add(new ItemStack(Items.potionitem, 1, (k & 8191) | 16384));
-					potionType.add(new ItemStack(Items.potionitem, 1, ((k + 7) & 8191) | 8192));
-					potionType.add(new ItemStack(Items.potionitem, 1, ((k + 7) & 8191) | 16384));
-				}
-			}
-			if (currentItemStack.getTagCompound() == null
-					|| !currentItemStack.getTagCompound().hasKey("CustomPotionEffects")
-					|| currentItemStack.getTagCompound().getTagList("CustomPotionEffects", 10).tagCount() == 0)
-				for (int i = 0; i < 32; i++) {
-					ItemStack is = new ItemStack(Items.potionitem, 1, i | 8192),
-							is2 = new ItemStack(Items.potionitem, 1, i | 16384);
-					is.setTagCompound(currentItemStack.getTagCompound() != null
-							? (NBTTagCompound) currentItemStack.getTagCompound().copy()
-							: new NBTTagCompound());
-					is2.setTagCompound(is.getTagCompound());
-					is.getTagCompound().setTag("CustomPotionEffects", new NBTTagList());
-					potionType.add(is);
-					potionType.add(is2);
-				}
+			potionType.add(new ItemStack(Items.potionitem));
+			potionType.add(new ItemStack(Items.splash_potion));
+			potionType.add(new ItemStack(Items.lingering_potion));
+			potionType.add(new ItemStack(Items.tipped_arrow));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
-				currentItemStack.setItemDamage(is.getItemDamage());
-				if (is.getTagCompound() != null)
-					if (currentItemStack.getTagCompound() != null)
-						currentItemStack.getTagCompound().merge(is.getTagCompound());
-					else
-						currentItemStack.setTagCompound(is.getTagCompound());
+				currentItemStack = ItemUtils.setItem(is.getItem(), currentItemStack);
 				return null;
 			}, potionType));
 		} else if (button.id == 12) // head
@@ -188,7 +161,7 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 			List<Tuple<String, String>> entities = new ArrayList<>();
 			entities.add(new Tuple<>(I18n.format("gui.act.none"), null));
 			EntityList.getEntityNameList().forEach(ee -> {
-				if (EntityList.entityEggs.get(EntityList.getIDFromString(ee)) != null)
+				if (EntityList.entityEggs.get(ee) != null)
 					entities.add(new Tuple<String, String>(I18n.format("entity." + ee + ".name"), ee));
 			});
 			mc.displayGuiScreen(new GuiButtonListSelector<String>(this, entities, s -> {
@@ -249,7 +222,10 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 		else if (currentItemStack.getItem().equals(Items.enchanted_book))
 			buttonList.add(new GuiButton(9, width / 2 - 100, height / 2 + 21,
 					I18n.format("gui.act.modifier.ench") + " (" + I18n.format("item.book.name") + ")"));
-		else if (currentItemStack.getItem().equals(Items.potionitem)) {
+		else if (currentItemStack.getItem().equals(Items.potionitem)
+				|| currentItemStack.getItem().equals(Items.splash_potion)
+				|| currentItemStack.getItem().equals(Items.lingering_potion)
+				|| currentItemStack.getItem().equals(Items.tipped_arrow)) {
 			buttonList.add(new GuiButton(10, width / 2 - 100, height / 2 + 21, 100, 20,
 					I18n.format("gui.act.modifier.meta.potion")));
 			buttonList.add(new GuiButton(11, width / 2 + 1, height / 2 + 21, 99, 20,
@@ -257,7 +233,9 @@ public class GuiItemStackModifier extends GuiModifier<ItemStack> {
 		} else if (currentItemStack.getItem().equals(Items.skull) && currentItemStack.getItemDamage() == 3)
 			buttonList.add(new GuiButton(12, width / 2 - 100, height / 2 + 21, I18n.format("item.skull.char.name")));
 		else if (currentItemStack.getItem().equals(Items.command_block_minecart)
-				|| currentItemStack.getItem().equals(Item.getItemFromBlock(Blocks.command_block))) {
+				|| currentItemStack.getItem().equals(Item.getItemFromBlock(Blocks.command_block))
+				|| currentItemStack.getItem().equals(Item.getItemFromBlock(Blocks.chain_command_block))
+				|| currentItemStack.getItem().equals(Item.getItemFromBlock(Blocks.repeating_command_block))) {
 			buttonList.add(
 					new GuiButton(13, width / 2 - 100, height / 2 + 21, I18n.format("gui.act.modifier.meta.command")));
 		} else if (currentItemStack.getItem().equals(Items.spawn_egg))

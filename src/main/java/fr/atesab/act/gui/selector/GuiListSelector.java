@@ -7,6 +7,7 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.init.SoundEvents;
 
 public class GuiListSelector<T> extends GuiListModifier<T> {
 	private Function<T, GuiScreen> selector;
