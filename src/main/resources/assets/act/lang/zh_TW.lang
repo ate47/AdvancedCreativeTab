@@ -4,7 +4,7 @@ key.act.giver=打開give界面
 key.act.menu=打開菜單
 key.act.edit=編輯手中物品
 
-itemGroup.act=高級
+itemGroup.act=高級創造物品欄
 
 gui.act.bad=你好 %s. 你所使用的MC版本已過時數年. 這只是個提示. Hugs and Kisses
 gui.act.bad.skip=跳過

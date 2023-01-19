@@ -86,7 +86,7 @@ import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfessio
 public class ACTMod {
 	public static final String MOD_ID = "act";
 	public static final String MOD_NAME = "Advanced Creative 2";
-	public static final String MOD_VERSION = "2.1";
+	public static final String MOD_VERSION = "2.1a";
 	public static final String MOD_LITTLE_NAME = "ACT-Mod";
 	/**
 	 * Link to {@link ModGuiFactory}

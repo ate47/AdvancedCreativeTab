@@ -3,7 +3,19 @@
 
 > Mod: Advanced Creative 2 (act)
 > Author(s): ATE47
-> Minecraft version(s): 1.12.2
+> Minecraft version(s): 1.8.9
+
+-------------------------------------------------------
+---------------- ACT 2.1a -- (MC1.8.9) ----------------
+-------------------------------------------------------
+
+- Probably the final version for MC 1.8.9
+- (By HowardZHY)
+- Fixed crashes when no item inhand
+- Added Chinese translations
+
+Bug:
+- Fixed
 
 -------------------------------------------------------
 ---------------- ACT 2.1 -- (MC1.12.2) ----------------
