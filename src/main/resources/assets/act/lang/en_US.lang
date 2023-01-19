@@ -6,8 +6,6 @@ key.act.edit=Edit inhand item
 
 itemGroup.act=Advanced Creative Tab
 
-gui.act.bad=Hi, user of %s. You are currently using a version of Minecraft that has been obsolete for several years. This popup is just here to signal it to you. Hugs and Kisses
-gui.act.bad.skip=Accept my degenerated condition and skip
 gui.act.error=Error
 gui.act.cancel=Cancel
 gui.act.config.name=Name

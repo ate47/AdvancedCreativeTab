@@ -26,7 +26,7 @@ public class CommandUtils {
 	 */
 	public static List<String> getItemList() {
 		List<String> items = new ArrayList<>();
-		Item.itemRegistry.getKeys().forEach(rl -> items.add(rl.toString()));
+		Item.REGISTRY.getKeys().forEach(rl -> items.add(rl.toString()));
 		return items;
 	}
 
@@ -38,9 +38,12 @@ public class CommandUtils {
 	 */
 	public static List<String> getPlayerList() {
 		List<NetworkPlayerInfo> networkPlayerInfos = new ArrayList<NetworkPlayerInfo>(
-				Minecraft.getMinecraft().thePlayer.sendQueue.getPlayerInfoMap());
-		networkPlayerInfos
-				.sort((o1, o2) -> o1.getGameProfile().getName().compareToIgnoreCase(o2.getGameProfile().getName()));
+				Minecraft.getMinecraft().thePlayer.connection.getPlayerInfoMap());
+		networkPlayerInfos.sort(new Comparator<NetworkPlayerInfo>() {
+			public int compare(NetworkPlayerInfo o1, NetworkPlayerInfo o2) {
+				return o1.getGameProfile().getName().compareToIgnoreCase(o2.getGameProfile().getName());
+			}
+		});
 		List<String> players = new ArrayList<String>();
 		for (NetworkPlayerInfo info : networkPlayerInfos)
 			players.add(info.getGameProfile().getName());

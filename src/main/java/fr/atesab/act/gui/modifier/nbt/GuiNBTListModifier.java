@@ -21,7 +21,7 @@ public class GuiNBTListModifier extends GuiListModifier<NBTTagList> implements G
 	public GuiNBTListModifier(String title, GuiScreen parent, Consumer<NBTTagList> setter, NBTTagList list) {
 		super(parent, new ArrayList<>(), setter);
 		this.title = title;
-		this.list = (NBTTagList) list.copy();
+		this.list = list.copy();
 		String k = "...";
 		ItemUtils.forEachInNBTTagList(list, base -> elements.add(NBTElement.getElementByBase(this, k, base)));
 		elements.add(new AddElementList(this, () -> {

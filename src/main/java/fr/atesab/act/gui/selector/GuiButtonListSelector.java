@@ -29,8 +29,7 @@ public class GuiButtonListSelector<T> extends GuiListSelector<T> {
 
 		@Override
 		public boolean match(String search) {
-			return button.displayString != null ? button.displayString.toLowerCase().contains(search.toLowerCase())
-					: true;
+			return button.displayString.toLowerCase().contains(search.toLowerCase());
 		}
 
 	}

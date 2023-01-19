@@ -17,7 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiMenu extends GuiListModifier<Object> {
 	private static class MenuListElement extends ListElement {
@@ -49,7 +49,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 		public boolean match(String search) {
 			search = search.toLowerCase();
 			return stack.getDisplayName().toLowerCase().contains(search)
-					|| new ItemStack(stack.getItem()).getDisplayName().toLowerCase().contains(search);
+					|| stack.getItem().func_190903_i().getDisplayName().toLowerCase().contains(search);
 		}
 
 		@Override
@@ -101,7 +101,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 		}, true, false);
 		Tuple btn1 = new Tuple<String, Tuple<Runnable, Runnable>>(I18n.format("cmd.act.edit"), new Tuple<>(() -> {
 			final int slot = mc.thePlayer.inventory.currentItem;
-			mc.displayGuiScreen(new GuiItemStackModifier(this, mc.thePlayer.getHeldItem().copy(),
+			mc.displayGuiScreen(new GuiItemStackModifier(this, mc.thePlayer.getHeldItemMainhand().copy(),
 					is -> ItemUtils.give(mc, is, 36 + slot)));
 		}, () -> {
 		}));
@@ -109,7 +109,7 @@ public class GuiMenu extends GuiListModifier<Object> {
 				new Tuple<>(() -> Minecraft.getMinecraft().displayGuiScreen(new GuiGiver(this)), () -> {
 				}));
 		buttons = Minecraft.getMinecraft().thePlayer == null ? new Tuple[] { btn2 } : new Tuple[] { btn1, btn2 };
-		elements.add(new ButtonElementList(24, 24, 20, 20, EnumChatFormatting.GREEN + "+", ADD, null));
+		elements.add(new ButtonElementList(24, 24, 20, 20, TextFormatting.GREEN + "+", ADD, null));
 		ACTMod.getCustomItems().forEach(data -> ADD_STACK.accept(ItemUtils.getFromGiveCode(data)));
 	}
 

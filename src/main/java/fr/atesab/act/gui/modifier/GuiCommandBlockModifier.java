@@ -2,8 +2,6 @@ package fr.atesab.act.gui.modifier;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import fr.atesab.act.gui.selector.GuiTypeListSelector;
@@ -20,6 +18,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 
 public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
@@ -81,9 +80,11 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 			break;
 		case 3:
 			setData();
-			List<ItemStack> potionType = new ArrayList<>();
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.command_block)));
-			potionType.add(new ItemStack(Items.command_block_minecart));
+			NonNullList<ItemStack> potionType = NonNullList.func_191196_a();
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.REPEATING_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.CHAIN_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
 				stack = ItemUtils.setItem(is.getItem(), stack);
 				return null;
@@ -97,14 +98,14 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		drawDefaultBackground();
 		GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.command.cmd") + " : ", width / 2 - 150,
-				command.yPosition, Color.WHITE.getRGB(), command.height);
+				command.xPosition, Color.WHITE.getRGB(), command.height);
 		GuiUtils.drawString(fontRendererObj, I18n.format("gui.act.modifier.meta.command.name") + " : ", width / 2 - 150,
-				name.yPosition, Color.WHITE.getRGB(), name.height);
+				name.xPosition, Color.WHITE.getRGB(), name.height);
 		command.drawTextBox();
 		name.drawTextBox();
 		super.drawScreen(mouseX, mouseY, partialTicks);
-		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, width / 2 - 10, name.yPosition - 20);
-		if (GuiUtils.isHover(width / 2 - 10, name.yPosition - 20, 20, 20, mouseX, mouseY))
+		GuiUtils.drawItemStack(itemRender, zLevel, this, stack, width / 2 - 10, name.xPosition - 20);
+		if (GuiUtils.isHover(width / 2 - 10, name.xPosition - 20, 20, 20, mouseX, mouseY))
 			renderToolTip(stack, mouseX, mouseY);
 		GlStateManager.color(1.0F, 1.0F, 1.0F);
 	}
