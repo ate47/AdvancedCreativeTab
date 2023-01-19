@@ -82,8 +82,10 @@ public class GuiCommandBlockModifier extends GuiModifier<ItemStack> {
 		case 3:
 			setData();
 			List<ItemStack> potionType = new ArrayList<>();
-			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.command_block)));
-			potionType.add(new ItemStack(Items.command_block_minecart));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.REPEATING_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Item.getItemFromBlock(Blocks.CHAIN_COMMAND_BLOCK)));
+			potionType.add(new ItemStack(Items.COMMAND_BLOCK_MINECART));
 			mc.displayGuiScreen(new GuiTypeListSelector(this, is -> {
 				stack = ItemUtils.setItem(is.getItem(), stack);
 				return null;

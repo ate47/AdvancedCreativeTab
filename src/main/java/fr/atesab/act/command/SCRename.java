@@ -13,7 +13,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public class SCRename extends SubCommand {
 
@@ -45,9 +45,7 @@ public class SCRename extends SubCommand {
 	public void processSubCommand(ICommandSender sender, String[] args, MainCommand mainCommand)
 			throws CommandException {
 		Minecraft mc = Minecraft.getMinecraft();
-		ItemStack is = mc.thePlayer.getHeldItem();
-		if (is == null)
-			return;
+		ItemStack is = mc.thePlayer.getHeldItemMainhand();
 		if (args.length == 0)
 			is.clearCustomName();
 		else

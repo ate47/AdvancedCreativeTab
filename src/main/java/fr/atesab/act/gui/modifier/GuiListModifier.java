@@ -20,7 +20,7 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RunElementButton extends GuiButton {
@@ -45,7 +45,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class AddElementButton extends RunElementButton {
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, ListElement element,
 				Supplier<ListElement> builder) {
-			this(parent, x, y, widthIn, heightIn, EnumChatFormatting.GREEN + "+", element, builder);
+			this(parent, x, y, widthIn, heightIn, TextFormatting.GREEN + "+", element, builder);
 		}
 
 		public AddElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn, String text,
@@ -83,7 +83,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 			super(sizeX, Math.max(21, sizeY));
 			this.parent = parent;
 			this.supplier = builder;
-			buttonList.add(new GuiButton(0, 0, 0, getSizeX(), 20, EnumChatFormatting.GREEN + "+"));
+			buttonList.add(new GuiButton(0, 0, 0, getSizeX(), 20, TextFormatting.GREEN + "+"));
 		}
 
 		@Override
@@ -235,7 +235,7 @@ public abstract class GuiListModifier<T> extends GuiModifier<T> {
 	public static class RemoveElementButton extends RunElementButton {
 		public RemoveElementButton(GuiListModifier<?> parent, int x, int y, int widthIn, int heightIn,
 				ListElement element) {
-			super(x, y, widthIn, heightIn, EnumChatFormatting.RED + "-", () -> {
+			super(x, y, widthIn, heightIn, TextFormatting.RED + "-", () -> {
 				parent.elements.remove(element);
 				parent.needRedefine = true;
 			}, null);

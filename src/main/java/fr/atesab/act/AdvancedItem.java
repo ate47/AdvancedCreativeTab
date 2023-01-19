@@ -14,6 +14,7 @@ public class AdvancedItem extends Item {
 	private Collection<ItemStack> subItems = new ArrayList<>();
 
 	public AdvancedItem() {
+		setRegistryName(ACTMod.MOD_ID, "adv_it");
 		setCreativeTab(ACTMod.ADVANCED_CREATIVE_TAB);
 		setHasSubtypes(true);
 	}
@@ -24,7 +25,7 @@ public class AdvancedItem extends Item {
 	}
 
 	public void addSubitem(Item sub) {
-		if (sub.equals(Item.getItemFromBlock(Blocks.air)))
+		if (sub.equals(Item.getItemFromBlock(Blocks.AIR)))
 			return;
 		if (sub.getHasSubtypes()) {
 			List<ItemStack> list = new ArrayList<>();
@@ -36,11 +37,7 @@ public class AdvancedItem extends Item {
 				list.add(new ItemStack(sub));
 			subItems.addAll(list);
 		} else
-			addSubitemStack(new ItemStack(sub));
-	}
-
-	public void addSubitemStack(ItemStack sub) {
-		subItems.add(sub);
+			subItems.add(new ItemStack(sub));
 	}
 
 	@Override
