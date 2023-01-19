@@ -18,8 +18,8 @@ plugins {
 apply plugin: "net.minecraftforge.gradle.forge"
 apply plugin: 'org.spongepowered.mixin'
 
-version = "1.8.9-Final"
-group = "com128.kzf" //http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "2.1.1"
+group = "fr.atesab.act" //http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ACT" //name of the output jar
 
 sourceCompatibility = targetCompatibility = 1.8 //using java 8
