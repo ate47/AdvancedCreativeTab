@@ -1,36 +1,35 @@
-name: Building jars 🏗️
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain Java versions, and provides a first line of defence against bad commits.
 
-on:
-  push:
-    paths:
-      - "src/**"
-  workflow_dispatch:
+name: Build
+
+on: [push, pull_request]
 
 jobs:
   build:
+    strategy:
+      matrix:
+        java: [
+            "8" # Latest version
+          ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: 🪛 Set up JDK
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
+      - uses: actions/setup-java@v2
         with:
-          java-version: 8
-      - name: 🪛 Cache local Maven repository
-        uses: actions/cache@v2
+          distribution: "temurin"
+          java-version: ${{ matrix.java }}
+
+      - name: Grant execute permission
+        run: chmod +x ./gradlew
+      - name: Build with Gradle
+        run: ./gradlew build
+        
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.0.0
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      - name: 🏗️ Build jars
-        run: |
-          chmod u+x gradlew
-          ./gradlew build
-      - name: 🗜️ Extract jars
-        run: |
-          mkdir -p build_jars
-          cp -r build/libs/* build_jars
-      - name: ☁️ Deploy jars
-        uses: actions/upload-artifact@v3
-        with:
-          name: "temp jars"
-          path: "build_jars/*"
+          # Artifact name
+          name: build
+          path: build/libs/*.jar
