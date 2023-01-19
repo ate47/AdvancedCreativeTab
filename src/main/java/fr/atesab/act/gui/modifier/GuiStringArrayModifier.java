@@ -13,7 +13,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiStringArrayModifier extends GuiModifier<String[]> {
 	private ArrayList<String> values;
@@ -74,12 +74,12 @@ public class GuiStringArrayModifier extends GuiModifier<String[]> {
 			tfs[i].setMaxStringLength(Integer.MAX_VALUE);
 			tfs[i].setText(values.get(i));
 			buttonList.add(btsDel[i] = new GuiValueButton<Integer>(5, width / 2 + 165, 21 + 21 * i % (elms * 21), 20,
-					20, EnumChatFormatting.RED + "-", i));
+					20, TextFormatting.RED + "-", i));
 			buttonList.add(btsAdd[i] = new GuiValueButton<Integer>(6, width / 2 + 187, 21 + 21 * i % (elms * 21), 20,
-					20, EnumChatFormatting.GREEN + "+", i));
+					20, TextFormatting.GREEN + "+", i));
 		}
 		buttonList.add(btsAdd[i] = new GuiValueButton<Integer>(6, width / 2 - 100, 21 + 21 * i % (elms * 21), 200, 20,
-				EnumChatFormatting.GREEN + "+", i));
+				TextFormatting.GREEN + "+", i));
 
 	}
 

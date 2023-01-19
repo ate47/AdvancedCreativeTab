@@ -18,7 +18,7 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
 public class GuiColorModifier extends GuiModifier<Integer> {
@@ -103,16 +103,16 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 			drawRect(width / 2 - 120, height / 2 - 100, width / 2 + 120, height / 2 - 80, color + 0xff000000);
 		Runnable show = () -> {
 		};
-		for (int i = 0; i < ItemDye.dyeColors.length; ++i) {
+		for (int i = 0; i < ItemDye.DYE_COLORS.length; ++i) {
 			int x = width / 2 - 120 + (i % 2) * 220;
 			int y = height / 2 - 80 + (i / 2) * 20;
-			drawRect(x, y, x + 20, y + 20, 0xff000000 + ItemDye.dyeColors[i]);
+			drawRect(x, y, x + 20, y + 20, 0xff000000 + ItemDye.DYE_COLORS[i]);
 			if (GuiUtils.isHover(x, y, 20, 20, mouseX, mouseY)) {
 				final int j = i;
 				show = () -> GuiUtils.drawTextBox(fontRendererObj, mouseX, mouseY, width, height, zLevel,
 						I18n.format("item.fireworksCharge." + EnumDyeColor.byDyeDamage(j).getUnlocalizedName()));
 			}
-			GuiUtils.drawItemStack(itemRender, zLevel, this, new ItemStack(Items.dye, 1, i), x + 2, y + 2);
+			GuiUtils.drawItemStack(itemRender, zLevel, this, new ItemStack(Items.DYE, 1, i), x + 2, y + 2);
 		}
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		show.run();
@@ -230,10 +230,10 @@ public class GuiColorModifier extends GuiModifier<Integer> {
 		} else if (GuiUtils.isHover(width / 2 - 120, height / 2 - 100, 240, 20, mouseX, mouseY))
 			updateColor(defaultColor);
 		else
-			for (int i = 0; i < ItemDye.dyeColors.length; ++i)
+			for (int i = 0; i < ItemDye.DYE_COLORS.length; ++i)
 				if (GuiUtils.isHover(width / 2 - 120 + (i % 2) * 220, height / 2 - 80 + (i / 2) * 20, 20, 20, mouseX,
 						mouseY))
-					updateColor(ItemDye.dyeColors[i]);
+					updateColor(ItemDye.DYE_COLORS[i]);
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 

@@ -7,6 +7,7 @@ import fr.atesab.act.gui.modifier.GuiListModifier;
 import fr.atesab.act.utils.Tuple;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.init.SoundEvents;
 
 public class GuiListSelector<T> extends GuiListModifier<T> {
 	private Function<T, GuiScreen> selector;
@@ -35,7 +36,7 @@ public class GuiListSelector<T> extends GuiListModifier<T> {
 	}
 
 	public void select(T t) {
-		playClick();
+		mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 		GuiScreen screen = selector.apply(t);
 		mc.displayGuiScreen(screen == null ? parent : screen);
 	}

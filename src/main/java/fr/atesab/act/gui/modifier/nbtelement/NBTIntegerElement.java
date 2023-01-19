@@ -29,9 +29,9 @@ public class NBTIntegerElement extends NBTNumericElement<Integer> {
 			break;
 		case 1: {
 			List<Tuple<String, Integer>> list = new ArrayList<>();
-			Enchantment.func_181077_c().forEach(rl -> {
-				Enchantment e = Enchantment.getEnchantmentByLocation(rl.toString());
-				list.add(new Tuple(I18n.format((e).getName()) + " (" + e.effectId + ")", e.effectId));
+			Enchantment.REGISTRY.forEach(e -> {
+				int id = Enchantment.getEnchantmentID((Enchantment) e);
+				list.add(new Tuple(I18n.format(((Enchantment) e).getName()) + " (" + id + ")", id));
 			});
 			mc.displayGuiScreen(new GuiButtonListSelector<Integer>(parent, list, i -> {
 				updateValue(i);

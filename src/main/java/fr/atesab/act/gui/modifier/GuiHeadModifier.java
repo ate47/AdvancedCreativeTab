@@ -27,7 +27,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiHeadModifier extends GuiModifier<ItemStack> {
 	private ItemStack stack;
@@ -56,7 +56,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 			name.setText(mc.getSession().getUsername());
 		case 3: // load by name
 			try {
-				err.set(EnumChatFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
+				err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
 				ItemUtils.getHead(stack, name.getText());
 				loadHead();
 			} catch (Exception e) {
@@ -70,7 +70,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 			}
 			break;
 		case 4: // load by link
-			err.set(EnumChatFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
+			err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
 			ItemUtils.getHead(stack, uuid.getText(), link.getText(), name.getText().isEmpty() ? null : name.getText());
 			loadHead();
 			break;
@@ -93,7 +93,7 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 							.setSelectedFile(new File(name.getText().isEmpty() ? "skin.png" : name.getText() + ".png"));
 					if (fileChooser.showDialog(null, I18n.format("gui.act.save")) == JFileChooser.APPROVE_OPTION) {
 						try {
-							err.set(EnumChatFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
+							err.set(TextFormatting.GOLD + I18n.format("gui.act.modifier.head.loading") + "...");
 							URL url = new URL(link.getText());
 							InputStream stream = url.openStream();
 							byte[] buffer = new byte[stream.available()];
@@ -102,11 +102,11 @@ public class GuiHeadModifier extends GuiModifier<ItemStack> {
 							OutputStream writer = new FileOutputStream(f);
 							writer.write(buffer);
 							writer.close();
-							errType.set(EnumChatFormatting.GREEN + I18n.format("gui.act.modifier.head.fileSaved"));
+							errType.set(TextFormatting.GREEN + I18n.format("gui.act.modifier.head.fileSaved"));
 							String s = f.toString();
 							if (s.length() > 50)
 								s = s.substring(0, 50) + "...";
-							err.set(EnumChatFormatting.GREEN + s);
+							err.set(TextFormatting.GREEN + s);
 						} catch (Exception e) {
 							errType.set(e instanceof FileNotFoundException
 									? I18n.format("gui.act.modifier.head.fileNotFound")
